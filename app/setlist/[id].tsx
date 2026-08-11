@@ -3,10 +3,10 @@ import {
   Alert,
   Modal,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { NestableScrollContainer } from 'react-native-draggable-flatlist';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -28,13 +28,18 @@ import { formatDuration, formatMinutes } from '@/lib/id';
 import { setlistDurationSec } from '@/lib/setMath';
 import type { SetBlock } from '@/types/models';
 
+type PickerMode =
+  | { type: 'add'; setId: string }
+  | { type: 'replace'; setId: string; songId: string }
+  | null;
+
 export default function SetlistDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const c = useThemeColors();
   const { setlists, songs, songsById, updateSetlistSets } = useApp();
   const setlist = setlists.find((s) => s.id === id);
-  const [pickerSetId, setPickerSetId] = useState<string | null>(null);
+  const [picker, setPicker] = useState<PickerMode>(null);
   const [generateOpen, setGenerateOpen] = useState(false);
 
   const total = useMemo(
@@ -66,7 +71,30 @@ export default function SetlistDetailScreen() {
       };
     });
     await persist(sets);
-    setPickerSetId(null);
+    setPicker(null);
+  }
+
+  async function replaceSongInSet(setId: string, oldSongId: string, newSongId: string) {
+    const sets = setlist!.sets.map((block) => {
+      if (block.id !== setId) return block;
+      if (newSongId !== oldSongId && block.songs.some((r) => r.songId === newSongId)) {
+        // already in set — just remove old
+        return {
+          ...block,
+          songs: block.songs
+            .filter((r) => r.songId !== oldSongId)
+            .map((r, i) => ({ ...r, order: i })),
+        };
+      }
+      return {
+        ...block,
+        songs: block.songs.map((r, i) =>
+          r.songId === oldSongId ? { songId: newSongId, order: i } : { ...r, order: i },
+        ),
+      };
+    });
+    await persist(sets);
+    setPicker(null);
   }
 
   async function removeSong(setId: string, songId: string) {
@@ -80,6 +108,29 @@ export default function SetlistDetailScreen() {
       };
     });
     await persist(sets);
+  }
+
+  async function reorderSongs(setId: string, songIds: string[]) {
+    const sets = setlist!.sets.map((block) => {
+      if (block.id !== setId) return block;
+      return {
+        ...block,
+        songs: songIds.map((songId, order) => ({ songId, order })),
+      };
+    });
+    await persist(sets);
+  }
+
+  function confirmRemove(setId: string, songId: string) {
+    const song = songsById.get(songId);
+    Alert.alert(t('common.confirmDelete'), song?.title ?? '', [
+      { text: t('common.no'), style: 'cancel' },
+      {
+        text: t('common.yes'),
+        style: 'destructive',
+        onPress: () => void removeSong(setId, songId),
+      },
+    ]);
   }
 
   async function applyGenerated(
@@ -99,11 +150,12 @@ export default function SetlistDetailScreen() {
 
   const usedIds = new Set(setlist.sets.flatMap((s) => s.songs.map((r) => r.songId)));
   const targetMinutes = setlist.sets[0]?.targetMinutes ?? 45;
+  const replacingId = picker?.type === 'replace' ? picker.songId : null;
 
   return (
     <Screen>
       <Stack.Screen options={{ title: setlist.name }} />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+      <NestableScrollContainer contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
         <BrandMark />
         <Title>{setlist.name}</Title>
         <Subtitle>
@@ -118,59 +170,54 @@ export default function SetlistDetailScreen() {
           />
         </View>
 
-        <SetsTables sets={setlist.sets} songsById={songsById} />
+        <SetsTables
+          sets={setlist.sets}
+          songsById={songsById}
+          nestable
+          defaultExpanded={false}
+          onRemoveSong={({ setId, songId }) => confirmRemove(setId, songId)}
+          onChangeSong={({ setId, songId }) =>
+            setPicker({ type: 'replace', setId, songId })
+          }
+          onAddSong={(setId) => setPicker({ type: 'add', setId })}
+          onReorderSongs={(setId, songIds) => void reorderSongs(setId, songIds)}
+        />
+      </NestableScrollContainer>
 
-        <View style={{ marginTop: 16, gap: 10 }}>
-          {setlist.sets.map((block, index) => (
-            <Card key={`edit_${block.id}`} index={index}>
-              <Text style={{ color: c.text, fontWeight: '800', marginBottom: 8 }}>
-                {t('setlists.setLabel', { n: index + 1 })}
-              </Text>
-              {block.songs.map((ref) => {
-                const song = songsById.get(ref.songId);
-                if (!song) return null;
-                return (
-                  <View key={ref.songId} style={styles.editRow}>
-                    <Text style={{ color: c.textMuted, flex: 1 }} numberOfLines={1}>
-                      {song.title}
-                    </Text>
-                    <GhostButton
-                      label={t('setlists.removeFromSet')}
-                      danger
-                      onPress={() => void removeSong(block.id, song.id)}
-                    />
-                  </View>
-                );
-              })}
-              <PrimaryButton
-                label={t('setlists.addSongToSet')}
-                onPress={() => setPickerSetId(block.id)}
-              />
-            </Card>
-          ))}
-        </View>
-      </ScrollView>
-
-      <Modal visible={!!pickerSetId} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={!!picker} animationType="slide" presentationStyle="pageSheet">
         <Screen>
           <View style={{ padding: 16, flex: 1 }}>
-            <Title>{t('setlists.pickSong')}</Title>
-            <Subtitle>{t('repertoire.title')}</Subtitle>
+            <Title>
+              {picker?.type === 'replace'
+                ? t('setlists.changeSong')
+                : t('setlists.pickSong')}
+            </Title>
+            <Subtitle>
+              {picker?.type === 'replace'
+                ? t('setlists.changeSongHint')
+                : t('repertoire.title')}
+            </Subtitle>
             <ScrollView>
               {songs.map((song) => {
                 const already = usedIds.has(song.id);
+                const isCurrent = replacingId === song.id;
                 return (
                   <Card
                     key={song.id}
                     onPress={() => {
-                      if (!pickerSetId) return;
-                      void addSongToSet(pickerSetId, song.id);
+                      if (!picker) return;
+                      if (picker.type === 'add') {
+                        void addSongToSet(picker.setId, song.id);
+                        return;
+                      }
+                      void replaceSongInSet(picker.setId, picker.songId, song.id);
                     }}>
                     <Text style={{ color: c.text, fontWeight: '700' }}>{song.title}</Text>
                     <Text style={{ color: c.textMuted, marginTop: 2 }}>
                       {song.artist} · {song.bpm} BPM · {song.key} ·{' '}
                       {t(`genres.${song.genre}`)}
-                      {already ? ' · ✓' : ''} · {formatDuration(song.durationSec)}
+                      {isCurrent ? ` · ${t('setlists.currentSong')}` : already ? ' · ✓' : ''} ·{' '}
+                      {formatDuration(song.durationSec)}
                     </Text>
                   </Card>
                 );
@@ -181,7 +228,7 @@ export default function SetlistDetailScreen() {
                 </Card>
               ) : null}
             </ScrollView>
-            <GhostButton label={t('common.cancel')} onPress={() => setPickerSetId(null)} />
+            <GhostButton label={t('common.cancel')} onPress={() => setPicker(null)} />
           </View>
         </Screen>
       </Modal>
@@ -205,12 +252,3 @@ export default function SetlistDetailScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  editRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-});

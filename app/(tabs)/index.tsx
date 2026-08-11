@@ -132,7 +132,7 @@ export default function RepertoireScreen() {
           onChangeText={setQuery}
           placeholder="Artist / title / key"
         />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+        <View style={styles.chipWrap}>
           <Chip
             label={t('repertoire.allGenres')}
             selected={genre === 'all'}
@@ -146,13 +146,15 @@ export default function RepertoireScreen() {
               onPress={() => setGenre(g)}
             />
           ))}
-        </ScrollView>
+        </View>
       </View>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+        style={{ width: '100%' }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32, width: '100%' }}
         ListEmptyComponent={
           <Card>
             <Body muted>{t('repertoire.empty')}</Body>
@@ -282,8 +284,16 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     flexDirection: 'row',
     alignItems: 'flex-start',
+    width: '100%',
+    maxWidth: '100%',
   },
-  pad: { paddingHorizontal: 16 },
+  pad: { paddingHorizontal: 16, width: '100%', maxWidth: '100%' },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 8,
+    width: '100%',
+  },
   rowBetween: { flexDirection: 'row', alignItems: 'flex-start' },
   songTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },

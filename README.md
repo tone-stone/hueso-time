@@ -6,27 +6,38 @@ App web y móvil para bandas de covers: repertorio, BPM, tonalidad, género y se
 
 - Expo + React Native (iOS, Android, Web)
 - Expo Router
-- Datos locales (AsyncStorage) con interfaz lista para API
+- Datos locales (AsyncStorage) **o** API (`backend/`)
 - i18n: Español / English
 
-## Correr
+## Correr app
 
 ```bash
 npm start
 ```
 
-Luego `w` (web), `a` (Android) o `i` (iOS).
+## Backend CRUD
+
+```bash
+cd backend
+npm install
+npm run seed
+npm run dev
+```
+
+API en `http://localhost:8787` — ver `backend/README.md`.
+
+Para que la app use el API, creá `.env`:
+
+```
+EXPO_PUBLIC_USE_API=1
+EXPO_PUBLIC_API_URL=http://localhost:8787
+```
 
 ## Estructura útil
 
 - `types/models.ts` — Song, Setlist, Set
 - `data/repository.ts` — contrato de datos
-- `data/localRepository.ts` — implementación local
-- `context/AppContext.tsx` — estado de la app
-- `i18n/` — traducciones
+- `data/localRepository.ts` — AsyncStorage
+- `data/apiRepository.ts` — cliente HTTP
+- `backend/` — API Hono (CRUD)
 - `app/(tabs)/` — Repertorio, Setlists, Ajustes
-- `app/setlist/[id].tsx` — armar sets
-
-## Próximo paso (API)
-
-Implementá el mismo contrato `DataRepository` contra tu backend y cambiá `repo` en `context/AppContext.tsx`.

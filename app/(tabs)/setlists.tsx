@@ -89,7 +89,9 @@ export default function SetlistsScreen() {
       <FlatList
         data={setlists}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+        style={{ width: '100%' }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32, width: '100%' }}
         ListEmptyComponent={
           <Card>
             <Body muted>{t('setlists.empty')}</Body>
@@ -150,6 +152,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     flexDirection: 'row',
     alignItems: 'flex-start',
+    width: '100%',
+    maxWidth: '100%',
   },
   name: { fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },

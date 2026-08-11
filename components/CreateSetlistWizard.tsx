@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { NestableScrollContainer } from 'react-native-draggable-flatlist';
 import { useTranslation } from 'react-i18next';
 
 import { SetsTables } from '@/components/SetsTables';
@@ -158,7 +159,7 @@ export function CreateSetlistWizard({
 
   if (step === 'preview' && previewSets) {
     return (
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+      <NestableScrollContainer contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
         <Title>{t('generate.previewTitle')}</Title>
         <Subtitle>
           {t('generate.previewSubtitle', {
@@ -168,7 +169,24 @@ export function CreateSetlistWizard({
           })}
         </Subtitle>
 
-        <SetsTables sets={previewSets} songsById={songsById} />
+        <SetsTables
+          sets={previewSets}
+          songsById={songsById}
+          nestable
+          defaultExpanded={false}
+          onReorderSongs={(setId, songIds) => {
+            setPreviewSets((prev) =>
+              (prev ?? []).map((block) =>
+                block.id !== setId
+                  ? block
+                  : {
+                      ...block,
+                      songs: songIds.map((songId, order) => ({ songId, order })),
+                    },
+              ),
+            );
+          }}
+        />
 
         <View style={{ gap: 10, marginTop: 18 }}>
           <PrimaryButton label={t('generate.saveShow')} onPress={onConfirmSave} />
@@ -179,7 +197,7 @@ export function CreateSetlistWizard({
           />
           <GhostButton label={t('common.cancel')} onPress={onCancel} />
         </View>
-      </ScrollView>
+      </NestableScrollContainer>
     );
   }
 

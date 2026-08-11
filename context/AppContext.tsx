@@ -9,6 +9,7 @@ import React, {
 import { useTranslation } from 'react-i18next';
 
 import { DEFAULT_SET_COUNT, DEFAULT_SET_MINUTES } from '@/constants/defaults';
+import { apiRepository, isApiEnabled } from '@/data/apiRepository';
 import { localRepository } from '@/data/localRepository';
 import type { DataRepository } from '@/data/repository';
 import { buildBarraLibreSeedSongs } from '@/data/seedBarraLibre';
@@ -49,7 +50,7 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 /** Swap this for an API repository when backend is ready. */
-const repo: DataRepository = localRepository;
+const repo: DataRepository = isApiEnabled() ? apiRepository : localRepository;
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { i18n } = useTranslation();

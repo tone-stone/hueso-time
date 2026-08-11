@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -8,12 +8,6 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
-import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { AmbientBackground, Waveform } from '@/components/AmbientBackground';
@@ -51,20 +45,12 @@ export function BrandMark({ subtitle }: { subtitle?: string }) {
           style={styles.brandBadge}>
           <Text style={styles.brandNote}>♪</Text>
         </LinearGradient>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.brandName}>Hueso Time</Text>
           <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
           {subtitle ? <Text style={styles.brandSub}>{subtitle}</Text> : null}
         </View>
         <Waveform />
-      </View>
-      <View style={styles.fretLine}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <View
-            key={i}
-            style={[styles.fretDot, i === 2 && { backgroundColor: theme.accent }]}
-          />
-        ))}
       </View>
     </View>
   );
@@ -74,21 +60,14 @@ export function Card({
   children,
   style,
   onPress,
-  index = 0,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
   onPress?: () => void;
   index?: number;
 }) {
-  const scale = useSharedValue(1);
-  const animated = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   const body = (
-    <Animated.View
-      entering={FadeInDown.delay(Math.min(index * 60, 360)).springify().damping(18)}
+    <View
       style={[
         styles.card,
         {
@@ -96,7 +75,6 @@ export function Card({
           borderColor: theme.border,
         },
         style,
-        animated,
       ]}>
       <LinearGradient
         pointerEvents="none"
@@ -107,20 +85,13 @@ export function Card({
       />
       <View style={styles.cardFret} />
       {children}
-    </Animated.View>
+    </View>
   );
 
   if (!onPress) return body;
 
   return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={() => {
-        scale.value = withSpring(0.975, { damping: 16, stiffness: 320 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 14, stiffness: 260 });
-      }}>
+    <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
       {body}
     </Pressable>
   );
@@ -164,31 +135,21 @@ export function PrimaryButton({
   onPress: () => void;
   disabled?: boolean;
 }) {
-  const scale = useSharedValue(1);
-  const animated = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: disabled ? 0.45 : 1,
-  }));
-
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      onPressIn={() => {
-        scale.value = withSpring(0.97, { damping: 16, stiffness: 320 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 14, stiffness: 260 });
-      }}>
-      <Animated.View style={[styles.primaryBtnWrap, animated]}>
-        <LinearGradient
-          colors={[theme.tint, '#FF8A3D']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.primaryBtn}>
-          <Text style={styles.primaryBtnText}>♫  {label}</Text>
-        </LinearGradient>
-      </Animated.View>
+      style={({ pressed }) => [
+        styles.primaryBtnWrap,
+        { opacity: disabled ? 0.45 : pressed ? 0.9 : 1 },
+      ]}>
+      <LinearGradient
+        colors={[theme.tint, '#FF8A3D']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.primaryBtn}>
+        <Text style={styles.primaryBtnText}>♫  {label}</Text>
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -232,30 +193,24 @@ export function Chip({
   selected?: boolean;
   onPress?: () => void;
 }) {
-  const glow = useSharedValue(selected ? 1 : 0);
-
-  useEffect(() => {
-    glow.value = withSpring(selected ? 1 : 0, { damping: 16, stiffness: 220 });
-  }, [glow, selected]);
-
-  const animated = useAnimatedStyle(() => ({
-    borderColor: selected ? theme.tint : theme.border,
-    backgroundColor: selected ? theme.tintSoft : theme.surfaceElevated,
-    shadowOpacity: glow.value * 0.45,
-  }));
-
   return (
-    <Pressable onPress={onPress}>
-      <Animated.View style={[styles.chip, animated, selected && styles.chipGlow]}>
-        <Text
-          style={{
-            color: selected ? theme.tint : theme.textMuted,
-            fontWeight: '700',
-            fontSize: 13,
-          }}>
-          {label}
-        </Text>
-      </Animated.View>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.chip,
+        {
+          borderColor: selected ? theme.tint : theme.border,
+          backgroundColor: selected ? theme.tintSoft : theme.surfaceElevated,
+        },
+      ]}>
+      <Text
+        style={{
+          color: selected ? theme.tint : theme.textMuted,
+          fontWeight: '700',
+          fontSize: 13,
+        }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -283,24 +238,13 @@ export function MetaPill({ label, accent }: { label: string; accent?: boolean })
 }
 
 export function Fab({ onPress }: { onPress: () => void }) {
-  const scale = useSharedValue(1);
-  const animated = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
     <Pressable
       onPress={onPress}
       hitSlop={8}
       android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: true, radius: 28 }}
-      style={styles.fabHit}
-      onPressIn={() => {
-        scale.value = withSpring(0.92, { damping: 14, stiffness: 300 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 12, stiffness: 240 });
-      }}>
-      <Animated.View style={[styles.fabWrap, animated]}>
+      style={({ pressed }) => [styles.fabHit, { opacity: pressed ? 0.9 : 1 }]}>
+      <View style={styles.fabWrap}>
         <LinearGradient
           colors={[theme.tint, theme.accent]}
           start={{ x: 0, y: 0 }}
@@ -308,19 +252,32 @@ export function Fab({ onPress }: { onPress: () => void }) {
           style={styles.fab}>
           <Text style={styles.fabText}>+</Text>
         </LinearGradient>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: theme.background },
-  screenContent: { flex: 1 },
-  brandBlock: { marginBottom: 10 },
+  screen: {
+    flex: 1,
+    backgroundColor: theme.background,
+    overflow: 'hidden',
+    width: '100%',
+    maxWidth: '100%',
+  },
+  screenContent: {
+    flex: 1,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+  },
+  brandBlock: { marginBottom: 10, width: '100%', maxWidth: '100%' },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    width: '100%',
+    maxWidth: '100%',
   },
   brandBadge: {
     width: 40,
@@ -354,18 +311,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  fretLine: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-    marginLeft: 4,
-  },
-  fretDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.borderStrong,
-  },
   card: {
     borderWidth: 1,
     borderRadius: 18,
@@ -392,6 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '800',
     letterSpacing: -0.8,
+    flexShrink: 1,
   },
   subtitle: {
     color: theme.textMuted,
@@ -399,6 +345,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 18,
     lineHeight: 21,
+    flexShrink: 1,
   },
   body: { fontSize: 15, lineHeight: 21 },
   field: { marginBottom: 12 },
@@ -422,11 +369,6 @@ const styles = StyleSheet.create({
   },
   primaryBtnWrap: {
     borderRadius: 14,
-    shadowColor: theme.tint,
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
   },
   primaryBtn: {
     borderRadius: 14,
@@ -448,12 +390,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginRight: 8,
     marginBottom: 8,
-  },
-  chipGlow: {
-    shadowColor: theme.tint,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 3,
+    flexShrink: 1,
   },
   meta: {
     borderWidth: 1,

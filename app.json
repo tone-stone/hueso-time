@@ -8,9 +8,11 @@
     "scheme": "huesotime",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tonestone.huesotime"
     },
     "android": {
+      "package": "com.tonestone.huesotime",
       "adaptiveIcon": {
         "backgroundColor": "#0B0C10",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,6 +40,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "82a056b9-be2c-4b31-a18a-6c99c7ea7017"
+      }
     }
   }
 }
