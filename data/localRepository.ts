@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { emptyAppData } from '@/constants/defaults';
 import type { DataRepository } from '@/data/repository';
+import { buildBarraLibreSeedSongs } from '@/data/seedBarraLibre';
 import { createId, nowIso } from '@/lib/id';
 import type {
   AppData,
@@ -35,7 +36,13 @@ async function write(data: AppData): Promise<void> {
 
 export const localRepository: DataRepository = {
   async load() {
-    return read();
+    const data = await read();
+    if (data.songs.length === 0) {
+      const seeded = { ...data, songs: buildBarraLibreSeedSongs() };
+      await write(seeded);
+      return seeded;
+    }
+    return data;
   },
 
   async saveSongs(songs) {

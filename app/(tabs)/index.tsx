@@ -14,8 +14,10 @@ import { SymbolView } from 'expo-symbols';
 
 import {
   Body,
+  BrandMark,
   Card,
   Chip,
+  Fab,
   Field,
   GhostButton,
   MetaPill,
@@ -116,14 +118,11 @@ export default function RepertoireScreen() {
     <Screen>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
+          <BrandMark subtitle={t('repertoire.subtitle')} />
           <Title>{t('repertoire.title')}</Title>
           <Subtitle>{t('repertoire.subtitle')}</Subtitle>
         </View>
-        <Pressable
-          onPress={openCreate}
-          style={[styles.fab, { backgroundColor: c.tint }]}>
-          <Text style={styles.fabText}>+</Text>
-        </Pressable>
+        <Fab onPress={openCreate} />
       </View>
 
       <View style={styles.pad}>
@@ -159,8 +158,8 @@ export default function RepertoireScreen() {
             <Body muted>{t('repertoire.empty')}</Body>
           </Card>
         }
-        renderItem={({ item }) => (
-          <Card onPress={() => openEdit(item)}>
+        renderItem={({ item, index }) => (
+          <Card index={index} onPress={() => openEdit(item)}>
             <View style={styles.rowBetween}>
               <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={[styles.songTitle, { color: c.text }]}>{item.title}</Text>
@@ -175,7 +174,7 @@ export default function RepertoireScreen() {
               </Pressable>
             </View>
             <View style={styles.metaRow}>
-              <MetaPill label={`${item.bpm} BPM`} />
+              <MetaPill accent label={`${item.bpm} BPM`} />
               <MetaPill
                 label={`${item.key} ${item.keyMode === 'major' ? t('repertoire.major') : t('repertoire.minor')}`}
               />
@@ -285,17 +284,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   pad: { paddingHorizontal: 16 },
-  fab: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  fabText: { color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 },
   rowBetween: { flexDirection: 'row', alignItems: 'flex-start' },
-  songTitle: { fontSize: 17, fontWeight: '700' },
+  songTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },
   sectionLabel: {
     fontSize: 12,

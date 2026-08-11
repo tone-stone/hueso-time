@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
+  Alert,
   Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,11 +10,13 @@ import {
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { GenerateSetsForm } from '@/components/GenerateSetsForm';
+import { SetsTables } from '@/components/SetsTables';
 import {
   Body,
+  BrandMark,
   Card,
   GhostButton,
-  MetaPill,
   PrimaryButton,
   Screen,
   Subtitle,
@@ -23,7 +25,7 @@ import {
 } from '@/components/ui';
 import { useApp } from '@/context/AppContext';
 import { formatDuration, formatMinutes } from '@/lib/id';
-import { setDurationSec, setlistDurationSec } from '@/lib/setMath';
+import { setlistDurationSec } from '@/lib/setMath';
 import type { SetBlock } from '@/types/models';
 
 export default function SetlistDetailScreen() {
@@ -33,6 +35,7 @@ export default function SetlistDetailScreen() {
   const { setlists, songs, songsById, updateSetlistSets } = useApp();
   const setlist = setlists.find((s) => s.id === id);
   const [pickerSetId, setPickerSetId] = useState<string | null>(null);
+  const [generateOpen, setGenerateOpen] = useState(false);
 
   const total = useMemo(
     () => (setlist ? setlistDurationSec(setlist.sets, songsById) : 0),
@@ -79,107 +82,73 @@ export default function SetlistDetailScreen() {
     await persist(sets);
   }
 
-  const usedIds = new Set(
-    setlist.sets.flatMap((s) => s.songs.map((r) => r.songId)),
-  );
+  async function applyGenerated(
+    sets: SetBlock[],
+    summary: { matched: number; placed: number },
+  ) {
+    await persist(sets);
+    setGenerateOpen(false);
+    Alert.alert(
+      t('generate.title'),
+      t('setlists.generateDone', {
+        placed: summary.placed,
+        matched: summary.matched,
+      }),
+    );
+  }
 
-  const available = songs.filter((s) => {
-    if (setlist.genreFocus && s.genre !== setlist.genreFocus) {
-      // still allow all, but sort focus first — show all
-    }
-    return true;
-  });
+  const usedIds = new Set(setlist.sets.flatMap((s) => s.songs.map((r) => r.songId)));
+  const targetMinutes = setlist.sets[0]?.targetMinutes ?? 45;
 
   return (
     <Screen>
       <Stack.Screen options={{ title: setlist.name }} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+        <BrandMark />
         <Title>{setlist.name}</Title>
         <Subtitle>
           {t('setlists.totalShow')}: {formatMinutes(total)}
           {setlist.genreFocus ? ` · ${t(`genres.${setlist.genreFocus}`)}` : ''}
         </Subtitle>
 
-        {setlist.sets.map((block, index) => {
-          const dur = setDurationSec(block, songsById);
-          const targetSec = block.targetMinutes * 60;
-          const over = dur > targetSec;
-          const remaining = Math.max(0, targetSec - dur);
+        <View style={{ marginBottom: 14 }}>
+          <PrimaryButton
+            label={t('setlists.generateRandom')}
+            onPress={() => setGenerateOpen(true)}
+          />
+        </View>
 
-          return (
-            <Card key={block.id} style={{ marginBottom: 14 }}>
-              <View style={styles.rowBetween}>
-                <Text style={[styles.setTitle, { color: c.text }]}>
-                  {t('setlists.setLabel', { n: index + 1 })}
-                </Text>
-                <MetaPill label={t('setlists.target', { min: block.targetMinutes })} />
-              </View>
+        <SetsTables sets={setlist.sets} songsById={songsById} />
 
-              <View style={styles.metaRow}>
-                <MetaPill label={`${formatDuration(dur)}`} />
-                <MetaPill
-                  label={
-                    over
-                      ? t('setlists.overTarget')
-                      : `${t('setlists.underTarget')}: ${formatDuration(remaining)}`
-                  }
-                />
-              </View>
-
-              <View
-                style={[
-                  styles.barTrack,
-                  { backgroundColor: c.background, borderColor: c.border },
-                ]}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${Math.min(100, (dur / targetSec) * 100)}%`,
-                      backgroundColor: over ? c.warning : c.tint,
-                    },
-                  ]}
-                />
-              </View>
-
-              {block.songs.length === 0 ? (
-                <Body muted>{t('setlists.noSongsInSet')}</Body>
-              ) : (
-                block.songs.map((ref, i) => {
-                  const song = songsById.get(ref.songId);
-                  if (!song) return null;
-                  return (
-                    <View
-                      key={`${block.id}_${ref.songId}`}
-                      style={[styles.songRow, { borderColor: c.border }]}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ color: c.text, fontWeight: '700' }}>
-                          {i + 1}. {song.title}
-                        </Text>
-                        <Text style={{ color: c.textMuted, marginTop: 2 }}>
-                          {song.artist} · {song.bpm} BPM · {song.key} ·{' '}
-                          {formatDuration(song.durationSec)}
-                        </Text>
-                      </View>
-                      <GhostButton
-                        label={t('setlists.removeFromSet')}
-                        danger
-                        onPress={() => void removeSong(block.id, song.id)}
-                      />
-                    </View>
-                  );
-                })
-              )}
-
-              <View style={{ marginTop: 10 }}>
-                <PrimaryButton
-                  label={t('setlists.addSongToSet')}
-                  onPress={() => setPickerSetId(block.id)}
-                />
-              </View>
+        <View style={{ marginTop: 16, gap: 10 }}>
+          {setlist.sets.map((block, index) => (
+            <Card key={`edit_${block.id}`} index={index}>
+              <Text style={{ color: c.text, fontWeight: '800', marginBottom: 8 }}>
+                {t('setlists.setLabel', { n: index + 1 })}
+              </Text>
+              {block.songs.map((ref) => {
+                const song = songsById.get(ref.songId);
+                if (!song) return null;
+                return (
+                  <View key={ref.songId} style={styles.editRow}>
+                    <Text style={{ color: c.textMuted, flex: 1 }} numberOfLines={1}>
+                      {song.title}
+                    </Text>
+                    <GhostButton
+                      label={t('setlists.removeFromSet')}
+                      danger
+                      onPress={() => void removeSong(block.id, song.id)}
+                    />
+                  </View>
+                );
+              })}
+              <PrimaryButton
+                label={t('setlists.addSongToSet')}
+                onPress={() => setPickerSetId(block.id)}
+              />
             </Card>
-          );
-        })}
+          ))}
+        </View>
       </ScrollView>
 
       <Modal visible={!!pickerSetId} animationType="slide" presentationStyle="pageSheet">
@@ -188,23 +157,25 @@ export default function SetlistDetailScreen() {
             <Title>{t('setlists.pickSong')}</Title>
             <Subtitle>{t('repertoire.title')}</Subtitle>
             <ScrollView>
-              {available.map((song) => {
+              {songs.map((song) => {
                 const already = usedIds.has(song.id);
                 return (
-                  <Card key={song.id} onPress={() => {
-                    if (!pickerSetId) return;
-                    void addSongToSet(pickerSetId, song.id);
-                  }}>
+                  <Card
+                    key={song.id}
+                    onPress={() => {
+                      if (!pickerSetId) return;
+                      void addSongToSet(pickerSetId, song.id);
+                    }}>
                     <Text style={{ color: c.text, fontWeight: '700' }}>{song.title}</Text>
                     <Text style={{ color: c.textMuted, marginTop: 2 }}>
                       {song.artist} · {song.bpm} BPM · {song.key} ·{' '}
                       {t(`genres.${song.genre}`)}
-                      {already ? ' · ✓' : ''}
+                      {already ? ' · ✓' : ''} · {formatDuration(song.durationSec)}
                     </Text>
                   </Card>
                 );
               })}
-              {available.length === 0 ? (
+              {songs.length === 0 ? (
                 <Card>
                   <Body muted>{t('repertoire.empty')}</Body>
                 </Card>
@@ -214,25 +185,32 @@ export default function SetlistDetailScreen() {
           </View>
         </Screen>
       </Modal>
+
+      <Modal visible={generateOpen} animationType="slide" presentationStyle="pageSheet">
+        <Screen>
+          <View style={{ padding: 16, flex: 1 }}>
+            <Title>{t('generate.title')}</Title>
+            <Subtitle>{t('setlists.generateRandom')}</Subtitle>
+            <GenerateSetsForm
+              songs={songs}
+              setCount={setlist.sets.length}
+              targetMinutes={targetMinutes}
+              existingSets={setlist.sets}
+              onGenerated={(sets, summary) => void applyGenerated(sets, summary)}
+              onCancel={() => setGenerateOpen(false)}
+            />
+          </View>
+        </Screen>
+      </Modal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  setTitle: { fontSize: 18, fontWeight: '800' },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginVertical: 8 },
-  barTrack: {
-    height: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  barFill: { height: '100%', borderRadius: 999 },
-  songRow: {
-    borderTopWidth: 1,
-    paddingVertical: 10,
+  editRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    marginBottom: 8,
   },
 });

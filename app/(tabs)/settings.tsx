@@ -1,26 +1,42 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import {
   Body,
+  BrandMark,
   Card,
   Chip,
   Field,
+  PrimaryButton,
   Screen,
   Subtitle,
   Title,
   useThemeColors,
 } from '@/components/ui';
+import { BARRA_LIBRE_COUNT } from '@/data/seedBarraLibre';
 import { useApp } from '@/context/AppContext';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
-  const { settings, updateSettings } = useApp();
+  const { settings, updateSettings, importBarraLibreSeed, songs } = useApp();
+
+  async function onImport() {
+    const added = await importBarraLibreSeed();
+    if (added === 0) {
+      Alert.alert(t('settings.importSeed'), t('settings.importSeedNone'));
+      return;
+    }
+    Alert.alert(
+      t('settings.importSeed'),
+      t('settings.importSeedDone', { count: added }),
+    );
+  }
 
   return (
     <Screen>
       <View style={styles.header}>
+        <BrandMark />
         <Title>{t('settings.title')}</Title>
         <Subtitle>{t('settings.about')}</Subtitle>
       </View>
@@ -66,6 +82,15 @@ export default function SettingsScreen() {
               }
             }}
           />
+        </Card>
+
+        <Card>
+          <Text style={[styles.label, { color: c.textMuted }]}>{t('settings.importSeed')}</Text>
+          <Body muted>{t('settings.importSeedHint')}</Body>
+          <Text style={{ color: c.textMuted, marginTop: 8, marginBottom: 12 }}>
+            {songs.length} / {BARRA_LIBRE_COUNT}+
+          </Text>
+          <PrimaryButton label={t('settings.importSeed')} onPress={() => void onImport()} />
         </Card>
 
         <Card>

@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { DEFAULT_SET_COUNT, DEFAULT_SET_MINUTES } from '@/constants/defaults';
 import { localRepository } from '@/data/localRepository';
 import type { DataRepository } from '@/data/repository';
+import { buildBarraLibreSeedSongs } from '@/data/seedBarraLibre';
 import { createId } from '@/lib/id';
 import type {
   AppSettings,
@@ -41,6 +42,8 @@ interface AppContextValue {
   }) => Promise<Setlist>;
   updateSetlistSets: (setlistId: string, sets: SetBlock[]) => Promise<void>;
   updateSettings: (partial: Partial<AppSettings>) => Promise<void>;
+  /** Merge missing songs from Set-BarraLibre seed. Returns how many were added. */
+  importBarraLibreSeed: () => Promise<number>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -180,6 +183,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [i18n, settings],
   );
 
+  const importBarraLibreSeed = useCallback(async () => {
+    const seed = buildBarraLibreSeedSongs();
+    const existing = new Set(
+      songs.map((s) => `${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`),
+    );
+    const missing = seed.filter(
+      (s) => !existing.has(`${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`),
+    );
+    if (missing.length === 0) return 0;
+    const next = [...songs, ...missing];
+    await repo.saveSongs(next);
+    setSongs(next);
+    return missing.length;
+  }, [songs]);
+
   const value = useMemo(
     () => ({
       ready,
@@ -194,6 +212,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createEmptySetlist,
       updateSetlistSets,
       updateSettings,
+      importBarraLibreSeed,
     }),
     [
       ready,
@@ -208,6 +227,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createEmptySetlist,
       updateSetlistSets,
       updateSettings,
+      importBarraLibreSeed,
     ],
   );
 
