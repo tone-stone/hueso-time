@@ -43,6 +43,7 @@ export function SetsTables({
   onReorderSongs,
   nestable = false,
   defaultExpanded = true,
+  showMode = false,
 }: {
   sets: SetBlock[];
   songsById: Map<string, Song>;
@@ -53,23 +54,30 @@ export function SetsTables({
   /** Use NestableDraggableFlatList when inside NestableScrollContainer. */
   nestable?: boolean;
   defaultExpanded?: boolean;
+  /** Stage view: no edit actions, all sets expanded. */
+  showMode?: boolean;
 }) {
   const { t } = useTranslation();
   const c = useThemeColors();
-  const editable = !!(onRemoveSong || onChangeSong || onReorderSongs);
+  const canEdit = !showMode && !!(onRemoveSong || onChangeSong || onReorderSongs);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setOpen((prev) => {
       const next = { ...prev };
       for (const block of sets) {
-        if (next[block.id] === undefined) next[block.id] = defaultExpanded;
+        if (showMode) {
+          next[block.id] = true;
+        } else if (next[block.id] === undefined) {
+          next[block.id] = defaultExpanded;
+        }
       }
       return next;
     });
-  }, [sets, defaultExpanded]);
+  }, [sets, defaultExpanded, showMode]);
 
   const List = nestable ? NestableDraggableFlatList : DraggableFlatList;
+  const allowReorder = !showMode && !!onReorderSongs;
 
   return (
     <View style={{ gap: 14, width: '100%' }}>
@@ -83,26 +91,31 @@ export function SetsTables({
         return (
           <Card key={block.id} index={index} style={{ marginBottom: 0 }}>
             <Pressable
-              onPress={() =>
-                setOpen((prev) => ({ ...prev, [block.id]: !expanded }))
-              }
+              onPress={() => {
+                if (showMode) return;
+                setOpen((prev) => ({ ...prev, [block.id]: !expanded }));
+              }}
               style={styles.headPress}>
               <View style={styles.headTop}>
                 <Text style={[styles.setTitle, { color: c.text }]}>
-                  {t('setlists.setLabel', { n: index + 1 })}
+                  {block.name || t('setlists.setLabel', { n: index + 1 })}
                 </Text>
-                <Text style={[styles.chevron, { color: c.accent }]}>
-                  {expanded ? '▾' : '▸'}
-                </Text>
+                {!showMode ? (
+                  <Text style={[styles.chevron, { color: c.accent }]}>
+                    {expanded ? '▾' : '▸'}
+                  </Text>
+                ) : null}
               </View>
               <View style={styles.pills}>
-                <MetaPill accent label={t('setlists.target', { min: block.targetMinutes })} />
+                {!showMode ? (
+                  <MetaPill accent label={t('setlists.target', { min: block.targetMinutes })} />
+                ) : null}
                 <MetaPill label={formatDuration(dur)} />
                 <MetaPill
-                  label={`${block.songs.length} ${t('common.songs')}${over ? ` · ${t('setlists.overTarget')}` : ''}`}
+                  label={`${block.songs.length} ${t('common.songs')}${!showMode && over ? ` · ${t('setlists.overTarget')}` : ''}`}
                 />
               </View>
-              {!expanded ? (
+              {!expanded && !showMode ? (
                 <Text style={{ color: c.textMuted, marginTop: 8, fontSize: 12 }}>
                   {t('setlists.tapToExpand')}
                 </Text>
@@ -117,7 +130,7 @@ export function SetsTables({
                   </View>
                 ) : (
                   <>
-                    {onReorderSongs ? (
+                    {allowReorder ? (
                       <Text style={[styles.dragHint, { color: c.textMuted }]}>
                         {t('setlists.dragHint')}
                       </Text>
@@ -129,6 +142,7 @@ export function SetsTables({
                       activationDistance={8}
                       containerStyle={{ width: '100%' }}
                       onDragEnd={({ data }) => {
+                        if (!allowReorder) return;
                         onReorderSongs?.(
                           block.id,
                           data.map((row) => row.songId),
@@ -139,9 +153,9 @@ export function SetsTables({
                         return (
                           <ScaleDecorator>
                             <Pressable
-                              onLongPress={onReorderSongs ? drag : undefined}
+                              onLongPress={allowReorder ? drag : undefined}
                               delayLongPress={180}
-                              disabled={isActive}
+                              disabled={isActive || showMode}
                               style={[
                                 styles.songRow,
                                 {
@@ -155,7 +169,7 @@ export function SetsTables({
                                 },
                               ]}>
                               <View style={styles.songTop}>
-                                {onReorderSongs ? (
+                                {allowReorder ? (
                                   <Pressable onPressIn={drag} hitSlop={8} style={styles.handle}>
                                     <Text style={{ color: c.textMuted, fontSize: 16 }}>⠿</Text>
                                   </Pressable>
@@ -182,9 +196,11 @@ export function SetsTables({
                                   <MetaPill
                                     label={`${item.song.key}${item.song.keyMode === 'minor' ? 'm' : ''}`}
                                   />
-                                  <MetaPill label={formatDuration(item.song.durationSec)} />
+                                  {!showMode ? (
+                                    <MetaPill label={formatDuration(item.song.durationSec)} />
+                                  ) : null}
                                 </View>
-                                {editable && (onChangeSong || onRemoveSong) ? (
+                                {canEdit && (onChangeSong || onRemoveSong) ? (
                                   <View style={styles.actions}>
                                     {onChangeSong ? (
                                       <Pressable
@@ -235,7 +251,7 @@ export function SetsTables({
                   </>
                 )}
 
-                {onAddSong ? (
+                {!showMode && onAddSong ? (
                   <Pressable
                     onPress={() => onAddSong(block.id)}
                     style={[

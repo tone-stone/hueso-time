@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
-  Alert,
   FlatList,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -11,7 +11,10 @@ import {
 import { Link, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { CreateManualSetlistForm } from '@/components/CreateManualSetlistForm';
 import { CreateSetlistWizard } from '@/components/CreateSetlistWizard';
+import { ImportSheetsForm } from '@/components/ImportSheetsForm';
+import { showToast } from '@/components/Toast';
 import {
   Body,
   BrandMark,
@@ -19,15 +22,19 @@ import {
   Fab,
   GhostButton,
   MetaPill,
+  PrimaryButton,
   Screen,
   Subtitle,
   Title,
   useThemeColors,
 } from '@/components/ui';
+import { confirmDestructive } from '@/lib/confirm';
 import { useApp } from '@/context/AppContext';
 import { createId, formatMinutes } from '@/lib/id';
 import { setlistDurationSec } from '@/lib/setMath';
 import type { Genre, SetBlock } from '@/types/models';
+
+type CreateMode = 'choose' | 'manual' | 'generate' | null;
 
 export default function SetlistsScreen() {
   const { t } = useTranslation();
@@ -39,9 +46,13 @@ export default function SetlistsScreen() {
     songsById,
     upsertSetlist,
     deleteSetlist,
+    createEmptySetlist,
     settings,
+    importSetlistFromGoogleSheet,
   } = useApp();
-  const [open, setOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<CreateMode>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importBusy, setImportBusy] = useState(false);
 
   async function saveWizard(payload: {
     name: string;
@@ -60,19 +71,56 @@ export default function SetlistsScreen() {
       genreFocus: payload.genreFocus,
       sets,
     });
-    setOpen(false);
+    setCreateMode(null);
+    showToast(t('toast.setlistCreated'));
     router.push(`/setlist/${created.id}`);
   }
 
+  async function onCreateManual(payload: {
+    name: string;
+    venue?: string;
+    setCount: number;
+    targetMinutes: number;
+  }) {
+    const created = await createEmptySetlist({
+      name: payload.name,
+      venue: payload.venue,
+      setCount: payload.setCount,
+      targetMinutes: payload.targetMinutes,
+    });
+    setCreateMode(null);
+    showToast(t('toast.setlistCreated'));
+    router.push(`/setlist/${created.id}`);
+  }
+
+  async function onImportSheet(payload: { url: string; name: string }) {
+    setImportBusy(true);
+    try {
+      const result = await importSetlistFromGoogleSheet(payload.url, payload.name);
+      setImportOpen(false);
+      showToast(
+        t('sheetsImport.done', {
+          songs: result.songsAdded,
+          sets: result.setlist.sets.length,
+        }),
+      );
+      router.push(`/setlist/${result.setlist.id}`);
+    } finally {
+      setImportBusy(false);
+    }
+  }
+
   function confirmDelete(id: string, label: string) {
-    Alert.alert(t('common.confirmDelete'), label, [
-      { text: t('common.no'), style: 'cancel' },
-      {
-        text: t('common.yes'),
-        style: 'destructive',
-        onPress: () => void deleteSetlist(id),
+    confirmDestructive({
+      title: t('common.confirmDelete'),
+      message: label,
+      cancelLabel: t('common.no'),
+      confirmLabel: t('common.yes'),
+      onConfirm: () => {
+        void deleteSetlist(id);
+        showToast(t('toast.setlistDeleted'));
       },
-    ]);
+    });
   }
 
   return (
@@ -83,7 +131,7 @@ export default function SetlistsScreen() {
           <Title>{t('setlists.title')}</Title>
           <Subtitle>{t('setlists.subtitle')}</Subtitle>
         </View>
-        <Fab onPress={() => setOpen(true)} />
+        <Fab onPress={() => setCreateMode('choose')} />
       </View>
 
       <FlatList
@@ -95,6 +143,20 @@ export default function SetlistsScreen() {
         ListEmptyComponent={
           <Card>
             <Body muted>{t('setlists.empty')}</Body>
+            <View style={{ gap: 10, marginTop: 14 }}>
+              <PrimaryButton
+                label={t('setlists.createManual')}
+                onPress={() => setCreateMode('manual')}
+              />
+              <GhostButton
+                label={t('setlists.createGenerate')}
+                onPress={() => setCreateMode('generate')}
+              />
+              <GhostButton
+                label={t('sheetsImport.open')}
+                onPress={() => setImportOpen(true)}
+              />
+            </View>
           </Card>
         }
         renderItem={({ item, index }) => {
@@ -130,7 +192,54 @@ export default function SetlistsScreen() {
         }}
       />
 
-      <Modal visible={open} animationType="slide" presentationStyle="pageSheet">
+      <Modal
+        visible={createMode === 'choose'}
+        animationType="slide"
+        presentationStyle="pageSheet">
+        <Screen>
+          <View style={{ padding: 16, gap: 12 }}>
+            <Title>{t('setlists.newSetlist')}</Title>
+            <Subtitle>{t('setlists.chooseCreate')}</Subtitle>
+            <PrimaryButton
+              label={t('setlists.createManual')}
+              onPress={() => setCreateMode('manual')}
+            />
+            <PrimaryButton
+              label={t('setlists.createGenerate')}
+              onPress={() => setCreateMode('generate')}
+            />
+            <GhostButton
+              label={t('sheetsImport.open')}
+              onPress={() => {
+                setCreateMode(null);
+                setImportOpen(true);
+              }}
+            />
+            <GhostButton label={t('common.cancel')} onPress={() => setCreateMode(null)} />
+          </View>
+        </Screen>
+      </Modal>
+
+      <Modal
+        visible={createMode === 'manual'}
+        animationType="slide"
+        presentationStyle="pageSheet">
+        <Screen>
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+            <CreateManualSetlistForm
+              defaultSetCount={settings.defaultSetCount}
+              defaultMinutes={settings.defaultSetMinutes}
+              onCreate={(payload) => void onCreateManual(payload)}
+              onCancel={() => setCreateMode(null)}
+            />
+          </ScrollView>
+        </Screen>
+      </Modal>
+
+      <Modal
+        visible={createMode === 'generate'}
+        animationType="slide"
+        presentationStyle="pageSheet">
         <Screen>
           <CreateSetlistWizard
             songs={songs}
@@ -138,8 +247,20 @@ export default function SetlistsScreen() {
             defaultSetCount={settings.defaultSetCount}
             defaultMinutes={settings.defaultSetMinutes}
             onSave={(payload) => void saveWizard(payload)}
-            onCancel={() => setOpen(false)}
+            onCancel={() => setCreateMode(null)}
           />
+        </Screen>
+      </Modal>
+
+      <Modal visible={importOpen} animationType="slide" presentationStyle="pageSheet">
+        <Screen>
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+            <ImportSheetsForm
+              busy={importBusy}
+              onCancel={() => setImportOpen(false)}
+              onImport={onImportSheet}
+            />
+          </ScrollView>
         </Screen>
       </Modal>
     </Screen>

@@ -21,12 +21,24 @@ export type Genre =
   | 'blues'
   | 'jazz'
   | 'latin'
+  | 'regionalMexicano'
   | 'reggaeton'
   | 'metal'
   | 'country'
   | 'funk'
   | 'soul'
   | 'indie'
+  | 'punk'
+  | 'hardcore'
+  | 'metalcore'
+  | 'djent'
+  | 'progressive'
+  | 'salsa'
+  | 'ethnic'
+  | 'newAge'
+  | 'spiritual'
+  | 'instrumental'
+  | 'experimental'
   | 'other';
 
 export interface Song {
@@ -39,6 +51,9 @@ export interface Song {
   genre: Genre;
   durationSec: number;
   notes?: string;
+  imageUrl?: string;
+  spotifyId?: string;
+  externalUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

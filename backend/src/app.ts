@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { z } from 'zod';
 
 import * as store from './store.js';
+import { isSpotifyConfigured, searchSpotifyTracks } from './spotify.js';
 import type { Genre, KeyMode, MusicalKey, SongInput, SetlistInput } from './types.js';
 
 const songSchema = z.object({
@@ -14,6 +15,9 @@ const songSchema = z.object({
   genre: z.string().min(1),
   durationSec: z.number().int().min(1).max(3600),
   notes: z.string().optional(),
+  imageUrl: z.string().optional(),
+  spotifyId: z.string().optional(),
+  externalUrl: z.string().optional(),
 });
 
 const setlistSchema = z.object({
@@ -54,6 +58,50 @@ app.use(
 );
 
 app.get('/health', (c) => c.json({ ok: true, service: 'hueso-time-api' }));
+
+app.get('/v1/music/search', async (c) => {
+  const q = (c.req.query('q') || '').trim();
+  const limit = Math.min(10, Math.max(1, Number(c.req.query('limit') || 10)));
+  if (!q) return c.json({ results: [], source: 'none' });
+
+  if (!isSpotifyConfigured()) {
+    return c.json(
+      {
+        results: [],
+        source: 'none',
+        error: 'spotify_not_configured',
+        hint: 'Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in backend/.env',
+      },
+      503,
+    );
+  }
+
+  try {
+    const results = await searchSpotifyTracks(q, limit);
+    return c.json({ results, source: 'spotify' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'spotify_error';
+    return c.json({ results: [], source: 'none', error: message }, 502);
+  }
+});
+
+/** Proxy CSV de Google Sheets (evita CORS en web). La hoja debe ser pública. */
+app.get('/v1/sheets/csv', async (c) => {
+  const url = (c.req.query('url') || '').trim();
+  if (!url || !/^https:\/\/docs\.google\.com\/spreadsheets\//i.test(url)) {
+    return c.json({ error: 'invalid_url' }, 400);
+  }
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return c.json({ error: `http_${res.status}` }, 502);
+    const text = await res.text();
+    return c.text(text, 200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+    });
+  } catch {
+    return c.json({ error: 'fetch_failed' }, 502);
+  }
+});
 
 /** Full dump — útil para sync inicial de la app. */
 app.get('/v1/data', (c) => c.json(store.readDb()));

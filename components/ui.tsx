@@ -78,7 +78,7 @@ export function Card({
       ]}>
       <LinearGradient
         pointerEvents="none"
-        colors={['rgba(255,107,74,0.1)', 'transparent']}
+        colors={['rgba(255,45,123,0.12)', 'rgba(0,229,255,0.06)', 'transparent']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.cardSheen}
@@ -144,7 +144,8 @@ export function PrimaryButton({
         { opacity: disabled ? 0.45 : pressed ? 0.9 : 1 },
       ]}>
       <LinearGradient
-        colors={[theme.tint, '#FF8A3D']}
+        colors={[theme.tint, theme.purple, theme.accent]}
+        locations={[0, 0.55, 1]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={styles.primaryBtn}>

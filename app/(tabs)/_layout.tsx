@@ -9,10 +9,14 @@ import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 const c = Colors.dark;
 
+export const unstable_settings = {
+  initialRouteName: 'setlists',
+};
+
 function TabBarBg() {
   return (
     <LinearGradient
-      colors={['#0C0E14', '#090A0F']}
+      colors={['#12121E', '#0A0A14']}
       style={StyleSheet.absoluteFill}
     />
   );
@@ -23,6 +27,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="setlists"
       screenOptions={{
         tabBarActiveTintColor: c.tint,
         tabBarInactiveTintColor: c.tabIconDefault,
@@ -33,21 +38,6 @@ export default function TabLayout() {
         tabBarLabelStyle: styles.tabLabel,
         tabBarBackground: () => <TabBarBg />,
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.repertoire'),
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-              <SymbolView
-                name={{ ios: 'music.note.list', android: 'queue_music', web: 'queue_music' }}
-                tintColor={color}
-                size={24}
-              />
-            </View>
-          ),
-        }}
-      />
       <Tabs.Screen
         name="setlists"
         options={{
@@ -60,6 +50,21 @@ export default function TabLayout() {
                   android: 'mic',
                   web: 'mic',
                 }}
+                tintColor={color}
+                size={24}
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('tabs.repertoire'),
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+              <SymbolView
+                name={{ ios: 'music.note.list', android: 'queue_music', web: 'queue_music' }}
                 tintColor={color}
                 size={24}
               />
@@ -93,7 +98,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: c.tabBar,
-    borderTopColor: 'rgba(255,107,74,0.25)',
+    borderTopColor: 'rgba(255,45,123,0.28)',
     borderTopWidth: 1,
     height: Platform.OS === 'ios' ? 88 : 68,
     paddingTop: 6,
@@ -112,6 +117,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   iconWrapActive: {
-    backgroundColor: 'rgba(255,107,74,0.14)',
+    backgroundColor: 'rgba(255,45,123,0.16)',
   },
 });

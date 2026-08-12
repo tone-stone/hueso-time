@@ -22,16 +22,22 @@ export function AmbientBackground() {
   return (
     <View pointerEvents="none" style={styles.root}>
       <LinearGradient
-        colors={['#07080C', '#10131A', '#0B0C10']}
+        colors={[c.background, '#141428', c.backgroundAlt]}
         start={{ x: 0.15, y: 0 }}
         end={{ x: 0.85, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
       <LinearGradient
-        colors={['rgba(255,107,74,0.14)', 'transparent']}
+        colors={['rgba(255,45,123,0.18)', 'transparent']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.55 }}
         style={styles.spotlight}
+      />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,229,255,0.08)', 'transparent']}
+        start={{ x: 0, y: 0.3 }}
+        end={{ x: 1, y: 0.8 }}
+        style={StyleSheet.absoluteFill}
       />
       <StaffLines />
       <View style={styles.vinyl}>
@@ -44,12 +50,12 @@ export function AmbientBackground() {
         style={[
           styles.orb,
           {
-            backgroundColor: 'rgba(255,107,74,0.16)',
-            width: 180,
-            height: 180,
-            borderRadius: 90,
-            top: -50,
-            left: -40,
+            backgroundColor: 'rgba(255,45,123,0.2)',
+            width: 200,
+            height: 200,
+            borderRadius: 100,
+            top: -60,
+            left: -50,
           },
         ]}
       />
@@ -57,19 +63,32 @@ export function AmbientBackground() {
         style={[
           styles.orb,
           {
-            backgroundColor: 'rgba(245,165,36,0.1)',
-            width: 140,
-            height: 140,
-            borderRadius: 70,
-            top: 180,
-            right: -30,
+            backgroundColor: 'rgba(0,229,255,0.12)',
+            width: 160,
+            height: 160,
+            borderRadius: 80,
+            top: 160,
+            right: -40,
           },
         ]}
       />
-      <Text style={[styles.note, { top: 100, left: 24, fontSize: 22 }]}>♪</Text>
-      <Text style={[styles.note, { top: 220, right: 28, fontSize: 20 }]}>♫</Text>
+      <View
+        style={[
+          styles.orb,
+          {
+            backgroundColor: 'rgba(139,92,246,0.14)',
+            width: 120,
+            height: 120,
+            borderRadius: 60,
+            bottom: 120,
+            left: 40,
+          },
+        ]}
+      />
+      <Text style={[styles.note, { top: 100, left: 24, fontSize: 22, color: c.tint }]}>♪</Text>
+      <Text style={[styles.note, { top: 220, right: 28, fontSize: 20, color: c.accent }]}>♫</Text>
       <LinearGradient
-        colors={['transparent', 'rgba(7, 8, 12, 0.92)']}
+        colors={['transparent', 'rgba(13, 13, 24, 0.94)']}
         style={styles.bottomFade}
       />
     </View>
@@ -122,7 +141,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#F4F1EA',
+    backgroundColor: '#FFFFFF',
   },
   vinyl: {
     position: 'absolute',
@@ -133,9 +152,9 @@ const styles = StyleSheet.create({
     top: 320,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#14171F',
+    backgroundColor: '#18182A',
     borderWidth: 1,
-    borderColor: 'rgba(244,241,234,0.08)',
+    borderColor: 'rgba(255,255,255,0.08)',
     opacity: 0.4,
   },
   vinylRing: {
@@ -143,32 +162,31 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 60,
     borderWidth: 1,
-    borderColor: 'rgba(244,241,234,0.06)',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   vinylRingMid: {
     ...StyleSheet.absoluteFill,
     margin: 22,
     borderRadius: 60,
     borderWidth: 1,
-    borderColor: 'rgba(255,107,74,0.12)',
+    borderColor: 'rgba(255,45,123,0.2)',
   },
   vinylLabel: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: 'rgba(255,107,74,0.35)',
+    backgroundColor: 'rgba(255,45,123,0.45)',
   },
   vinylHole: {
     position: 'absolute',
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#07080C',
+    backgroundColor: c.background,
   },
   note: {
     position: 'absolute',
     fontWeight: '700',
-    color: c.accent,
     opacity: 0.28,
   },
   bottomFade: {

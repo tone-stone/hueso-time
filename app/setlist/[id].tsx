@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   Modal,
+  Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -12,9 +13,9 @@ import { useTranslation } from 'react-i18next';
 
 import { GenerateSetsForm } from '@/components/GenerateSetsForm';
 import { SetsTables } from '@/components/SetsTables';
+import { showToast } from '@/components/Toast';
 import {
   Body,
-  BrandMark,
   Card,
   GhostButton,
   PrimaryButton,
@@ -24,6 +25,7 @@ import {
   useThemeColors,
 } from '@/components/ui';
 import { useApp } from '@/context/AppContext';
+import { confirmDestructive } from '@/lib/confirm';
 import { formatDuration, formatMinutes } from '@/lib/id';
 import { setlistDurationSec } from '@/lib/setMath';
 import type { SetBlock } from '@/types/models';
@@ -41,6 +43,7 @@ export default function SetlistDetailScreen() {
   const setlist = setlists.find((s) => s.id === id);
   const [picker, setPicker] = useState<PickerMode>(null);
   const [generateOpen, setGenerateOpen] = useState(false);
+  const [showMode, setShowMode] = useState(false);
 
   const total = useMemo(
     () => (setlist ? setlistDurationSec(setlist.sets, songsById) : 0),
@@ -72,13 +75,13 @@ export default function SetlistDetailScreen() {
     });
     await persist(sets);
     setPicker(null);
+    showToast(t('toast.songAdded'));
   }
 
   async function replaceSongInSet(setId: string, oldSongId: string, newSongId: string) {
     const sets = setlist!.sets.map((block) => {
       if (block.id !== setId) return block;
       if (newSongId !== oldSongId && block.songs.some((r) => r.songId === newSongId)) {
-        // already in set — just remove old
         return {
           ...block,
           songs: block.songs
@@ -95,6 +98,7 @@ export default function SetlistDetailScreen() {
     });
     await persist(sets);
     setPicker(null);
+    showToast(t('toast.songChanged'));
   }
 
   async function removeSong(setId: string, songId: string) {
@@ -108,6 +112,7 @@ export default function SetlistDetailScreen() {
       };
     });
     await persist(sets);
+    showToast(t('toast.songRemoved'));
   }
 
   async function reorderSongs(setId: string, songIds: string[]) {
@@ -123,14 +128,13 @@ export default function SetlistDetailScreen() {
 
   function confirmRemove(setId: string, songId: string) {
     const song = songsById.get(songId);
-    Alert.alert(t('common.confirmDelete'), song?.title ?? '', [
-      { text: t('common.no'), style: 'cancel' },
-      {
-        text: t('common.yes'),
-        style: 'destructive',
-        onPress: () => void removeSong(setId, songId),
-      },
-    ]);
+    confirmDestructive({
+      title: t('common.confirmDelete'),
+      message: song?.title ?? '',
+      cancelLabel: t('common.no'),
+      confirmLabel: t('common.yes'),
+      onConfirm: () => void removeSong(setId, songId),
+    });
   }
 
   async function applyGenerated(
@@ -139,8 +143,7 @@ export default function SetlistDetailScreen() {
   ) {
     await persist(sets);
     setGenerateOpen(false);
-    Alert.alert(
-      t('generate.title'),
+    showToast(
       t('setlists.generateDone', {
         placed: summary.placed,
         matched: summary.matched,
@@ -156,32 +159,75 @@ export default function SetlistDetailScreen() {
     <Screen>
       <Stack.Screen options={{ title: setlist.name }} />
       <NestableScrollContainer contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
-        <BrandMark />
         <Title>{setlist.name}</Title>
         <Subtitle>
           {t('setlists.totalShow')}: {formatMinutes(total)}
           {setlist.genreFocus ? ` · ${t(`genres.${setlist.genreFocus}`)}` : ''}
         </Subtitle>
 
-        <View style={{ marginBottom: 14 }}>
-          <PrimaryButton
-            label={t('setlists.generateRandom')}
-            onPress={() => setGenerateOpen(true)}
-          />
+        <View style={styles.modeRow}>
+          <Pressable
+            onPress={() => setShowMode(false)}
+            style={[
+              styles.modeChip,
+              {
+                borderColor: !showMode ? c.tint : c.border,
+                backgroundColor: !showMode ? c.tintSoft : 'transparent',
+              },
+            ]}>
+            <Text style={{ color: !showMode ? c.tint : c.textMuted, fontWeight: '700' }}>
+              {t('setlists.editMode')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setShowMode(true)}
+            style={[
+              styles.modeChip,
+              {
+                borderColor: showMode ? c.tint : c.border,
+                backgroundColor: showMode ? c.tintSoft : 'transparent',
+              },
+            ]}>
+            <Text style={{ color: showMode ? c.tint : c.textMuted, fontWeight: '700' }}>
+              {t('setlists.showMode')}
+            </Text>
+          </Pressable>
         </View>
+
+        {showMode ? (
+          <Text style={{ color: c.textMuted, marginBottom: 12, fontSize: 13 }}>
+            {t('setlists.showModeHint')}
+          </Text>
+        ) : null}
 
         <SetsTables
           sets={setlist.sets}
           songsById={songsById}
           nestable
           defaultExpanded={false}
-          onRemoveSong={({ setId, songId }) => confirmRemove(setId, songId)}
-          onChangeSong={({ setId, songId }) =>
-            setPicker({ type: 'replace', setId, songId })
+          showMode={showMode}
+          onRemoveSong={
+            showMode ? undefined : ({ setId, songId }) => confirmRemove(setId, songId)
           }
-          onAddSong={(setId) => setPicker({ type: 'add', setId })}
-          onReorderSongs={(setId, songIds) => void reorderSongs(setId, songIds)}
+          onChangeSong={
+            showMode
+              ? undefined
+              : ({ setId, songId }) => setPicker({ type: 'replace', setId, songId })
+          }
+          onAddSong={showMode ? undefined : (setId) => setPicker({ type: 'add', setId })}
+          onReorderSongs={
+            showMode ? undefined : (setId, songIds) => void reorderSongs(setId, songIds)
+          }
         />
+
+        {!showMode ? (
+          <View style={{ marginTop: 22, gap: 10 }}>
+            <GhostButton
+              label={t('setlists.generateRandom')}
+              onPress={() => setGenerateOpen(true)}
+            />
+          </View>
+        ) : null}
       </NestableScrollContainer>
 
       <Modal visible={!!picker} animationType="slide" presentationStyle="pageSheet">
@@ -252,3 +298,19 @@ export default function SetlistDetailScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  modeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  modeChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+});

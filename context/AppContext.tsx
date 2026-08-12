@@ -14,6 +14,11 @@ import { localRepository } from '@/data/localRepository';
 import type { DataRepository } from '@/data/repository';
 import { buildBarraLibreSeedSongs } from '@/data/seedBarraLibre';
 import { createId } from '@/lib/id';
+import {
+  buildSetlistFromImport,
+  loadSheetImportPlan,
+  mergeImportedSongs,
+} from '@/lib/googleSheetsImport';
 import type {
   AppSettings,
   Genre,
@@ -45,6 +50,11 @@ interface AppContextValue {
   updateSettings: (partial: Partial<AppSettings>) => Promise<void>;
   /** Merge missing songs from Set-BarraLibre seed. Returns how many were added. */
   importBarraLibreSeed: () => Promise<number>;
+  /** Import songs + create setlist from a public Google Sheet URL. */
+  importSetlistFromGoogleSheet: (
+    url: string,
+    name?: string,
+  ) => Promise<{ songsAdded: number; setlist: Setlist }>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -186,18 +196,87 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const importBarraLibreSeed = useCallback(async () => {
     const seed = buildBarraLibreSeedSongs();
-    const existing = new Set(
-      songs.map((s) => `${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`),
+    const byKey = new Map(
+      songs.map((s) => [
+        `${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`,
+        s,
+      ] as const),
     );
-    const missing = seed.filter(
-      (s) => !existing.has(`${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`),
-    );
-    if (missing.length === 0) return 0;
-    const next = [...songs, ...missing];
+
+    let added = 0;
+    let updated = 0;
+    const next = [...songs];
+
+    for (const seedSong of seed) {
+      const key = `${seedSong.artist.trim().toLowerCase()}::${seedSong.title.trim().toLowerCase()}`;
+      const existing = byKey.get(key);
+      if (!existing) {
+        next.push(seedSong);
+        byKey.set(key, seedSong);
+        added += 1;
+        continue;
+      }
+
+      const richerBpm = seedSong.bpm > 0 && (existing.bpm === 118 || !existing.bpm);
+      const richerDur =
+        seedSong.durationSec > 0 &&
+        seedSong.durationSec !== existing.durationSec &&
+        (existing.durationSec === 210 || !existing.durationSec);
+      const richerKey = seedSong.key && existing.key === 'C' && seedSong.key !== 'C';
+      const richerGenre =
+        seedSong.genre !== existing.genre &&
+        seedSong.genre !== 'other' &&
+        (existing.genre === 'rock' ||
+          existing.genre === 'other' ||
+          (existing.genre === 'latin' && seedSong.genre === 'regionalMexicano'));
+      const richerNotes = Boolean(seedSong.notes) && !existing.notes;
+
+      if (!richerBpm && !richerDur && !richerKey && !richerGenre && !richerNotes) continue;
+
+      const merged = {
+        ...existing,
+        bpm: richerBpm ? seedSong.bpm : existing.bpm,
+        durationSec: richerDur ? seedSong.durationSec : existing.durationSec,
+        key: richerKey ? seedSong.key : existing.key,
+        keyMode: richerKey ? seedSong.keyMode : existing.keyMode,
+        genre: richerGenre ? seedSong.genre : existing.genre,
+        notes: richerNotes ? seedSong.notes : existing.notes,
+        updatedAt: seedSong.updatedAt,
+      };
+      const idx = next.findIndex((s) => s.id === existing.id);
+      if (idx >= 0) next[idx] = merged;
+      byKey.set(key, merged);
+      updated += 1;
+    }
+
+    if (added === 0 && updated === 0) return 0;
     await repo.saveSongs(next);
     setSongs(next);
-    return missing.length;
+    return added + updated;
   }, [songs]);
+
+  const importSetlistFromGoogleSheet = useCallback(
+    async (url: string, name?: string) => {
+      const plan = await loadSheetImportPlan(
+        url,
+        name?.trim() || 'Setlist importado',
+      );
+      const inputs = plan.songs.map(({ setLabel: _setLabel, ...song }) => song);
+      const merged = mergeImportedSongs(songs, inputs);
+      if (merged.added > 0) {
+        await repo.saveSongs(merged.songs);
+        setSongs(merged.songs);
+      }
+      const setlistInput = buildSetlistFromImport(
+        plan,
+        merged.songs,
+        settings.defaultSetMinutes,
+      );
+      const setlist = await upsertSetlist(setlistInput);
+      return { songsAdded: merged.added, setlist };
+    },
+    [songs, settings.defaultSetMinutes, upsertSetlist],
+  );
 
   const value = useMemo(
     () => ({
@@ -214,6 +293,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateSetlistSets,
       updateSettings,
       importBarraLibreSeed,
+      importSetlistFromGoogleSheet,
     }),
     [
       ready,
@@ -229,6 +309,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateSetlistSets,
       updateSettings,
       importBarraLibreSeed,
+      importSetlistFromGoogleSheet,
     ],
   );
 
