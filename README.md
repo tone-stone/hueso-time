@@ -35,18 +35,16 @@ EXPO_PUBLIC_API_URL=http://localhost:8787
 
 ## Login con Gmail (Google)
 
-1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) creá un proyecto y clientes OAuth:
-   - **Web** (obligatorio para probar en web)
-   - **iOS** con bundle `com.tonestone.huesotime`
-   - **Android** con package `com.tonestone.huesotime` y el SHA-1 de tu keystore EAS
-2. Copiá `.env.example` a `.env` y completá:
+Guía completa de producción: [`docs/GOOGLE_AUTH.md`](docs/GOOGLE_AUTH.md).
+
+1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) creá clientes OAuth **Web**, **Android** (`com.tonestone.huesotime` + SHA-1) e **iOS**.
+2. Completá `.env` (ver `.env.example`).
+3. Subí los mismos valores como secrets EAS (`eas env:create …`).
+4. Build nativo (no Expo Go):
+   ```bash
+   npx eas build -p android --profile preview
    ```
-   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=xxxxx.apps.googleusercontent.com
-   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=...
-   EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=...
-   ```
-3. En el cliente Web, agregá redirect URIs según uses (p. ej. `https://auth.expo.io/@tonestone/hueso-time` o tu URL web / scheme `huesotime://oauth`).
-4. Reiniciá Expo. Solo se aceptan cuentas `@gmail.com`.
+5. `EXPO_PUBLIC_SKIP_AUTH=0` en preview/production (ya está en `eas.json`).
 
 ## Buscar canciones (Spotify / iTunes)
 

@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import Colors from '@/constants/Colors';
@@ -95,22 +96,65 @@ export function AmbientBackground() {
   );
 }
 
-/** Static EQ bars (no animation). */
-export function Waveform() {
-  const bars = [8, 16, 11, 22, 14, 18, 10, 20, 12];
+const BAR_COUNT = 7;
+const BAR_BASE = [0.35, 0.7, 0.45, 1, 0.55, 0.85, 0.4];
+const BAR_DURATIONS = [420, 560, 480, 640, 520, 600, 460];
+
+function AnimatedBar({
+  index,
+  color,
+}: {
+  index: number;
+  color: string;
+}) {
+  const scale = useRef(new Animated.Value(BAR_BASE[index] ?? 0.5)).current;
+
+  useEffect(() => {
+    const min = 0.28;
+    const max = 1;
+    const duration = BAR_DURATIONS[index] ?? 500;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: max,
+          duration,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: min,
+          duration: duration * 0.9,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    const delay = setTimeout(() => loop.start(), index * 70);
+    return () => {
+      clearTimeout(delay);
+      loop.stop();
+    };
+  }, [index, scale]);
+
   return (
-    <View style={styles.waveRow}>
-      {bars.map((h, i) => (
-        <View
-          key={i}
-          style={[
-            styles.waveBar,
-            {
-              height: h,
-              backgroundColor: i % 2 === 0 ? c.tint : c.accent,
-            },
-          ]}
-        />
+    <Animated.View
+      style={[
+        styles.waveBar,
+        {
+          backgroundColor: color,
+          transform: [{ scaleY: scale }],
+        },
+      ]}
+    />
+  );
+}
+
+/** Animated EQ bars. */
+export function Waveform() {
+  return (
+    <View style={styles.waveRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {Array.from({ length: BAR_COUNT }, (_, i) => (
+        <AnimatedBar key={i} index={i} color={i % 2 === 0 ? c.tint : c.accent} />
       ))}
     </View>
   );
@@ -199,13 +243,14 @@ const styles = StyleSheet.create({
   waveRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    height: 24,
+    height: 26,
     gap: 3,
     flexShrink: 0,
+    paddingHorizontal: 2,
   },
   waveBar: {
     width: 3,
+    height: 22,
     borderRadius: 2,
-    minHeight: 4,
   },
 });

@@ -34,7 +34,13 @@ export function Screen({
   );
 }
 
-export function BrandMark({ subtitle }: { subtitle?: string }) {
+export function BrandMark({
+  subtitle,
+  showWave = true,
+}: {
+  subtitle?: string;
+  showWave?: boolean;
+}) {
   return (
     <View style={styles.brandBlock}>
       <View style={styles.brandRow}>
@@ -50,7 +56,7 @@ export function BrandMark({ subtitle }: { subtitle?: string }) {
           <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
           {subtitle ? <Text style={styles.brandSub}>{subtitle}</Text> : null}
         </View>
-        <Waveform />
+        {showWave ? <Waveform /> : null}
       </View>
     </View>
   );
@@ -407,6 +413,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     backgroundColor: 'transparent',
+    marginLeft: 4,
   },
   fabWrap: {
     width: 48,

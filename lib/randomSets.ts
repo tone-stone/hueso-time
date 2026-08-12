@@ -1,4 +1,5 @@
 import { createId } from '@/lib/id';
+import { pickBestIndex } from '@/lib/setEnergy';
 import type { Genre, MusicalKey, SetBlock, SetSongRef, Song } from '@/types/models';
 
 export interface SongFilters {
@@ -58,24 +59,39 @@ function fillSet(
   used: Set<string>,
   allowReuse: boolean,
   preferVariety: boolean,
+  smartEnergy: boolean,
 ): { refs: SetSongRef[]; remaining: Song[] } {
   const targetSec = targetMinutes * 60;
   const refs: SetSongRef[] = [];
   let duration = 0;
   const remaining: Song[] = [];
   let candidates = shuffle(pool);
-  let lastArtist = '';
+  let lastSong: Song | null = null;
 
   while (candidates.length > 0) {
     let pickIndex = 0;
-    if (preferVariety && lastArtist) {
-      const varied = candidates.findIndex(
-        (s) =>
-          (!allowReuse ? !used.has(s.id) : true) &&
-          s.artist.trim().toLowerCase() !== lastArtist &&
-          (refs.length === 0 || duration + s.durationSec <= targetSec * 1.08),
-      );
-      if (varied >= 0) pickIndex = varied;
+    if (smartEnergy || preferVariety) {
+      const eligible = candidates
+        .map((s, i) => ({ s, i }))
+        .filter(({ s }) => {
+          if (!allowReuse && used.has(s.id)) return false;
+          if (refs.length > 0 && duration + s.durationSec > targetSec * 1.08) return false;
+          return true;
+        });
+
+      if (eligible.length > 0) {
+        const poolSongs = eligible.map((e) => e.s);
+        const bestLocal = pickBestIndex(lastSong, poolSongs);
+        if (bestLocal >= 0) pickIndex = eligible[bestLocal].i;
+      } else if (preferVariety && lastSong) {
+        const varied = candidates.findIndex(
+          (s) =>
+            (!allowReuse ? !used.has(s.id) : true) &&
+            s.artist.trim().toLowerCase() !== lastSong!.artist.trim().toLowerCase() &&
+            (refs.length === 0 || duration + s.durationSec <= targetSec * 1.08),
+        );
+        if (varied >= 0) pickIndex = varied;
+      }
     }
 
     const song = candidates[pickIndex];
@@ -101,7 +117,7 @@ function fillSet(
     refs.push({ songId: song.id, order: refs.length });
     duration += song.durationSec;
     used.add(song.id);
-    lastArtist = song.artist.trim().toLowerCase();
+    lastSong = song;
   }
 
   return { refs, remaining };
@@ -116,6 +132,8 @@ export interface GenerateRandomSetsOptions {
   allowReuse?: boolean;
   /** Prefer alternating artists inside a set. */
   preferVariety?: boolean;
+  /** Prefer energy pacing (avoid two slow songs in a row). Default true. */
+  smartEnergy?: boolean;
   /** Keep existing set ids/names when regenerating into a setlist. */
   existingSets?: SetBlock[];
 }
@@ -143,6 +161,7 @@ export function generateRandomSets(
       used,
       opts.allowReuse ?? false,
       opts.preferVariety ?? true,
+      opts.smartEnergy ?? true,
     );
     pool = remaining;
     sets.push({

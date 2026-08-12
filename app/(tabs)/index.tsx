@@ -27,6 +27,7 @@ import {
   Title,
   useThemeColors,
 } from '@/components/ui';
+import { Waveform } from '@/components/AmbientBackground';
 import { MusicSearchField } from '@/components/MusicSearchField';
 import { showToast } from '@/components/Toast';
 import { GENRES, KEY_MODES, MUSICAL_KEYS } from '@/constants/Colors';
@@ -45,6 +46,8 @@ const emptyForm = (): SongInput => ({
   genre: 'rock',
   durationSec: DEFAULT_SONG_DURATION_SEC,
   notes: '',
+  favorite: false,
+  practiceStatus: 'practice',
   imageUrl: undefined,
   spotifyId: undefined,
   externalUrl: undefined,
@@ -130,6 +133,8 @@ export default function RepertoireScreen() {
       genre: song.genre,
       durationSec: song.durationSec,
       notes: song.notes ?? '',
+      favorite: !!song.favorite,
+      practiceStatus: song.practiceStatus ?? 'practice',
       imageUrl: song.imageUrl,
       spotifyId: song.spotifyId,
       externalUrl: song.externalUrl,
@@ -177,12 +182,15 @@ export default function RepertoireScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <BrandMark subtitle={t('repertoire.subtitle')} />
+        <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+          <BrandMark subtitle={t('repertoire.subtitle')} showWave={false} />
           <Title>{t('repertoire.title')}</Title>
           <Subtitle>{t('repertoire.subtitle')}</Subtitle>
         </View>
-        <Fab onPress={openCreate} />
+        <View style={styles.headerTools}>
+          <Waveform />
+          <Fab onPress={openCreate} />
+        </View>
       </View>
 
       <View style={styles.pad}>
@@ -190,7 +198,7 @@ export default function RepertoireScreen() {
           label={t('common.search')}
           value={query}
           onChangeText={setQuery}
-          placeholder="Artist / title / key"
+          placeholder={t('repertoire.searchPlaceholder')}
         />
         <View style={styles.filterRow}>
           <Pressable
@@ -438,6 +446,31 @@ export default function RepertoireScreen() {
             />
 
             <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+              {t('practice.favorite')}
+            </Text>
+            <View style={styles.wrap}>
+              <Chip
+                label={t('practice.favorite')}
+                selected={!!form.favorite}
+                onPress={() => setForm((f) => ({ ...f, favorite: !f.favorite }))}
+              />
+            </View>
+
+            <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+              {t('repertoire.fields.status')}
+            </Text>
+            <View style={styles.wrap}>
+              {(['ready', 'practice', 'showstopper'] as const).map((status) => (
+                <Chip
+                  key={status}
+                  label={t(`practice.${status}`)}
+                  selected={form.practiceStatus === status}
+                  onPress={() => setForm((f) => ({ ...f, practiceStatus: status }))}
+                />
+              ))}
+            </View>
+
+            <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
               {t('repertoire.fields.key')}
             </Text>
             <View style={styles.wrap}>
@@ -498,6 +531,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     width: '100%',
     maxWidth: '100%',
+    gap: 12,
+  },
+  headerTools: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingTop: 4,
   },
   pad: { paddingHorizontal: 16, width: '100%', maxWidth: '100%' },
   filterRow: {

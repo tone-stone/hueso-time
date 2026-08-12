@@ -9,7 +9,12 @@ import {
 } from 'react';
 
 import { clearAuthUser, loadAuthUser, saveAuthUser } from '@/lib/authStorage';
-import { getGoogleClientConfig, isAuthSkipped, userFromIdToken } from '@/lib/googleAuth';
+import {
+  getGoogleClientConfig,
+  isAuthSkipped,
+  isIdTokenFresh,
+  userFromIdToken,
+} from '@/lib/googleAuth';
 import type { AuthUser } from '@/types/auth';
 
 type AuthContextValue = {
@@ -40,9 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       const stored = await loadAuthUser();
       if (!alive) return;
-      setUser(stored);
-      // Modo prueba: arrancar ya dentro de la app.
-      if (isAuthSkipped() && !stored) setGuestIn(true);
+      if (stored?.idToken && !isIdTokenFresh(stored.idToken)) {
+        await clearAuthUser();
+        setUser(null);
+        if (isAuthSkipped()) setGuestIn(true);
+      } else {
+        setUser(stored);
+        if (isAuthSkipped() && !stored) setGuestIn(true);
+      }
       setReady(true);
     })();
     return () => {

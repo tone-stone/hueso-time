@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { CreateManualSetlistForm } from '@/components/CreateManualSetlistForm';
 import { CreateSetlistWizard } from '@/components/CreateSetlistWizard';
 import { ImportSheetsForm } from '@/components/ImportSheetsForm';
+import { Waveform } from '@/components/AmbientBackground';
 import { showToast } from '@/components/Toast';
 import {
   Body,
@@ -126,12 +127,15 @@ export default function SetlistsScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <BrandMark subtitle={t('setlists.subtitle')} />
+        <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+          <BrandMark subtitle={t('setlists.subtitle')} showWave={false} />
           <Title>{t('setlists.title')}</Title>
           <Subtitle>{t('setlists.subtitle')}</Subtitle>
         </View>
-        <Fab onPress={() => setCreateMode('choose')} />
+        <View style={styles.headerTools}>
+          <Waveform />
+          <Fab onPress={() => setCreateMode('choose')} />
+        </View>
       </View>
 
       <FlatList
@@ -275,6 +279,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     width: '100%',
     maxWidth: '100%',
+    gap: 12,
+  },
+  headerTools: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingTop: 4,
   },
   name: { fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },

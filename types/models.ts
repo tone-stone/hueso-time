@@ -52,6 +52,10 @@ export interface Song {
   /** Duration in seconds (default ~3:30 for covers). */
   durationSec: number;
   notes?: string;
+  /** Mark as favorite for quick filters. */
+  favorite?: boolean;
+  /** Practice readiness for the band. */
+  practiceStatus?: 'ready' | 'practice' | 'showstopper';
   /** Cover art from Spotify / iTunes search. */
   imageUrl?: string;
   spotifyId?: string;

@@ -51,6 +51,8 @@ export interface Song {
   genre: Genre;
   durationSec: number;
   notes?: string;
+  favorite?: boolean;
+  practiceStatus?: 'ready' | 'practice' | 'showstopper';
   imageUrl?: string;
   spotifyId?: string;
   externalUrl?: string;

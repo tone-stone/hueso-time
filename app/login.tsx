@@ -17,6 +17,10 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { getGoogleClientConfig, isAuthSkipped } from '@/lib/googleAuth';
+import {
+  canUseNativeGoogleSignIn,
+  signInWithNativeGoogle,
+} from '@/lib/googleNativeSignIn';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -33,8 +37,10 @@ export default function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const clients = getGoogleClientConfig();
   const skipAuth = isAuthSkipped();
+  const useNative = canUseNativeGoogleSignIn();
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
+  // Fallback for web / Expo Go (browser OAuth)
+  const [request, , promptAsync] = Google.useIdTokenAuthRequest(
     {
       webClientId: clients.webClientId,
       iosClientId: clients.iosClientId,
@@ -45,33 +51,57 @@ export default function LoginScreen() {
   );
 
   useEffect(() => {
-    if (Platform.OS === 'web') return;
+    if (Platform.OS === 'web' || useNative) return;
     void WebBrowser.warmUpAsync();
     return () => {
       void WebBrowser.coolDownAsync();
     };
-  }, []);
+  }, [useNative]);
 
-  useEffect(() => {
-    if (response?.type !== 'success') return;
-    const idToken = response.params.id_token;
-    if (!idToken) {
-      Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
+  async function onGooglePress() {
+    if (!googleConfigured) {
+      Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
       return;
     }
 
     setBusy(true);
-    void completeGoogleSignIn(idToken)
-      .catch((err: unknown) => {
-        const code = err instanceof Error ? err.message : 'error';
-        if (code === 'gmail_required') {
-          Alert.alert(t('auth.errorTitle'), t('auth.gmailOnly'));
+    try {
+      let idToken: string;
+      if (useNative) {
+        idToken = await signInWithNativeGoogle();
+      } else {
+        const result = await promptAsync();
+        if (result.type !== 'success') {
+          if (result.type !== 'dismiss' && result.type !== 'cancel') {
+            Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
+          }
           return;
         }
+        idToken = result.params.id_token;
+        if (!idToken) {
+          Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
+          return;
+        }
+      }
+      await completeGoogleSignIn(idToken);
+    } catch (err: unknown) {
+      const code = err instanceof Error ? err.message : 'error';
+      if (code === 'cancelled') return;
+      if (code === 'gmail_required') {
+        Alert.alert(t('auth.errorTitle'), t('auth.gmailOnly'));
+      } else if (code === 'play_services') {
+        Alert.alert(t('auth.errorTitle'), t('auth.playServices'));
+      } else if (code === 'missing_config') {
+        Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
+      } else if (code === 'token_expired') {
+        Alert.alert(t('auth.errorTitle'), t('auth.tokenExpired'));
+      } else {
         Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
-      })
-      .finally(() => setBusy(false));
-  }, [response, completeGoogleSignIn, t]);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (ready && canAccessApp) {
     return <Redirect href="/(tabs)/setlists" />;
@@ -96,20 +126,11 @@ export default function LoginScreen() {
           <View style={styles.actions}>
             <PrimaryButton
               label={t('auth.continueGoogle')}
-              onPress={() => {
-                if (!googleConfigured) {
-                  Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
-                  return;
-                }
-                void promptAsync();
-              }}
-              disabled={!request || !googleConfigured}
+              onPress={() => void onGooglePress()}
+              disabled={(!useNative && !request) || !googleConfigured}
             />
             {skipAuth ? (
-              <GhostButton
-                label={t('auth.continueGuest')}
-                onPress={enterAsGuest}
-              />
+              <GhostButton label={t('auth.continueGuest')} onPress={enterAsGuest} />
             ) : (
               <Body muted>{t('auth.gmailHint')}</Body>
             )}

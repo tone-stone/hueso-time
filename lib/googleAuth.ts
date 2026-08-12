@@ -54,7 +54,20 @@ export function decodeJwtPayload(token: string): Record<string, unknown> {
   return JSON.parse(base64UrlToUtf8(part)) as Record<string, unknown>;
 }
 
+/** Returns true if exp claim is missing or still in the future (60s skew). */
+export function isIdTokenFresh(idToken: string, nowSec = Math.floor(Date.now() / 1000)): boolean {
+  try {
+    const payload = decodeJwtPayload(idToken);
+    const exp = Number(payload.exp);
+    if (!Number.isFinite(exp)) return false;
+    return exp > nowSec - 60;
+  } catch {
+    return false;
+  }
+}
+
 export function userFromIdToken(idToken: string) {
+  if (!isIdTokenFresh(idToken)) throw new Error('token_expired');
   const payload = decodeJwtPayload(idToken);
   const email = String(payload.email ?? '');
   if (!email) throw new Error('missing_email');
