@@ -13,5 +13,13 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "backend",
+    "node_modules",
+    "ios",
+    "android",
+    "**/*.test.ts",
+    "vitest.config.mts"
   ]
 }

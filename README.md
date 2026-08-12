@@ -15,6 +15,22 @@ App web y móvil para bandas de covers: repertorio, BPM, tonalidad, género y se
 npm start
 ```
 
+## Tests
+
+```bash
+npm test          # unit tests (vitest)
+npm run ci        # typecheck + tests
+```
+
+## App Store (iOS)
+
+Guía completa: [`docs/APP_STORE.md`](docs/APP_STORE.md) · Política borrador: [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md)
+
+```bash
+npx eas build --platform ios --profile production
+npx eas submit --platform ios --profile production --latest
+```
+
 ## Backend CRUD
 
 ```bash

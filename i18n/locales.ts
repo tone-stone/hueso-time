@@ -22,6 +22,7 @@ export const es = {
     yes: 'Sí',
     no: 'No',
     clear: 'Limpiar',
+    back: 'Volver',
   },
   toast: {
     setlistCreated: 'Setlist creado',
@@ -130,7 +131,7 @@ export const es = {
     dragHint: 'Arrastrá ⠿ o mantené pulsado para reordenar',
     totalShow: 'Total del show',
     generateRandom: 'Generar sets aleatorios',
-    editMode: 'Editar',
+    editMode: 'Modo editar',
     showMode: 'Modo show',
     showModeHint: 'Vista limpia para escenario: orden, título, BPM y tonalidad.',
     generateDone: 'Se armó con {{placed}} canciones (de {{matched}} filtradas)',
@@ -148,6 +149,8 @@ export const es = {
     end: 'Fin del show',
     empty: 'No hay canciones en este setlist',
     overrun: 'Pasaste la meta del set',
+    remaining: 'Quedan {{time}}',
+    paused: 'Pausado',
   },
   practice: {
     ready: 'Lista',
@@ -218,7 +221,7 @@ export const es = {
     gmailHint: 'Solo cuentas @gmail.com',
     gmailOnly: 'Tenés que usar un correo de Gmail (@gmail.com).',
     missingConfig:
-      'Falta configurar las credenciales de Google. Agregá EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID en tu archivo .env (ver README).',
+      'Falta configurar Google. En Google Cloud necesitás un cliente OAuth tipo iOS (bundle com.tonestone.huesotime) y uno tipo Web. Poné ambos IDs en .env: EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID y EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (ver docs/GOOGLE_AUTH.md).',
     errorTitle: 'No se pudo iniciar sesión',
     errorGeneric: 'Reintentá en un momento.',
     account: 'Cuenta',
@@ -284,6 +287,7 @@ export const en = {
     yes: 'Yes',
     no: 'No',
     clear: 'Clear',
+    back: 'Back',
   },
   toast: {
     setlistCreated: 'Setlist created',
@@ -392,7 +396,7 @@ export const en = {
     dragHint: 'Drag ⠿ or long-press to reorder',
     totalShow: 'Show total',
     generateRandom: 'Generate random sets',
-    editMode: 'Edit',
+    editMode: 'Edit mode',
     showMode: 'Show mode',
     showModeHint: 'Clean stage view: order, title, BPM and key.',
     generateDone: 'Built with {{placed}} songs (from {{matched}} matches)',
@@ -410,6 +414,8 @@ export const en = {
     end: 'End of show',
     empty: 'No songs in this setlist',
     overrun: 'Over set target',
+    remaining: '{{time}} left',
+    paused: 'Paused',
   },
   practice: {
     ready: 'Ready',
@@ -480,7 +486,7 @@ export const en = {
     gmailHint: 'Gmail accounts only (@gmail.com)',
     gmailOnly: 'You must use a Gmail address (@gmail.com).',
     missingConfig:
-      'Google credentials are missing. Add EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to your .env file (see README).',
+      'Google credentials are missing. On iOS (Expo Go) you need EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in .env, plus the Web Client ID (see docs/GOOGLE_AUTH.md).',
     errorTitle: 'Could not sign in',
     errorGeneric: 'Try again in a moment.',
     account: 'Account',

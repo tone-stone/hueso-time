@@ -9,7 +9,8 @@ import {
   View,
 } from 'react-native';
 import { NestableScrollContainer } from 'react-native-draggable-flatlist';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { GenerateSetsForm } from '@/components/GenerateSetsForm';
@@ -43,6 +44,8 @@ export default function SetlistDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const c = useThemeColors();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { setlists, songs, songsById, updateSetlistSets, upsertSetlist } = useApp();
   const setlist = setlists.find((s) => s.id === id);
   const [picker, setPicker] = useState<PickerMode>(null);
@@ -53,6 +56,14 @@ export default function SetlistDetailScreen() {
   const [editVenue, setEditVenue] = useState('');
   const [editDate, setEditDate] = useState('');
 
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace('/(tabs)/setlists');
+  }
+
   const total = useMemo(
     () => (setlist ? setlistDurationSec(setlist.sets, songsById) : 0),
     [setlist, songsById],
@@ -61,7 +72,10 @@ export default function SetlistDetailScreen() {
   if (!setlist) {
     return (
       <Screen>
-        <View style={{ padding: 16 }}>
+        <View style={{ padding: 16, paddingTop: 24 }}>
+          <Pressable onPress={goBack} hitSlop={12} style={{ marginBottom: 12 }}>
+            <Text style={{ color: c.tint, fontWeight: '800' }}>← {t('common.back')}</Text>
+          </Pressable>
           <Title>{t('common.empty')}</Title>
         </View>
       </Screen>
@@ -217,8 +231,22 @@ export default function SetlistDetailScreen() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: setlist.name }} />
-      <NestableScrollContainer contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+      <Stack.Screen
+        options={{
+          title: setlist.name,
+          headerShown: true,
+          headerBackTitle: t('common.back'),
+        }}
+      />
+      <NestableScrollContainer
+        contentContainerStyle={{
+          padding: 16,
+          paddingTop: 12,
+          paddingBottom: 48 + insets.bottom,
+        }}>
+        <Pressable onPress={goBack} hitSlop={12} style={styles.backRow}>
+          <Text style={{ color: c.tint, fontWeight: '800' }}>← {t('common.back')}</Text>
+        </Pressable>
         <Title>{setlist.name}</Title>
         <Subtitle>
           {t('setlists.totalShow')}: {formatMinutes(total)}
@@ -379,6 +407,11 @@ export default function SetlistDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+  backRow: {
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+    paddingVertical: 4,
+  },
   modeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

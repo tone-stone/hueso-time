@@ -7,6 +7,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
       "env": {
         "EXPO_PUBLIC_SKIP_AUTH": "1"
       }
@@ -16,6 +19,7 @@
       "env": {
         "EXPO_PUBLIC_SKIP_AUTH": "0",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "785682234203-9vtfndcqiml95it6427903fivpf2kd4i.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "785682234203-r4umd1ct3f8tb7jcsh0d39lvu5u9978n.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "785682234203-8n64trh9ksljapcc3fol73qusnj5hdnt.apps.googleusercontent.com"
       }
     },
@@ -24,6 +28,7 @@
       "env": {
         "EXPO_PUBLIC_SKIP_AUTH": "0",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "785682234203-9vtfndcqiml95it6427903fivpf2kd4i.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "785682234203-r4umd1ct3f8tb7jcsh0d39lvu5u9978n.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "785682234203-8n64trh9ksljapcc3fol73qusnj5hdnt.apps.googleusercontent.com"
       }
     }

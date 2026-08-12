@@ -196,11 +196,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const importBarraLibreSeed = useCallback(async () => {
     const seed = buildBarraLibreSeedSongs();
-    const byKey = new Map(
+    const byKey = new Map<string, Song>(
       songs.map((s) => [
         `${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`,
         s,
-      ] as const),
+      ]),
     );
 
     let added = 0;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, View } from 'react-native';
 import { Redirect } from 'expo-router';
+import type { AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +25,66 @@ import {
 
 WebBrowser.maybeCompleteAuthSession();
 
+type Clients = ReturnType<typeof getGoogleClientConfig>;
+
+/** Browser OAuth (Expo Go / web) needs the platform-specific client id. */
+function hasBrowserClientIds(clients: Clients) {
+  if (Platform.OS === 'ios') return !!clients.iosClientId;
+  if (Platform.OS === 'android') return !!clients.androidClientId;
+  return !!clients.webClientId;
+}
+
 export default function LoginScreen() {
+  const clients = getGoogleClientConfig();
+  const useNative = canUseNativeGoogleSignIn();
+  const browserReady = !useNative && hasBrowserClientIds(clients);
+
+  // Native path never mounts the Google auth-session hook.
+  if (useNative) {
+    return <LoginUI useNative promptAsync={null} requestReady />;
+  }
+
+  if (!browserReady) {
+    return <LoginUI useNative={false} promptAsync={null} requestReady={false} />;
+  }
+
+  return <LoginWithBrowserAuth clients={clients} />;
+}
+
+function LoginWithBrowserAuth({ clients }: { clients: Clients }) {
+  const [request, , promptAsync] = Google.useIdTokenAuthRequest(
+    {
+      webClientId: clients.webClientId,
+      iosClientId: clients.iosClientId,
+      androidClientId: clients.androidClientId,
+      selectAccount: true,
+    },
+    { scheme: 'huesotime', path: 'oauth' },
+  );
+
+  useEffect(() => {
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
+
+  return (
+    <LoginUI
+      useNative={false}
+      promptAsync={promptAsync}
+      requestReady={!!request}
+    />
+  );
+}
+
+type LoginUIProps = {
+  useNative: boolean;
+  promptAsync: null | (() => Promise<AuthSessionResult>);
+  requestReady: boolean;
+};
+
+function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
   const { t } = useTranslation();
   const c = useThemeColors();
   const {
@@ -37,29 +97,12 @@ export default function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const clients = getGoogleClientConfig();
   const skipAuth = isAuthSkipped();
-  const useNative = canUseNativeGoogleSignIn();
-
-  // Fallback for web / Expo Go (browser OAuth)
-  const [request, , promptAsync] = Google.useIdTokenAuthRequest(
-    {
-      webClientId: clients.webClientId,
-      iosClientId: clients.iosClientId,
-      androidClientId: clients.androidClientId,
-      selectAccount: true,
-    },
-    { scheme: 'huesotime', path: 'oauth' },
-  );
-
-  useEffect(() => {
-    if (Platform.OS === 'web' || useNative) return;
-    void WebBrowser.warmUpAsync();
-    return () => {
-      void WebBrowser.coolDownAsync();
-    };
-  }, [useNative]);
+  const platformConfigured = useNative
+    ? googleConfigured
+    : hasBrowserClientIds(clients);
 
   async function onGooglePress() {
-    if (!googleConfigured) {
+    if (!platformConfigured) {
       Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
       return;
     }
@@ -70,6 +113,10 @@ export default function LoginScreen() {
       if (useNative) {
         idToken = await signInWithNativeGoogle();
       } else {
+        if (!promptAsync) {
+          Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
+          return;
+        }
         const result = await promptAsync();
         if (result.type !== 'success') {
           if (result.type !== 'dismiss' && result.type !== 'cancel') {
@@ -114,7 +161,7 @@ export default function LoginScreen() {
         <Title>{t('auth.title')}</Title>
         <Subtitle>{t('auth.subtitle')}</Subtitle>
 
-        {!googleConfigured ? (
+        {!platformConfigured ? (
           <View style={[styles.banner, { borderColor: c.border, backgroundColor: c.surface }]}>
             <Body muted>{t('auth.missingConfig')}</Body>
           </View>
@@ -127,7 +174,7 @@ export default function LoginScreen() {
             <PrimaryButton
               label={t('auth.continueGoogle')}
               onPress={() => void onGooglePress()}
-              disabled={(!useNative && !request) || !googleConfigured}
+              disabled={(!useNative && !requestReady) || !platformConfigured}
             />
             {skipAuth ? (
               <GhostButton label={t('auth.continueGuest')} onPress={enterAsGuest} />

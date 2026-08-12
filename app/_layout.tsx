@@ -5,6 +5,7 @@ import { DarkTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-ro
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '@/i18n';
 
@@ -55,11 +56,13 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <AppProvider>
-        <RootLayoutNav />
-      </AppProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <AppProvider>
+          <RootLayoutNav />
+        </AppProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -96,7 +99,12 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="setlist/[id]"
-            options={{ title: 'Setlist', presentation: 'card' }}
+            options={{
+              title: 'Setlist',
+              presentation: 'card',
+              headerShown: true,
+              headerBackTitle: 'Volver',
+            }}
           />
         </Stack>
         <ToastHost />
