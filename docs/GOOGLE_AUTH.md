@@ -23,12 +23,15 @@ Cuenta Expo: `@tonestone` · proyecto `hueso-time`
 - Nombre: `Hueso Time Web`
 - Authorized JavaScript origins (web local):
   - `http://localhost:8081`
-  - `http://localhost:8082`
-- Authorized redirect URIs:
-  - `https://auth.expo.io/@tonestone/hueso-time`
-  - `huesotime://oauth`
-  - Tu dominio de web prod si publicás web (ej. `https://tu-dominio.com`)
+  - `http://127.0.0.1:8081`
+- Authorized redirect URIs (tienen que coincidir **exacto** con lo que imprime la app):
+  - `http://localhost:8081/oauth`
+  - `http://127.0.0.1:8081/oauth`
+  - Tu dominio de web prod si publicás web (ej. `https://tu-dominio.com/oauth`)
+- En desarrollo web, la consola del navegador muestra `[Google OAuth] redirectUri = …` — agregá esa URI si no está.
 - Copiá el **Client ID** → `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`
+
+> Nota: el scheme nativo `huesotime://oauth` **no** va en el cliente Web. En builds nativos usamos Google Sign-In nativo (clientes iOS/Android).
 
 ### B) Android
 - Tipo: **Android**
@@ -114,8 +117,9 @@ npx eas build -p ios --profile production
 
 | Error | Qué revisar |
 |-------|-------------|
-| Access blocked / redirect_uri | URIs del cliente **Web** |
-| Developer error / DEVELOPER_ERROR | SHA-1 del keystore ≠ el de Google Console |
+| Access blocked / redirect_uri_mismatch | En el cliente **Web**: agregá exactamente `http://localhost:8081/oauth` (y el origin `http://localhost:8081`). Mirá el log `[Google OAuth] redirectUri`. |
+| Developer error / DEVELOPER_ERROR / code 10 | SHA-1 del keystore EAS ≠ el del cliente Android en Google Console (package `com.tonestone.huesotime`) |
+| Popup se queda en “Completando…” | La ruta `/oauth` debe existir (sí en esta app) y no ser redirigida al login |
 | No idToken | Falta `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en el build |
 | Solo Gmail | Esperado: la app rechaza no-gmail |
 | Expo Go | Usá build EAS; en Go solo funciona el flujo web limitado |

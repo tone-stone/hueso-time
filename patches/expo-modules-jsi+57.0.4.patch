@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Coding/JavaScriptCodable+Date.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Coding/JavaScriptCodable+Date.swift
-index 1111111..2222222 100644
+index eb1cc94..add3e26 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Coding/JavaScriptCodable+Date.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Coding/JavaScriptCodable+Date.swift
 @@ -50,7 +50,7 @@ let maxJavaScriptDateMilliseconds: Double = 8_640_000_000_000_000
@@ -11,4 +11,3 @@ index 1111111..2222222 100644
      throw InvalidDateException()
    }
    return Date(timeIntervalSince1970: milliseconds.rounded(.towardZero) / 1000.0)
- }

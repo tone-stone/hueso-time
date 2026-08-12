@@ -233,6 +233,8 @@ export const es = {
     continueGuest: 'Continuar sin cuenta',
     skipMode: 'Modo prueba: login desactivado. Activá EXPO_PUBLIC_SKIP_AUTH=0 para exigir Gmail.',
     playServices: 'Actualizá Google Play Services e intentá de nuevo.',
+    developerError:
+      'Google rechazó la app (SHA-1 / package). En Google Cloud, el cliente Android debe usar package com.tonestone.huesotime y el SHA-1 del keystore EAS. Ver docs/GOOGLE_AUTH.md.',
     tokenExpired: 'La sesión de Google venció. Volvé a iniciar sesión.',
   },
   genres: {
@@ -498,6 +500,8 @@ export const en = {
     continueGuest: 'Continue without an account',
     skipMode: 'Test mode: login skipped. Set EXPO_PUBLIC_SKIP_AUTH=0 to require Gmail.',
     playServices: 'Update Google Play Services and try again.',
+    developerError:
+      'Google rejected the app (SHA-1 / package). The Android OAuth client must use package com.tonestone.huesotime and the EAS keystore SHA-1. See docs/GOOGLE_AUTH.md.',
     tokenExpired: 'Your Google session expired. Sign in again.',
   },
   genres: {

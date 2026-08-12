@@ -37,7 +37,7 @@ export function configureNativeGoogleSignIn() {
   const { GoogleSignin } = getNativeModule();
   const clients = getGoogleClientConfig();
   GoogleSignin.configure({
-    // Required on Android to receive an idToken
+    // Required on Android to receive an idToken (must be the *Web* client ID).
     webClientId: clients.webClientId,
     iosClientId: clients.iosClientId,
     offlineAccess: false,
@@ -48,7 +48,7 @@ export function configureNativeGoogleSignIn() {
 
 /**
  * Native Google Sign-In → id_token.
- * Throws Error with message codes: missing_config | cancelled | play_services | error
+ * Throws Error with message codes: missing_config | cancelled | play_services | developer_error | error
  */
 export async function signInWithNativeGoogle(): Promise<string> {
   if (!canUseNativeGoogleSignIn()) {
@@ -57,16 +57,22 @@ export async function signInWithNativeGoogle(): Promise<string> {
 
   const { GoogleSignin, statusCodes } = getNativeModule();
   const clients = getGoogleClientConfig();
+  // Android needs the Web client ID to mint an idToken.
+  if (Platform.OS === 'android' && !clients.webClientId) {
+    throw new Error('missing_config');
+  }
   if (!clients.webClientId && !clients.iosClientId) {
     throw new Error('missing_config');
   }
 
   configureNativeGoogleSignIn();
 
-  try {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-  } catch {
-    throw new Error('play_services');
+  if (Platform.OS === 'android') {
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    } catch {
+      throw new Error('play_services');
+    }
   }
 
   try {
@@ -83,15 +89,37 @@ export async function signInWithNativeGoogle(): Promise<string> {
     }
     return idToken;
   } catch (err: unknown) {
-    const code = (err as { code?: string })?.code;
+    const code = (err as { code?: string | number })?.code;
     if (code === statusCodes.SIGN_IN_CANCELLED || code === 'cancelled') {
       throw new Error('cancelled');
     }
     if (code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
       throw new Error('play_services');
     }
-    if (err instanceof Error && ['cancelled', 'play_services', 'missing_config', 'error'].includes(err.message)) {
+    // Common Android misconfig: package/SHA-1 mismatch in Google Cloud.
+    const message = err instanceof Error ? err.message : String(err ?? '');
+    if (
+      code === 10 ||
+      code === '10' ||
+      /DEVELOPER_ERROR/i.test(message) ||
+      /Code:\s*10\b/i.test(message)
+    ) {
+      if (__DEV__) {
+        console.error(
+          '[Google Sign-In] DEVELOPER_ERROR: verificá package com.tonestone.huesotime + SHA-1 del keystore EAS en el cliente Android de Google Cloud.',
+          err,
+        );
+      }
+      throw new Error('developer_error');
+    }
+    if (
+      err instanceof Error &&
+      ['cancelled', 'play_services', 'missing_config', 'developer_error', 'error'].includes(err.message)
+    ) {
       throw err;
+    }
+    if (__DEV__) {
+      console.error('[Google Sign-In] unexpected error', err);
     }
     throw new Error('error');
   }

@@ -18,12 +18,11 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { getGoogleClientConfig, isAuthSkipped } from '@/lib/googleAuth';
+import { getGoogleBrowserRedirectUri } from '@/lib/googleRedirect';
 import {
   canUseNativeGoogleSignIn,
   signInWithNativeGoogle,
 } from '@/lib/googleNativeSignIn';
-
-WebBrowser.maybeCompleteAuthSession();
 
 type Clients = ReturnType<typeof getGoogleClientConfig>;
 
@@ -32,6 +31,14 @@ function hasBrowserClientIds(clients: Clients) {
   if (Platform.OS === 'ios') return !!clients.iosClientId;
   if (Platform.OS === 'android') return !!clients.androidClientId;
   return !!clients.webClientId;
+}
+
+function showAuthAlert(title: string, message: string) {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
 }
 
 export default function LoginScreen() {
@@ -52,17 +59,29 @@ export default function LoginScreen() {
 }
 
 function LoginWithBrowserAuth({ clients }: { clients: Clients }) {
+  // Must match Authorized redirect URIs on the Google Cloud *Web* OAuth client.
+  // Web local → http://localhost:8081/oauth  |  native fallback → huesotime://oauth
+  const redirectUri = getGoogleBrowserRedirectUri();
+
   const [request, , promptAsync] = Google.useIdTokenAuthRequest(
     {
       webClientId: clients.webClientId,
       iosClientId: clients.iosClientId,
       androidClientId: clients.androidClientId,
       selectAccount: true,
+      redirectUri,
     },
-    { scheme: 'huesotime', path: 'oauth' },
+    { scheme: 'huesotime', path: 'oauth', native: 'huesotime://oauth' },
   );
 
   useEffect(() => {
+    if (__DEV__) {
+      console.log('[Google OAuth] redirectUri =', redirectUri);
+    }
+  }, [redirectUri]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
     void WebBrowser.warmUpAsync();
     return () => {
       void WebBrowser.coolDownAsync();
@@ -103,7 +122,7 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
 
   async function onGooglePress() {
     if (!platformConfigured) {
-      Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
+      showAuthAlert(t('auth.errorTitle'), t('auth.missingConfig'));
       return;
     }
 
@@ -114,19 +133,19 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
         idToken = await signInWithNativeGoogle();
       } else {
         if (!promptAsync) {
-          Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
+          showAuthAlert(t('auth.errorTitle'), t('auth.missingConfig'));
           return;
         }
         const result = await promptAsync();
         if (result.type !== 'success') {
           if (result.type !== 'dismiss' && result.type !== 'cancel') {
-            Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
+            showAuthAlert(t('auth.errorTitle'), t('auth.errorGeneric'));
           }
           return;
         }
         idToken = result.params.id_token;
         if (!idToken) {
-          Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
+          showAuthAlert(t('auth.errorTitle'), t('auth.errorGeneric'));
           return;
         }
       }
@@ -135,15 +154,17 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
       const code = err instanceof Error ? err.message : 'error';
       if (code === 'cancelled') return;
       if (code === 'gmail_required') {
-        Alert.alert(t('auth.errorTitle'), t('auth.gmailOnly'));
+        showAuthAlert(t('auth.errorTitle'), t('auth.gmailOnly'));
       } else if (code === 'play_services') {
-        Alert.alert(t('auth.errorTitle'), t('auth.playServices'));
+        showAuthAlert(t('auth.errorTitle'), t('auth.playServices'));
       } else if (code === 'missing_config') {
-        Alert.alert(t('auth.errorTitle'), t('auth.missingConfig'));
+        showAuthAlert(t('auth.errorTitle'), t('auth.missingConfig'));
+      } else if (code === 'developer_error') {
+        showAuthAlert(t('auth.errorTitle'), t('auth.developerError'));
       } else if (code === 'token_expired') {
-        Alert.alert(t('auth.errorTitle'), t('auth.tokenExpired'));
+        showAuthAlert(t('auth.errorTitle'), t('auth.tokenExpired'));
       } else {
-        Alert.alert(t('auth.errorTitle'), t('auth.errorGeneric'));
+        showAuthAlert(t('auth.errorTitle'), t('auth.errorGeneric'));
       }
     } finally {
       setBusy(false);
