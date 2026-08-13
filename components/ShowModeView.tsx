@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -71,7 +72,7 @@ export function ShowModeView({
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const progressWidth = Math.max(width - Math.max(insets.left, 16) * 2 - Math.max(insets.right, 16) * 2, 120);
   const rootPad = {
-    paddingTop: Math.max(insets.top, 12),
+    paddingTop: Math.max(insets.top, Platform.OS === 'android' ? 40 : 12) + 8,
     paddingBottom: Math.max(insets.bottom, 16),
     paddingLeft: Math.max(insets.left, 16),
     paddingRight: Math.max(insets.right, 16),

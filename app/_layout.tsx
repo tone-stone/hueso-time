@@ -5,12 +5,15 @@ import { DarkTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-ro
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '@/i18n';
 
 import { ToastHost } from '@/components/Toast';
+import { WebFooter, WebTopNav } from '@/components/WebTopNav';
+import { useDesktopWeb } from '@/components/ui';
 import { AppProvider } from '@/context/AppContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import Colors from '@/constants/Colors';
@@ -25,8 +28,6 @@ WebBrowser.maybeCompleteAuthSession();
 export const unstable_settings = {
   initialRouteName: isAuthSkipped() ? '(tabs)' : 'login',
 };
-
-SplashScreen.preventAutoHideAsync();
 
 const navTheme = {
   ...DarkTheme,
@@ -47,18 +48,22 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (error) throw error;
+    if (error) console.warn('[fonts]', error);
   }, [error]);
 
+  // Auto-hide native splash as soon as JS is up (don't gate on fonts).
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const t = setTimeout(() => {
+      void SplashScreen.hideAsync().catch(() => undefined);
+    }, 50);
+    return () => clearTimeout(t);
+  }, []);
 
-  if (!loaded) {
-    return null;
-  }
+  useEffect(() => {
+    if (loaded || error) {
+      void SplashScreen.hideAsync().catch(() => undefined);
+    }
+  }, [loaded, error]);
 
   return (
     <SafeAreaProvider>
@@ -75,11 +80,13 @@ function RootLayoutNav() {
   const { ready, canAccessApp } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const desktopWeb = useDesktopWeb();
+  const onLogin = segments[0] === 'login';
+  const onOAuth = isOAuthRedirectRoute(segments[0]);
+  const showWebNav = desktopWeb && canAccessApp && !onLogin && !onOAuth;
 
   useEffect(() => {
     if (!ready) return;
-    const onLogin = segments[0] === 'login';
-    const onOAuth = isOAuthRedirectRoute(segments[0]);
 
     // Never redirect away from /oauth — the popup must finish maybeCompleteAuthSession.
     if (onOAuth) return;
@@ -91,32 +98,38 @@ function RootLayoutNav() {
     if (canAccessApp && onLogin) {
       router.replace('/(tabs)/setlists');
     }
-  }, [ready, canAccessApp, segments, router]);
+  }, [ready, canAccessApp, onLogin, onOAuth, router]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={navTheme}>
         <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: Colors.dark.background },
-            headerTintColor: Colors.dark.text,
-            headerTitleStyle: { fontWeight: '700' },
-            contentStyle: { backgroundColor: Colors.dark.background },
-          }}>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="oauth" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="setlist/[id]"
-            options={{
-              title: 'Setlist',
-              presentation: 'card',
-              headerShown: true,
-              headerBackTitle: 'Volver',
-            }}
-          />
-        </Stack>
+        <View style={{ flex: 1 }}>
+          {showWebNav ? <WebTopNav /> : null}
+          <View style={{ flex: 1, minHeight: 0 }}>
+            <Stack
+              screenOptions={{
+                headerStyle: { backgroundColor: Colors.dark.background },
+                headerTintColor: Colors.dark.text,
+                headerTitleStyle: { fontWeight: '700' },
+                contentStyle: { backgroundColor: Colors.dark.background },
+              }}>
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="oauth" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="setlist/[id]"
+                options={{
+                  title: 'Setlist',
+                  presentation: 'card',
+                  headerShown: !desktopWeb,
+                  headerBackTitle: 'Volver',
+                }}
+              />
+            </Stack>
+          </View>
+          {showWebNav ? <WebFooter /> : null}
+        </View>
         <ToastHost />
       </ThemeProvider>
     </GestureHandlerRootView>

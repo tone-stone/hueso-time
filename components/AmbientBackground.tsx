@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import Colors from '@/constants/Colors';
 
 const c = Colors.dark;
+const pattern = require('../assets/images/brand/techplace-pattern.png');
 
 function StaffLines() {
   return (
-    <View pointerEvents="none" style={styles.staffWrap}>
+    <View style={[styles.staffWrap, styles.noPointer]}>
       {[0, 1, 2, 3, 4].map((i) => (
         <View
           key={i}
@@ -21,13 +22,14 @@ function StaffLines() {
 
 export function AmbientBackground() {
   return (
-    <View pointerEvents="none" style={styles.root}>
+    <View style={[styles.root, styles.noPointer]}>
       <LinearGradient
         colors={[c.background, '#141428', c.backgroundAlt]}
         start={{ x: 0.15, y: 0 }}
         end={{ x: 0.85, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
+      <Image source={pattern} style={styles.pattern} resizeMode="cover" />
       <LinearGradient
         colors={['rgba(255,45,123,0.18)', 'transparent']}
         start={{ x: 0.5, y: 0 }}
@@ -164,6 +166,13 @@ const styles = StyleSheet.create({
   root: {
     ...StyleSheet.absoluteFill,
     overflow: 'hidden',
+  },
+  noPointer: {
+    pointerEvents: 'none',
+  },
+  pattern: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.07,
   },
   orb: { position: 'absolute', opacity: 0.9 },
   spotlight: {

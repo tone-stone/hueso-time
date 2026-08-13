@@ -44,13 +44,13 @@ export function ToastHost() {
 
   return (
     <Animated.View
-      pointerEvents="none"
       style={[
         styles.wrap,
         {
           opacity,
           backgroundColor: c.surfaceElevated,
           borderColor: c.tint,
+          pointerEvents: 'none',
         },
       ]}>
       <Text style={{ color: c.text, fontWeight: '700', textAlign: 'center' }}>

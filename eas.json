@@ -29,6 +29,9 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_SKIP_AUTH": "0",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "785682234203-9vtfndcqiml95it6427903fivpf2kd4i.apps.googleusercontent.com",

@@ -14,17 +14,19 @@ import { SymbolView } from 'expo-symbols';
 
 import {
   Body,
-  BrandMark,
   Card,
   Chip,
   Fab,
   Field,
   GhostButton,
   MetaPill,
+  PageColumn,
+  PageHeader,
   PrimaryButton,
   Screen,
   Subtitle,
   Title,
+  useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
 import { Waveform } from '@/components/AmbientBackground';
@@ -61,6 +63,7 @@ type ArtistSection = {
 export default function RepertoireScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
+  const desktop = useDesktopWeb();
   const { songs, upsertSong, deleteSong } = useApp();
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState<Genre | 'all'>('all');
@@ -181,75 +184,76 @@ export default function RepertoireScreen() {
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <View style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-          <BrandMark subtitle={t('repertoire.subtitle')} showWave={false} />
-          <Title>{t('repertoire.title')}</Title>
-          <Subtitle>{t('repertoire.subtitle')}</Subtitle>
-        </View>
-        <View style={styles.headerTools}>
-          <Waveform />
-          <Fab onPress={openCreate} />
-        </View>
-      </View>
-
-      <View style={styles.pad}>
-        <Field
-          label={t('common.search')}
-          value={query}
-          onChangeText={setQuery}
-          placeholder={t('repertoire.searchPlaceholder')}
+      <PageColumn>
+        <PageHeader
+          title={t('repertoire.title')}
+          subtitle={t('repertoire.subtitle')}
+          brandSubtitle={t('repertoire.subtitle')}
+          right={
+            <>
+              {!desktop ? <Waveform /> : null}
+              <Fab onPress={openCreate} />
+            </>
+          }
         />
-        <View style={styles.filterRow}>
-          <Pressable
-            onPress={() => setArtistOpen(true)}
-            style={[styles.filterBtn, { borderColor: c.border, backgroundColor: c.surface }]}>
-            <Text style={{ color: c.text, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>
-              {artist === 'all' ? t('repertoire.allArtists') : artist}
-            </Text>
-            <Text style={{ color: c.accent, marginLeft: 8 }}>▾</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setGenreOpen(true)}
-            style={[styles.filterBtn, { borderColor: c.border, backgroundColor: c.surface }]}>
-            <Text style={{ color: c.text, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>
-              {genre === 'all' ? t('repertoire.allGenres') : t(`genres.${genre}`)}
-            </Text>
-            <Text style={{ color: c.accent, marginLeft: 8 }}>▾</Text>
-          </Pressable>
-        </View>
-        {hasFilters ? (
-          <Pressable onPress={clearFilters} hitSlop={8} style={{ marginBottom: 8 }}>
-            <Text style={{ color: c.tint, fontWeight: '700' }}>{t('repertoire.clearFilters')}</Text>
-          </Pressable>
-        ) : null}
-      </View>
 
-      <SectionList
-        sections={sections.map((section) => ({
-          ...section,
-          data: collapsed[section.title] ? [] : section.data,
-        }))}
-        keyExtractor={(item) => item.id}
-        stickySectionHeadersEnabled
-        style={{ width: '100%' }}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32, width: '100%' }}
-        ListEmptyComponent={
-          <Card>
-            <Body muted>
-              {songs.length === 0 ? t('repertoire.empty') : t('repertoire.emptyFilter')}
-            </Body>
-            {songs.length === 0 ? (
-              <View style={{ marginTop: 14 }}>
-                <PrimaryButton label={t('repertoire.addSong')} onPress={openCreate} />
-              </View>
-            ) : (
-              <View style={{ marginTop: 14 }}>
-                <GhostButton label={t('repertoire.clearFilters')} onPress={clearFilters} />
-              </View>
-            )}
-          </Card>
-        }
+        <View style={[styles.pad, desktop && styles.padDesktop]}>
+          <Field
+            label={t('common.search')}
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('repertoire.searchPlaceholder')}
+          />
+          <View style={styles.filterRow}>
+            <Pressable
+              onPress={() => setArtistOpen(true)}
+              style={[styles.filterBtn, { borderColor: c.border, backgroundColor: c.surface }]}>
+              <Text style={{ color: c.text, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>
+                {artist === 'all' ? t('repertoire.allArtists') : artist}
+              </Text>
+              <Text style={{ color: c.accent, marginLeft: 8 }}>▾</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setGenreOpen(true)}
+              style={[styles.filterBtn, { borderColor: c.border, backgroundColor: c.surface }]}>
+              <Text style={{ color: c.text, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>
+                {genre === 'all' ? t('repertoire.allGenres') : t(`genres.${genre}`)}
+              </Text>
+              <Text style={{ color: c.accent, marginLeft: 8 }}>▾</Text>
+            </Pressable>
+          </View>
+          {hasFilters ? (
+            <Pressable onPress={clearFilters} hitSlop={8} style={{ marginBottom: 8 }}>
+              <Text style={{ color: c.tint, fontWeight: '700' }}>{t('repertoire.clearFilters')}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <SectionList
+          sections={sections.map((section) => ({
+            ...section,
+            data: collapsed[section.title] ? [] : section.data,
+          }))}
+          keyExtractor={(item) => item.id}
+          stickySectionHeadersEnabled
+          style={{ width: '100%' }}
+          contentContainerStyle={[styles.listContent, desktop && styles.listContentDesktop]}
+          ListEmptyComponent={
+            <Card style={desktop ? styles.emptyCardDesktop : undefined}>
+              <Body muted align={desktop ? 'center' : 'left'}>
+                {songs.length === 0 ? t('repertoire.empty') : t('repertoire.emptyFilter')}
+              </Body>
+              {songs.length === 0 ? (
+                <View style={[styles.emptyActions, desktop && styles.emptyActionsDesktop]}>
+                  <PrimaryButton label={t('repertoire.addSong')} onPress={openCreate} />
+                </View>
+              ) : (
+                <View style={[styles.emptyActions, desktop && styles.emptyActionsDesktop]}>
+                  <GhostButton label={t('repertoire.clearFilters')} onPress={clearFilters} />
+                </View>
+              )}
+            </Card>
+          }
         renderSectionHeader={({ section }) => {
           const full = sections.find((s) => s.title === section.title);
           const count = full?.data.length ?? 0;
@@ -304,9 +308,10 @@ export default function RepertoireScreen() {
           </Card>
         )}
       />
+      </PageColumn>
 
       <Modal visible={artistOpen} animationType="slide" presentationStyle="pageSheet">
-        <Screen>
+        <Screen safeTop={false}>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>{t('repertoire.filterArtist')}</Title>
             <Subtitle>{t('repertoire.filterArtistHint')}</Subtitle>
@@ -356,7 +361,7 @@ export default function RepertoireScreen() {
       </Modal>
 
       <Modal visible={genreOpen} animationType="slide" presentationStyle="pageSheet">
-        <Screen>
+        <Screen safeTop={false}>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>{t('repertoire.filterGenre')}</Title>
             <Subtitle>{t('repertoire.filterGenreHint')}</Subtitle>
@@ -389,7 +394,7 @@ export default function RepertoireScreen() {
       </Modal>
 
       <Modal visible={editorOpen} animationType="slide" presentationStyle="pageSheet">
-        <Screen>
+        <Screen safeTop={false}>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>
               {editing ? t('repertoire.editSong') : t('repertoire.addSong')}
@@ -524,22 +529,31 @@ export default function RepertoireScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    width: '100%',
-    maxWidth: '100%',
-    gap: 12,
-  },
-  headerTools: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingTop: 4,
-  },
   pad: { paddingHorizontal: 16, width: '100%', maxWidth: '100%' },
+  padDesktop: { paddingHorizontal: 0 },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    width: '100%',
+  },
+  listContentDesktop: {
+    paddingHorizontal: 0,
+    paddingBottom: 48,
+  },
+  emptyCardDesktop: {
+    maxWidth: 420,
+    alignSelf: 'center',
+    width: '100%',
+    marginTop: 16,
+  },
+  emptyActions: {
+    marginTop: 14,
+  },
+  emptyActionsDesktop: {
+    maxWidth: 280,
+    alignSelf: 'center',
+    width: '100%',
+  },
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',

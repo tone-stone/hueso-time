@@ -3,9 +3,10 @@ import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useDesktopWeb } from '@/components/ui';
 import Colors from '@/constants/Colors';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 const c = Colors.dark;
 
@@ -24,19 +25,30 @@ function TabBarBg() {
 
 export default function TabLayout() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const desktopWeb = useDesktopWeb();
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'android' ? 8 : 4);
+  const tabBarHeight = 52 + bottomPad;
 
   return (
     <Tabs
       initialRouteName="setlists"
+      tabBar={desktopWeb ? () => null : undefined}
       screenOptions={{
         tabBarActiveTintColor: c.tint,
         tabBarInactiveTintColor: c.tabIconDefault,
-        headerShown: useClientOnlyValue(false, true),
-        headerStyle: { backgroundColor: c.background },
-        headerTintColor: c.text,
-        tabBarStyle: styles.tabBar,
+        headerShown: false,
+        tabBarStyle: desktopWeb
+          ? { height: 0, overflow: 'hidden', borderTopWidth: 0 }
+          : [
+              styles.tabBar,
+              {
+                height: tabBarHeight,
+                paddingBottom: bottomPad,
+              },
+            ],
         tabBarLabelStyle: styles.tabLabel,
-        tabBarBackground: () => <TabBarBg />,
+        tabBarBackground: desktopWeb ? undefined : () => <TabBarBg />,
       }}>
       <Tabs.Screen
         name="setlists"
@@ -51,7 +63,7 @@ export default function TabLayout() {
                   web: 'mic',
                 }}
                 tintColor={color}
-                size={24}
+                size={22}
               />
             </View>
           ),
@@ -66,7 +78,7 @@ export default function TabLayout() {
               <SymbolView
                 name={{ ios: 'music.note.list', android: 'queue_music', web: 'queue_music' }}
                 tintColor={color}
-                size={24}
+                size={22}
               />
             </View>
           ),
@@ -85,7 +97,7 @@ export default function TabLayout() {
                   web: 'tune',
                 }}
                 tintColor={color}
-                size={24}
+                size={22}
               />
             </View>
           ),
@@ -99,21 +111,20 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: c.tabBar,
     borderTopColor: 'rgba(255,45,123,0.28)',
-    borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 68,
-    paddingTop: 6,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 4,
   },
   tabLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.3,
+    marginBottom: 2,
   },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 36,
-    height: 28,
+    height: 26,
     borderRadius: 10,
   },
   iconWrapActive: {

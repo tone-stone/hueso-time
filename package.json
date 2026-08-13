@@ -43,7 +43,7 @@
     "vitest": "^4.1.10"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --dev-client --scheme huesotime",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",

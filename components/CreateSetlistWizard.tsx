@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NestableScrollContainer } from 'react-native-draggable-flatlist';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import {
   PrimaryButton,
   Subtitle,
   Title,
+  useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
 import { GENRES, MUSICAL_KEYS } from '@/constants/Colors';
@@ -43,6 +44,7 @@ export function CreateSetlistWizard({
   defaultSetCount,
   defaultMinutes,
   defaultName,
+  initialArtists,
   onSave,
   onCancel,
 }: {
@@ -51,6 +53,7 @@ export function CreateSetlistWizard({
   defaultSetCount: number;
   defaultMinutes: number;
   defaultName?: string;
+  initialArtists?: string[];
   onSave: (payload: {
     name: string;
     venue?: string;
@@ -61,6 +64,7 @@ export function CreateSetlistWizard({
 }) {
   const { t } = useTranslation();
   const c = useThemeColors();
+  const desktop = useDesktopWeb();
   const artists = useMemo(() => uniqueArtists(songs), [songs]);
 
   const [step, setStep] = useState<Step>('filters');
@@ -71,6 +75,7 @@ export function CreateSetlistWizard({
   const [filters, setFilters] = useState<SongFilters>(() => ({
     ...emptyFilters(),
     genres: ['rock'],
+    artists: initialArtists ?? [],
   }));
   const [bpmPreset, setBpmPreset] = useState('any');
   const [customMin, setCustomMin] = useState('');
@@ -124,11 +129,19 @@ export function CreateSetlistWizard({
     });
 
     if (result.matchedCount === 0) {
-      Alert.alert(t('generate.noMatchTitle'), t('generate.noMatchBody'));
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`${t('generate.noMatchTitle')}\n\n${t('generate.noMatchBody')}`);
+      } else {
+        Alert.alert(t('generate.noMatchTitle'), t('generate.noMatchBody'));
+      }
       return null;
     }
     if (result.placedCount === 0) {
-      Alert.alert(t('generate.noPlaceTitle'), t('generate.noPlaceBody'));
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`${t('generate.noPlaceTitle')}\n\n${t('generate.noPlaceBody')}`);
+      } else {
+        Alert.alert(t('generate.noPlaceTitle'), t('generate.noPlaceBody'));
+      }
       return null;
     }
     return result.sets;
@@ -188,7 +201,7 @@ export function CreateSetlistWizard({
           }}
         />
 
-        <View style={{ gap: 10, marginTop: 18 }}>
+        <View style={{ gap: 10, marginTop: 18, maxWidth: desktop ? 360 : undefined }}>
           <PrimaryButton label={t('generate.saveShow')} onPress={onConfirmSave} />
           <PrimaryButton label={t('generate.again')} onPress={onRegenerate} />
           <GhostButton
@@ -201,8 +214,8 @@ export function CreateSetlistWizard({
     );
   }
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+  const setupColumn = (
+    <View style={[styles.column, desktop && styles.setupColumn]}>
       <Title>{t('setlists.newSetlist')}</Title>
       <Subtitle>{t('generate.createHint')}</Subtitle>
 
@@ -259,6 +272,67 @@ export function CreateSetlistWizard({
           if (!Number.isNaN(n) && n > 0) setTargetMinutes(Math.min(120, Math.max(10, n)));
         }}
       />
+
+      <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+        {t('generate.options')}
+      </Text>
+      <View style={styles.wrap}>
+        <Chip
+          label={t('generate.noReuse')}
+          selected={!allowReuse}
+          onPress={() => setAllowReuse(false)}
+        />
+        <Chip
+          label={t('generate.allowReuse')}
+          selected={allowReuse}
+          onPress={() => setAllowReuse(true)}
+        />
+      </View>
+
+      <Text style={{ color: c.accent, fontWeight: '700', marginTop: 10, marginBottom: 16 }}>
+        {t('generate.planSummary', {
+          count: setCount,
+          min: targetMinutes,
+          matches: matchedCount,
+        })}
+      </Text>
+
+      <View style={{ gap: 10 }}>
+        <PrimaryButton label={t('generate.action')} onPress={onArmar} />
+        <GhostButton
+          label={t('generate.emptyOnly')}
+          onPress={() =>
+            onSave({
+              name: name.trim() || 'Show',
+              venue: venue.trim() || undefined,
+              genreFocus: filters.genres[0],
+              sets: Array.from({ length: setCount }, (_, i) => ({
+                id: `tmp_${i}`,
+                name: `Set ${i + 1}`,
+                targetMinutes,
+                songs: [],
+              })),
+            })
+          }
+        />
+        <GhostButton label={t('common.cancel')} onPress={onCancel} />
+      </View>
+    </View>
+  );
+
+  const selectColumn = (
+    <View
+      style={[
+        styles.column,
+        desktop && styles.selectColumn,
+        desktop && { borderColor: c.border, backgroundColor: c.surface },
+      ]}>
+      {desktop ? (
+        <>
+          <Text style={[styles.panelTitle, { color: c.text }]}>{t('setlists.selectPanelTitle')}</Text>
+          <Body muted>{t('setlists.selectPanelHint')}</Body>
+        </>
+      ) : null}
 
       <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
         {t('generate.artist')}
@@ -360,51 +434,24 @@ export function CreateSetlistWizard({
           />
         ))}
       </View>
+    </View>
+  );
 
-      <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
-        {t('generate.options')}
-      </Text>
-      <View style={styles.wrap}>
-        <Chip
-          label={t('generate.noReuse')}
-          selected={!allowReuse}
-          onPress={() => setAllowReuse(false)}
-        />
-        <Chip
-          label={t('generate.allowReuse')}
-          selected={allowReuse}
-          onPress={() => setAllowReuse(true)}
-        />
-      </View>
+  if (desktop) {
+    return (
+      <ScrollView contentContainerStyle={styles.desktopScroll}>
+        <View style={styles.split}>
+          {setupColumn}
+          {selectColumn}
+        </View>
+      </ScrollView>
+    );
+  }
 
-      <Text style={{ color: c.accent, fontWeight: '700', marginTop: 10, marginBottom: 16 }}>
-        {t('generate.planSummary', {
-          count: setCount,
-          min: targetMinutes,
-          matches: matchedCount,
-        })}
-      </Text>
-
-      <View style={{ gap: 10 }}>
-        <PrimaryButton label={t('generate.action')} onPress={onArmar} />
-        <GhostButton
-          label={t('generate.emptyOnly')}
-          onPress={() =>
-            onSave({
-              name: name.trim() || 'Show',
-              venue: venue.trim() || undefined,
-              genreFocus: filters.genres[0],
-              sets: Array.from({ length: setCount }, (_, i) => ({
-                id: `tmp_${i}`,
-                name: `Set ${i + 1}`,
-                targetMinutes,
-                songs: [],
-              })),
-            })
-          }
-        />
-        <GhostButton label={t('common.cancel')} onPress={onCancel} />
-      </View>
+  return (
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+      {setupColumn}
+      {selectColumn}
     </ScrollView>
   );
 }
@@ -431,6 +478,37 @@ function withBpm(
 }
 
 const styles = StyleSheet.create({
+  desktopScroll: {
+    paddingBottom: 48,
+    paddingHorizontal: 4,
+  },
+  split: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 20,
+    width: '100%',
+  },
+  column: {
+    width: '100%',
+  },
+  setupColumn: {
+    flex: 0.42,
+    minWidth: 280,
+    maxWidth: 420,
+  },
+  selectColumn: {
+    flex: 1,
+    minWidth: 320,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 18,
+  },
+  panelTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 6,
+  },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '800',

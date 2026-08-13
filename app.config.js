@@ -35,6 +35,8 @@ const plugins = (appJson.expo.plugins || []).map((plugin) => {
 module.exports = {
   expo: {
     ...appJson.expo,
+    // Keep product scheme first so Expo CLI / Metro deep links don't pick the Google iOS URL scheme.
+    scheme: iosUrlScheme ? ['huesotime', iosUrlScheme] : 'huesotime',
     plugins,
   },
 };

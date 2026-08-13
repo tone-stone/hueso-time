@@ -177,53 +177,77 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
 
   return (
     <Screen>
-      <View style={styles.wrap}>
-        <BrandMark subtitle={t('auth.tagline')} />
-        <Title>{t('auth.title')}</Title>
-        <Subtitle>{t('auth.subtitle')}</Subtitle>
+      <View style={styles.stage}>
+        <View style={[styles.panel, Platform.OS === 'web' && styles.panelWeb]}>
+          <BrandMark subtitle={t('auth.tagline')} size="hero" showWave={false} />
+          <Title align="center">{t('auth.title')}</Title>
+          <Subtitle align="center">{t('auth.subtitle')}</Subtitle>
 
-        {!platformConfigured ? (
-          <View style={[styles.banner, { borderColor: c.border, backgroundColor: c.surface }]}>
-            <Body muted>{t('auth.missingConfig')}</Body>
-          </View>
-        ) : null}
+          {!platformConfigured ? (
+            <View style={[styles.banner, { borderColor: c.border, backgroundColor: c.surface }]}>
+              <Body muted align="center">
+                {t('auth.missingConfig')}
+              </Body>
+            </View>
+          ) : null}
 
-        {busy ? (
-          <ActivityIndicator color={c.tint} style={{ marginTop: 24 }} />
-        ) : (
-          <View style={styles.actions}>
-            <PrimaryButton
-              label={t('auth.continueGoogle')}
-              onPress={() => void onGooglePress()}
-              disabled={(!useNative && !requestReady) || !platformConfigured}
-            />
-            {skipAuth ? (
-              <GhostButton label={t('auth.continueGuest')} onPress={enterAsGuest} />
-            ) : (
-              <Body muted>{t('auth.gmailHint')}</Body>
-            )}
-          </View>
-        )}
+          {busy ? (
+            <ActivityIndicator color={c.tint} style={{ marginTop: 24 }} />
+          ) : (
+            <View style={styles.actions}>
+              <PrimaryButton
+                label={t('auth.continueGoogle')}
+                onPress={() => void onGooglePress()}
+                disabled={(!useNative && !requestReady) || !platformConfigured}
+              />
+              {skipAuth ? (
+                <GhostButton label={t('auth.continueGuest')} onPress={enterAsGuest} />
+              ) : (
+                <Body muted align="center">
+                  {t('auth.gmailHint')}
+                </Body>
+              )}
+            </View>
+          )}
+        </View>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
+  stage: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    width: '100%',
+    alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 28,
+  },
+  panel: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  panelWeb: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 24,
+    backgroundColor: 'rgba(18,18,32,0.78)',
+    paddingHorizontal: 28,
+    paddingVertical: 36,
   },
   banner: {
     marginTop: 16,
     borderWidth: 1,
     borderRadius: 12,
     padding: 14,
+    width: '100%',
   },
   actions: {
     marginTop: 28,
     gap: 12,
+    width: '100%',
+    alignItems: 'stretch',
   },
 });

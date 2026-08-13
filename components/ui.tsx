@@ -1,19 +1,48 @@
 import React from 'react';
 import {
+  Image,
+  Platform,
   Pressable,
+  StatusBar as RNStatusBar,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
+  type StyleProp,
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AmbientBackground, Waveform } from '@/components/AmbientBackground';
 import Colors from '@/constants/Colors';
+import { useTranslation } from 'react-i18next';
 
 const theme = Colors.dark;
+
+const techplaceCat = require('../assets/images/brand/techplace-cat.png');
+
+/** Desktop web breakpoint — site chrome + constrained page columns. */
+export const DESKTOP_WEB_MIN_WIDTH = 900;
+
+export function useDesktopWeb() {
+  const { width } = useWindowDimensions();
+  return Platform.OS === 'web' && width >= DESKTOP_WEB_MIN_WIDTH;
+}
+
+/** Status bar / notch / punch-hole clearance (Android often reports insets.top = 0). */
+export function useTopSafePad(extra = 14) {
+  const insets = useSafeAreaInsets();
+  if (Platform.OS === 'web') return Math.max(extra, 8);
+  // Android: StatusBar.currentHeight covers classic bars; bump for punch-hole cameras.
+  const fallback =
+    Platform.OS === 'android'
+      ? Math.max(RNStatusBar.currentHeight ?? 0, 32) + 8
+      : 47;
+  return Math.max(insets.top, fallback) + extra;
+}
 
 export function useThemeColors() {
   return theme;
@@ -22,14 +51,98 @@ export function useThemeColors() {
 export function Screen({
   children,
   style,
+  /** Apply notch / Dynamic Island / status-bar top inset (default true). */
+  safeTop = true,
+  /** Extra space under the system bar so content clears camera + wifi icons. */
+  topGap = 14,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
+  safeTop?: boolean;
+  topGap?: number;
 }) {
+  const topPad = useTopSafePad(topGap);
+  const desktop = useDesktopWeb();
   return (
     <View style={[styles.screen, style]}>
       <AmbientBackground />
-      <View style={styles.screenContent}>{children}</View>
+      <View
+        style={[
+          styles.screenContent,
+          safeTop ? { paddingTop: desktop ? Math.max(topPad, 12) : topPad } : null,
+          desktop ? styles.screenContentDesktop : null,
+        ]}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
+/** Centers and caps page width on desktop web so screens don't stretch edge-to-edge. */
+export function PageColumn({
+  children,
+  style,
+  maxWidth = 920,
+}: {
+  children: React.ReactNode;
+  style?: ViewStyle;
+  maxWidth?: number;
+}) {
+  const desktop = useDesktopWeb();
+  return (
+    <View
+      style={[
+        styles.pageColumn,
+        desktop && { maxWidth, paddingHorizontal: 28 },
+        style,
+      ]}>
+      {children}
+    </View>
+  );
+}
+
+/** Page title block; hides in-page BrandMark on desktop (top nav already shows it). */
+export function PageHeader({
+  title,
+  subtitle,
+  brandSubtitle,
+  right,
+  showBrand = true,
+  onBack,
+  backLabel,
+}: {
+  title: string;
+  subtitle?: string;
+  brandSubtitle?: string;
+  right?: React.ReactNode;
+  showBrand?: boolean;
+  onBack?: () => void;
+  backLabel?: string;
+}) {
+  const { t } = useTranslation();
+  const desktop = useDesktopWeb();
+  const showMark = showBrand && !desktop;
+  const showBack = Platform.OS === 'web' && !!onBack;
+
+  return (
+    <View style={[styles.pageHeader, desktop && styles.pageHeaderDesktop]}>
+      <View style={{ flex: 1, minWidth: 0, paddingRight: right ? 12 : 0 }}>
+        {showBack ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={10}
+            accessibilityRole="button"
+            style={({ pressed }) => [{ marginBottom: 10, opacity: pressed ? 0.75 : 1 }]}>
+            <Text style={{ color: theme.tint, fontWeight: '800', fontSize: 14 }}>
+              ← {backLabel ?? t('common.back')}
+            </Text>
+          </Pressable>
+        ) : null}
+        {showMark ? <BrandMark subtitle={brandSubtitle} showWave={false} /> : null}
+        <Title>{title}</Title>
+        {subtitle ? <Subtitle>{subtitle}</Subtitle> : null}
+      </View>
+      {right ? <View style={styles.pageHeaderRight}>{right}</View> : null}
     </View>
   );
 }
@@ -37,24 +150,44 @@ export function Screen({
 export function BrandMark({
   subtitle,
   showWave = true,
+  size = 'compact',
 }: {
   subtitle?: string;
   showWave?: boolean;
+  /** compact = header row; hero = larger cat for login */
+  size?: 'compact' | 'hero';
 }) {
+  const isHero = size === 'hero';
+
+  if (isHero) {
+    return (
+      <View style={[styles.brandBlock, styles.brandHeroBlock]}>
+        <Image
+          source={techplaceCat}
+          style={styles.brandCatHero}
+          resizeMode="contain"
+          accessibilityLabel="Hueso Time"
+        />
+        <Text style={styles.brandProduct}>Hueso Time</Text>
+        <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
+        {subtitle ? <Text style={styles.brandSub}>{subtitle}</Text> : null}
+      </View>
+    );
+  }
+
   return (
     <View style={styles.brandBlock}>
       <View style={styles.brandRow}>
-        <LinearGradient
-          colors={[theme.tint, theme.accent]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.brandBadge}>
-          <Text style={styles.brandNote}>♪</Text>
-        </LinearGradient>
+        <Image
+          source={techplaceCat}
+          style={styles.brandBadgeImg}
+          resizeMode="contain"
+          accessibilityLabel="Hueso Time"
+        />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.brandName}>Hueso Time</Text>
-          <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
-          {subtitle ? <Text style={styles.brandSub}>{subtitle}</Text> : null}
+          <Text style={[styles.brandTag, styles.brandTagLeft]}>SETLIST · STAGE · COVERS</Text>
+          {subtitle ? <Text style={[styles.brandSub, styles.brandSubLeft]}>{subtitle}</Text> : null}
         </View>
         {showWave ? <Waveform /> : null}
       </View>
@@ -68,7 +201,7 @@ export function Card({
   onPress,
 }: {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   onPress?: () => void;
   index?: number;
 }) {
@@ -83,11 +216,10 @@ export function Card({
         style,
       ]}>
       <LinearGradient
-        pointerEvents="none"
         colors={['rgba(255,45,123,0.12)', 'rgba(0,229,255,0.06)', 'transparent']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.cardSheen}
+        style={[styles.cardSheen, { pointerEvents: 'none' }]}
       />
       <View style={styles.cardFret} />
       {children}
@@ -103,17 +235,41 @@ export function Card({
   );
 }
 
-export function Title({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.title}>{children}</Text>;
+export function Title({
+  children,
+  align = 'left',
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'center';
+}) {
+  return <Text style={[styles.title, { textAlign: align }]}>{children}</Text>;
 }
 
-export function Subtitle({ children }: { children: React.ReactNode }) {
-  return <Text style={styles.subtitle}>{children}</Text>;
+export function Subtitle({
+  children,
+  align = 'left',
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'center';
+}) {
+  return <Text style={[styles.subtitle, { textAlign: align }]}>{children}</Text>;
 }
 
-export function Body({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
+export function Body({
+  children,
+  muted,
+  align = 'left',
+}: {
+  children: React.ReactNode;
+  muted?: boolean;
+  align?: 'left' | 'center';
+}) {
   return (
-    <Text style={[styles.body, { color: muted ? theme.textMuted : theme.text }]}>
+    <Text
+      style={[
+        styles.body,
+        { color: muted ? theme.textMuted : theme.text, textAlign: align },
+      ]}>
       {children}
     </Text>
   );
@@ -278,26 +434,65 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     overflow: 'hidden',
   },
-  brandBlock: { marginBottom: 10, width: '100%', maxWidth: '100%' },
+  screenContentDesktop: {
+    paddingBottom: 28,
+  },
+  pageColumn: {
+    flex: 1,
+    width: '100%',
+    maxWidth: '100%',
+    alignSelf: 'center',
+  },
+  pageHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    width: '100%',
+    gap: 12,
+  },
+  pageHeaderDesktop: {
+    paddingHorizontal: 0,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  pageHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingTop: 4,
+  },
+  brandBlock: { marginBottom: 8, width: '100%', maxWidth: '100%' },
+  brandHeroBlock: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     width: '100%',
     maxWidth: '100%',
   },
-  brandBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  brandBadgeImg: {
+    width: 48,
+    height: 48,
+    backgroundColor: 'transparent',
   },
-  brandNote: {
-    color: '#fff',
+  brandCatHero: {
+    width: 112,
+    height: 112,
+    alignSelf: 'center',
+    marginBottom: 12,
+    backgroundColor: 'transparent',
+  },
+  brandProduct: {
+    color: theme.text,
     fontSize: 22,
     fontWeight: '800',
-    marginTop: -2,
+    letterSpacing: -0.4,
+    textAlign: 'center',
   },
   brandName: {
     color: theme.text,
@@ -312,12 +507,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.2,
     marginTop: 2,
+    textAlign: 'center',
   },
+  brandTagLeft: { textAlign: 'left' },
   brandSub: {
     color: theme.textMuted,
     fontSize: 12,
     marginTop: 2,
+    textAlign: 'center',
   },
+  brandSubLeft: { textAlign: 'left' },
   card: {
     borderWidth: 1,
     borderRadius: 18,
@@ -345,6 +544,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.8,
     flexShrink: 1,
+    width: '100%',
   },
   subtitle: {
     color: theme.textMuted,
@@ -353,8 +553,9 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     lineHeight: 21,
     flexShrink: 1,
+    width: '100%',
   },
-  body: { fontSize: 15, lineHeight: 21 },
+  body: { fontSize: 15, lineHeight: 21, width: '100%' },
   field: { marginBottom: 12 },
   label: {
     color: theme.textMuted,

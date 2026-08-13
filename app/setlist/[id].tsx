@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Share,
@@ -22,12 +23,15 @@ import {
   Card,
   Field,
   GhostButton,
+  PageColumn,
   PrimaryButton,
   Screen,
   Subtitle,
   Title,
+  useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
+import { WebBackButton } from '@/components/WebTopNav';
 import { useApp } from '@/context/AppContext';
 import { confirmDestructive } from '@/lib/confirm';
 import { formatSetlistShareText } from '@/lib/exportSetlist';
@@ -44,6 +48,7 @@ export default function SetlistDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const c = useThemeColors();
+  const desktop = useDesktopWeb();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { setlists, songs, songsById, updateSetlistSets, upsertSetlist } = useApp();
@@ -218,7 +223,7 @@ export default function SetlistDetailScreen() {
 
   if (showMode) {
     return (
-      <Screen>
+      <Screen safeTop={false}>
         <Stack.Screen options={{ title: setlist.name, headerShown: false }} />
         <ShowModeView
           sets={setlist.sets}
@@ -230,24 +235,28 @@ export default function SetlistDetailScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       <Stack.Screen
         options={{
           title: setlist.name,
-          headerShown: true,
+          headerShown: !desktop,
           headerBackTitle: t('common.back'),
         }}
       />
-      <NestableScrollContainer
-        contentContainerStyle={{
-          padding: 16,
-          paddingTop: 12,
-          paddingBottom: 48 + insets.bottom,
-        }}>
-        <Pressable onPress={goBack} hitSlop={12} style={styles.backRow}>
-          <Text style={{ color: c.tint, fontWeight: '800' }}>← {t('common.back')}</Text>
-        </Pressable>
-        <Title>{setlist.name}</Title>
+      <PageColumn>
+        <NestableScrollContainer
+          contentContainerStyle={{
+            padding: desktop ? 0 : 16,
+            paddingTop: 12,
+            paddingBottom: 48 + insets.bottom,
+          }}>
+          <WebBackButton onPress={goBack} />
+          {Platform.OS !== 'web' ? (
+            <Pressable onPress={goBack} hitSlop={12} style={styles.backRow}>
+              <Text style={{ color: c.tint, fontWeight: '800' }}>← {t('common.back')}</Text>
+            </Pressable>
+          ) : null}
+          <Title>{setlist.name}</Title>
         <Subtitle>
           {t('setlists.totalShow')}: {formatMinutes(total)}
           {setlist.venue ? ` · ${setlist.venue}` : ''}
@@ -298,9 +307,10 @@ export default function SetlistDetailScreen() {
           />
         </View>
       </NestableScrollContainer>
+      </PageColumn>
 
       <Modal visible={editOpen} animationType="slide" presentationStyle="pageSheet">
-        <Screen>
+        <Screen safeTop={false}>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>{t('setlists.editMeta')}</Title>
             <Subtitle>{t('setlists.editMetaHint')}</Subtitle>
@@ -331,7 +341,7 @@ export default function SetlistDetailScreen() {
       </Modal>
 
       <Modal visible={!!picker} animationType="slide" presentationStyle="pageSheet">
-        <Screen>
+        <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
             <Title>
               {picker?.type === 'replace'
@@ -387,7 +397,7 @@ export default function SetlistDetailScreen() {
       </Modal>
 
       <Modal visible={generateOpen} animationType="slide" presentationStyle="pageSheet">
-        <Screen>
+        <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
             <Title>{t('generate.title')}</Title>
             <Subtitle>{t('setlists.generateRandom')}</Subtitle>
