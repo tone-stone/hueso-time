@@ -1,13 +1,22 @@
-import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { usePathname, useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import Colors from '@/constants/Colors';
+import { FontFamily } from '@/constants/Fonts';
+import { GlassSurface } from '@/components/Glass';
 import { useAuth } from '@/context/AuthContext';
 
 const c = Colors.dark;
 const cat = require('../assets/images/brand/techplace-cat.png');
+
+/** Floating-bar total footprint (outer margin + card) — RootLayoutNav pads content by this so it isn't hidden underneath. */
+export const WEB_NAV_HEIGHT = 100;
+const NAV_OUTER_PAD = 16;
+
+/** react-native-web-only CSS passthrough; RN's ViewStyle type doesn't list it. */
+const fixedPosition = { position: 'fixed' } as unknown as ViewStyle;
 
 const LINKS: { href: Href; key: 'setlists' | 'repertoire' | 'settings' }[] = [
   { href: '/setlists', key: 'setlists' },
@@ -63,69 +72,74 @@ export function WebTopNav() {
   }
 
   return (
-    <View style={styles.shell}>
-      <LinearGradient
-        colors={['rgba(18,18,30,0.98)', 'rgba(10,10,20,0.94)']}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={styles.inner}>
-        <View style={styles.left}>
-          {showBack ? (
-            <Pressable
-              onPress={onBack}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.back')}
-              style={({ pressed }) => [styles.backBtn, pressed && styles.linkHover]}>
-              <Text style={styles.backArrow}>←</Text>
-              <Text style={styles.backText}>{t('common.back')}</Text>
-            </Pressable>
-          ) : null}
-
-          <Pressable
-            onPress={() => router.push('/setlists')}
-            style={styles.brand}
-            accessibilityRole="link">
-            <Image source={cat} style={styles.mark} resizeMode="contain" accessibilityLabel="Hueso Time" />
-            <View>
-              <Text style={styles.brandName}>Hueso Time</Text>
-              <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
-            </View>
-          </Pressable>
-        </View>
-
-        <View style={styles.links}>
-          {LINKS.map((link) => {
-            const focused = isActive(pathname, String(link.href));
-            const label = t(`tabs.${link.key}`);
-            return (
+    <View style={[styles.floatOuter, fixedPosition]} pointerEvents="box-none">
+      <GlassSurface radius={24} intensity={90} style={styles.shell}>
+        <View style={styles.inner}>
+          <View style={styles.left}>
+            {showBack ? (
               <Pressable
-                key={String(link.href)}
-                accessibilityRole="link"
-                accessibilityState={{ selected: focused }}
-                onPress={() => router.push(link.href)}
-                style={({ pressed }) => [
-                  styles.link,
-                  focused && styles.linkActive,
-                  pressed && !focused && styles.linkHover,
-                ]}>
-                <Text style={[styles.linkText, focused && styles.linkTextActive]}>{label}</Text>
-                {focused ? <View style={styles.underline} /> : null}
+                onPress={onBack}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.back')}
+                style={({ pressed }) => [styles.backBtn, pressed && styles.linkHover]}>
+                <Text style={styles.backArrow}>←</Text>
+                <Text style={styles.backText}>{t('common.back')}</Text>
               </Pressable>
-            );
-          })}
+            ) : null}
 
-          <Pressable
-            onPress={() => void onSignOut()}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.link,
-              styles.signOutLink,
-              pressed && styles.linkHover,
-            ]}>
-            <Text style={styles.signOutText}>{t('auth.signOut')}</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => router.push('/setlists')}
+              style={styles.brand}
+              accessibilityRole="link">
+              <Image source={cat} style={styles.mark} resizeMode="contain" accessibilityLabel="Hueso Time" />
+              <View>
+                <Text style={styles.brandName}>Hueso Time</Text>
+                <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
+              </View>
+            </Pressable>
+          </View>
+
+          <View style={styles.links}>
+            {LINKS.map((link) => {
+              const focused = isActive(pathname, String(link.href));
+              const label = t(`tabs.${link.key}`);
+              return (
+                <Pressable
+                  key={String(link.href)}
+                  accessibilityRole="link"
+                  accessibilityState={{ selected: focused }}
+                  onPress={() => router.push(link.href)}
+                  style={({ pressed }) => [
+                    styles.link,
+                    focused && styles.linkActive,
+                    pressed && !focused && styles.linkHover,
+                  ]}>
+                  <Text style={[styles.linkText, focused && styles.linkTextActive]}>{label}</Text>
+                  {focused ? (
+                    <LinearGradient
+                      colors={[c.tint, c.accent]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.underline}
+                    />
+                  ) : null}
+                </Pressable>
+              );
+            })}
+
+            <Pressable
+              onPress={() => void onSignOut()}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.link,
+                styles.signOutLink,
+                pressed && styles.linkHover,
+              ]}>
+              <Text style={styles.signOutText}>{t('auth.signOut')}</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </GlassSurface>
     </View>
   );
 }
@@ -168,10 +182,18 @@ export function WebBackButton({
 }
 
 const styles = StyleSheet.create({
+  floatOuter: {
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    paddingTop: NAV_OUTER_PAD,
+    paddingHorizontal: NAV_OUTER_PAD,
+    alignItems: 'center',
+  },
   shell: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,45,123,0.28)',
-    zIndex: 20,
+    width: '100%',
+    maxWidth: 1400,
   },
   inner: {
     maxWidth: 1100,
@@ -210,6 +232,7 @@ const styles = StyleSheet.create({
     color: c.text,
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: FontFamily.display,
   },
   brand: {
     flexDirection: 'row',
@@ -228,6 +251,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
+    fontFamily: FontFamily.display,
   },
   brandTag: {
     color: c.accent,
@@ -235,6 +259,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.1,
     marginTop: 2,
+    fontFamily: FontFamily.display,
   },
   links: {
     flexDirection: 'row',
@@ -260,6 +285,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.2,
+    fontFamily: FontFamily.display,
   },
   linkTextActive: {
     color: c.text,
@@ -271,7 +297,6 @@ const styles = StyleSheet.create({
     bottom: 4,
     height: 2,
     borderRadius: 1,
-    backgroundColor: c.tint,
   },
   signOutLink: {
     marginLeft: 4,
@@ -282,6 +307,7 @@ const styles = StyleSheet.create({
     color: c.tint,
     fontSize: 13,
     fontWeight: '800',
+    fontFamily: FontFamily.display,
   },
   pageBack: {
     alignSelf: 'flex-start',

@@ -2,17 +2,18 @@ import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { DarkTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
+import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '@/i18n';
 
 import { ToastHost } from '@/components/Toast';
-import { WebFooter, WebTopNav } from '@/components/WebTopNav';
+import { WEB_NAV_HEIGHT, WebFooter, WebTopNav } from '@/components/WebTopNav';
 import { useDesktopWeb } from '@/components/ui';
 import { AppProvider } from '@/context/AppContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -65,6 +66,13 @@ export default function RootLayout() {
     }
   }, [loaded, error]);
 
+  // Android edge-to-edge nav bar is transparent by default (SDK 57+); we only own the
+  // button/icon color, which should read light against the app's dark background.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    NavigationBar.setStyle('light');
+  }, []);
+
   return (
     <SafeAreaProvider>
       <AuthProvider>
@@ -106,7 +114,7 @@ function RootLayoutNav() {
         <StatusBar style="light" />
         <View style={{ flex: 1 }}>
           {showWebNav ? <WebTopNav /> : null}
-          <View style={{ flex: 1, minHeight: 0 }}>
+          <View style={{ flex: 1, minHeight: 0, paddingTop: showWebNav ? WEB_NAV_HEIGHT : 0 }}>
             <Stack
               screenOptions={{
                 headerStyle: { backgroundColor: Colors.dark.background },

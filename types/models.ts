@@ -77,12 +77,23 @@ export interface SetBlock {
   songs: SetSongRef[];
 }
 
+/** Artist/genre/BPM/key preferences for a show — used to pre-filter song pickers. */
+export interface SongFilters {
+  artists: string[];
+  genres: Genre[];
+  bpmMin?: number;
+  bpmMax?: number;
+  keys: MusicalKey[];
+}
+
 export interface Setlist {
   id: string;
   name: string;
   venue?: string;
   date?: string;
   genreFocus?: Genre;
+  /** Preferred artists/genre/BPM/key for this show, set at creation — pre-filters the "add song" picker. */
+  songFilters?: SongFilters;
   sets: SetBlock[];
   createdAt: string;
   updatedAt: string;

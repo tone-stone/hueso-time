@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import {
+  Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,7 +14,6 @@ import { Link, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { CreateManualSetlistForm } from '@/components/CreateManualSetlistForm';
-import { CreateSetlistWizard } from '@/components/CreateSetlistWizard';
 import { ImportSheetsForm } from '@/components/ImportSheetsForm';
 import { Waveform } from '@/components/AmbientBackground';
 import { showToast } from '@/components/Toast';
@@ -32,17 +33,20 @@ import {
   useThemeColors,
 } from '@/components/ui';
 import { confirmDestructive } from '@/lib/confirm';
+import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
 import { useApp } from '@/context/AppContext';
 import { createId, formatMinutes } from '@/lib/id';
+import { emptyFilters, generateRandomSets } from '@/lib/randomSets';
 import { setlistDurationSec } from '@/lib/setMath';
-import type { Genre, SetBlock } from '@/types/models';
+import type { Genre, SetBlock, SongFilters } from '@/types/models';
 
-type CreateMode = 'choose' | 'manual' | 'generate' | null;
+type CreateMode = 'choose' | 'manual' | null;
 
 export default function SetlistsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
   const desktop = useDesktopWeb();
+  const tabBarInset = useFloatingTabBarInset();
   const router = useRouter();
   const {
     setlists,
@@ -85,12 +89,14 @@ export default function SetlistsScreen() {
     venue?: string;
     setCount: number;
     targetMinutes: number;
+    songFilters?: SongFilters;
   }) {
     const created = await createEmptySetlist({
       name: payload.name,
       venue: payload.venue,
       setCount: payload.setCount,
       targetMinutes: payload.targetMinutes,
+      songFilters: payload.songFilters,
     });
     setCreateMode(null);
     showToast(t('toast.setlistCreated'));
@@ -127,8 +133,43 @@ export default function SetlistsScreen() {
     });
   }
 
-  function openGenerate() {
-    setCreateMode('generate');
+  /** "Generar aleatorio" — no wizard, no questions: build sets with defaults and save immediately. */
+  async function quickGenerate() {
+    const result = generateRandomSets({
+      songs,
+      setCount: settings.defaultSetCount,
+      targetMinutes: settings.defaultSetMinutes,
+      filters: emptyFilters(),
+      allowReuse: false,
+      preferVariety: true,
+      smartEnergy: true,
+    });
+
+    if (result.matchedCount === 0) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`${t('generate.noMatchTitle')}\n\n${t('generate.noMatchBody')}`);
+      } else {
+        Alert.alert(t('generate.noMatchTitle'), t('generate.noMatchBody'));
+      }
+      return;
+    }
+    if (result.placedCount === 0) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`${t('generate.noPlaceTitle')}\n\n${t('generate.noPlaceBody')}`);
+      } else {
+        Alert.alert(t('generate.noPlaceTitle'), t('generate.noPlaceBody'));
+      }
+      return;
+    }
+
+    setCreateMode(null);
+    await saveWizard({
+      name: t('setlists.variedShowName', {
+        count: settings.defaultSetCount,
+        min: settings.defaultSetMinutes,
+      }),
+      sets: result.sets,
+    });
   }
 
   const desktopCreateLeft = (
@@ -137,10 +178,14 @@ export default function SetlistsScreen() {
       <Body muted>{t('setlists.createPanelHint')}</Body>
       <View style={styles.createActions}>
         <PrimaryButton
+          label={t('setlists.createGenerate')}
+          onPress={() => void quickGenerate()}
+          icon="🎲"
+        />
+        <GhostButton
           label={t('setlists.createManual')}
           onPress={() => setCreateMode('manual')}
         />
-        <GhostButton label={t('setlists.createGenerate')} onPress={openGenerate} />
         <GhostButton
           label={t('sheetsImport.open')}
           onPress={() => setImportOpen(true)}
@@ -184,24 +229,12 @@ export default function SetlistsScreen() {
           }
         />
 
-        {desktop && createMode === 'generate' ? (
-          <View style={styles.inlineWorkspace}>
-            <CreateSetlistWizard
-              songs={songs}
-              songsById={songsById}
-              defaultSetCount={settings.defaultSetCount}
-              defaultMinutes={settings.defaultSetMinutes}
-              onSave={(payload) => void saveWizard(payload)}
-              onCancel={() => setCreateMode(null)}
-            />
-          </View>
-        ) : null}
-
         {desktop && createMode === 'manual' ? (
           <View style={styles.inlineWorkspace}>
             <View style={styles.split}>
               <View style={styles.splitLeft}>
                 <CreateManualSetlistForm
+                  songs={songs}
                   defaultSetCount={settings.defaultSetCount}
                   defaultMinutes={settings.defaultSetMinutes}
                   onCreate={(payload) => void onCreateManual(payload)}
@@ -225,8 +258,7 @@ export default function SetlistsScreen() {
           </View>
         ) : null}
 
-        {!(desktop && createMode === 'generate') &&
-        !(desktop && createMode === 'manual') &&
+        {!(desktop && createMode === 'manual') &&
         !(desktop && setlists.length === 0 && createMode === null) &&
         !(desktop && createMode === 'choose') ? (
           <FlatList
@@ -237,6 +269,7 @@ export default function SetlistsScreen() {
             contentContainerStyle={[
               styles.listContent,
               desktop && styles.listContentDesktop,
+              !desktop && { paddingBottom: 32 + tabBarInset },
             ]}
             numColumns={desktop && setlists.length > 0 ? 2 : 1}
             key={desktop ? 'desktop-list' : 'mobile-list'}
@@ -256,12 +289,13 @@ export default function SetlistsScreen() {
                   <Body muted>{t('setlists.empty')}</Body>
                   <View style={styles.emptyActions}>
                     <PrimaryButton
-                      label={t('setlists.createManual')}
-                      onPress={() => setCreateMode('manual')}
+                      label={t('setlists.createGenerate')}
+                      onPress={() => void quickGenerate()}
+                      icon="🎲"
                     />
                     <GhostButton
-                      label={t('setlists.createGenerate')}
-                      onPress={() => setCreateMode('generate')}
+                      label={t('setlists.createManual')}
+                      onPress={() => setCreateMode('manual')}
                     />
                     <GhostButton
                       label={t('sheetsImport.open')}
@@ -351,12 +385,13 @@ export default function SetlistsScreen() {
                 <Title>{t('setlists.newSetlist')}</Title>
                 <Subtitle>{t('setlists.chooseCreate')}</Subtitle>
                 <PrimaryButton
+                  label={t('setlists.createGenerate')}
+                  onPress={() => void quickGenerate()}
+                  icon="🎲"
+                />
+                <GhostButton
                   label={t('setlists.createManual')}
                   onPress={() => setCreateMode('manual')}
-                />
-                <PrimaryButton
-                  label={t('setlists.createGenerate')}
-                  onPress={() => setCreateMode('generate')}
                 />
                 <GhostButton
                   label={t('sheetsImport.open')}
@@ -377,6 +412,7 @@ export default function SetlistsScreen() {
             <Screen safeTop={false}>
               <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
                 <CreateManualSetlistForm
+                  songs={songs}
                   defaultSetCount={settings.defaultSetCount}
                   defaultMinutes={settings.defaultSetMinutes}
                   onCreate={(payload) => void onCreateManual(payload)}
@@ -386,21 +422,6 @@ export default function SetlistsScreen() {
             </Screen>
           </Modal>
 
-          <Modal
-            visible={createMode === 'generate'}
-            animationType="slide"
-            presentationStyle="pageSheet">
-            <Screen safeTop={false}>
-              <CreateSetlistWizard
-                songs={songs}
-                songsById={songsById}
-                defaultSetCount={settings.defaultSetCount}
-                defaultMinutes={settings.defaultSetMinutes}
-                onSave={(payload) => void saveWizard(payload)}
-                onCancel={() => setCreateMode(null)}
-              />
-            </Screen>
-          </Modal>
         </>
       ) : null}
 

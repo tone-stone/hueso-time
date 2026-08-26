@@ -57,6 +57,53 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
+export type ArtistSearchHit = {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  genres?: string[];
+  externalUrl?: string;
+};
+
+export async function searchSpotifyArtists(q: string, limit = 10): Promise<ArtistSearchHit[]> {
+  const query = q.trim();
+  if (!query) return [];
+
+  const token = await getAccessToken();
+  const url = new URL('https://api.spotify.com/v1/search');
+  url.searchParams.set('q', query);
+  url.searchParams.set('type', 'artist');
+  url.searchParams.set('limit', String(Math.min(10, Math.max(1, limit))));
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`spotify_artist_search_${res.status}:${text}`);
+  }
+
+  const data = (await res.json()) as {
+    artists?: {
+      items?: Array<{
+        id: string;
+        name: string;
+        genres?: string[];
+        images?: Array<{ url: string }>;
+        external_urls?: { spotify?: string };
+      }>;
+    };
+  };
+
+  return (data.artists?.items ?? []).map((artist) => ({
+    id: artist.id,
+    name: artist.name,
+    imageUrl: artist.images?.[artist.images.length - 1]?.url ?? artist.images?.[0]?.url,
+    genres: artist.genres,
+    externalUrl: artist.external_urls?.spotify,
+  }));
+}
+
 export async function searchSpotifyTracks(q: string, limit = 10): Promise<MusicSearchHit[]> {
   const query = q.trim();
   if (!query) return [];

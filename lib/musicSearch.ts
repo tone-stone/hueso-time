@@ -119,3 +119,63 @@ export async function searchMusic(q: string): Promise<{
   const fromItunes = await searchItunes(query);
   return { results: fromItunes, source: fromItunes.length ? 'itunes' : 'none' };
 }
+
+export type ArtistSearchHit = {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  source: 'spotify' | 'itunes';
+};
+
+async function searchArtistsViaBackend(q: string): Promise<ArtistSearchHit[] | null> {
+  try {
+    const url = `${apiBase()}/v1/music/search-artists?q=${encodeURIComponent(q)}&limit=10`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      results?: Array<{ id: string; name: string; imageUrl?: string }>;
+    };
+    if (!data.results?.length) return null;
+    return data.results.map((r) => ({ ...r, source: 'spotify' as const }));
+  } catch {
+    return null;
+  }
+}
+
+async function searchArtistsItunes(q: string): Promise<ArtistSearchHit[]> {
+  const url = new URL('https://itunes.apple.com/search');
+  url.searchParams.set('term', q);
+  url.searchParams.set('entity', 'musicArtist');
+  url.searchParams.set('limit', '10');
+
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`itunes_artist_${res.status}`);
+  const data = (await res.json()) as {
+    results?: Array<{ artistId: number; artistName: string }>;
+  };
+
+  return (data.results ?? []).map((item) => ({
+    id: `itunes-artist:${item.artistId}`,
+    name: item.artistName,
+    source: 'itunes' as const,
+  }));
+}
+
+/**
+ * Busca artistas (no acotado a tu repertorio): Spotify vía backend si está
+ * configurado; si no, iTunes. Usado para etiquetar preferencias de artista
+ * aunque todavía no tengas temas suyos cargados.
+ */
+export async function searchArtists(q: string): Promise<{
+  results: ArtistSearchHit[];
+  source: 'spotify' | 'itunes' | 'none';
+}> {
+  const query = q.trim();
+  if (!query) return { results: [], source: 'none' };
+
+  const fromSpotify = await searchArtistsViaBackend(query);
+  if (fromSpotify?.length) return { results: fromSpotify, source: 'spotify' };
+
+  const fromItunes = await searchArtistsItunes(query);
+  return { results: fromItunes, source: fromItunes.length ? 'itunes' : 'none' };
+}

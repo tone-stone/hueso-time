@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -15,12 +15,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { GenerateSetsForm } from '@/components/GenerateSetsForm';
+import { isEmptyFilters } from '@/components/SongFilterFields';
 import { SetsTables } from '@/components/SetsTables';
 import { ShowModeView } from '@/components/ShowModeView';
 import { showToast } from '@/components/Toast';
 import {
   Body,
   Card,
+  Chip,
   Field,
   GhostButton,
   PageColumn,
@@ -36,6 +38,7 @@ import { useApp } from '@/context/AppContext';
 import { confirmDestructive } from '@/lib/confirm';
 import { formatSetlistShareText } from '@/lib/exportSetlist';
 import { formatDuration, formatMinutes } from '@/lib/id';
+import { filterSongs } from '@/lib/randomSets';
 import { setlistDurationSec } from '@/lib/setMath';
 import type { SetBlock } from '@/types/models';
 
@@ -54,6 +57,8 @@ export default function SetlistDetailScreen() {
   const { setlists, songs, songsById, updateSetlistSets, upsertSetlist } = useApp();
   const setlist = setlists.find((s) => s.id === id);
   const [picker, setPicker] = useState<PickerMode>(null);
+  const [pickerQuery, setPickerQuery] = useState('');
+  const [usePreferences, setUsePreferences] = useState(true);
   const [generateOpen, setGenerateOpen] = useState(false);
   const [showMode, setShowMode] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -73,6 +78,28 @@ export default function SetlistDetailScreen() {
     () => (setlist ? setlistDurationSec(setlist.sets, songsById) : 0),
     [setlist, songsById],
   );
+
+  const hasSavedFilters = !!setlist?.songFilters && !isEmptyFilters(setlist.songFilters);
+
+  useEffect(() => {
+    if (!picker) return;
+    setPickerQuery('');
+    setUsePreferences(true);
+  }, [picker]);
+
+  const pickerSongs = useMemo(() => {
+    let list = songs;
+    if (usePreferences && hasSavedFilters && setlist?.songFilters) {
+      list = filterSongs(list, setlist.songFilters);
+    }
+    const q = pickerQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (s) => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [songs, usePreferences, hasSavedFilters, setlist?.songFilters, pickerQuery]);
 
   if (!setlist) {
     return (
@@ -106,6 +133,7 @@ export default function SetlistDetailScreen() {
         venue: editVenue.trim() || undefined,
         date: editDate.trim() || undefined,
         genreFocus: setlist!.genreFocus,
+        songFilters: setlist!.songFilters,
         sets: setlist!.sets,
       },
       setlist!.id,
@@ -353,8 +381,23 @@ export default function SetlistDetailScreen() {
                 ? t('setlists.changeSongHint')
                 : t('repertoire.title')}
             </Subtitle>
+            <Field
+              label={t('common.search')}
+              value={pickerQuery}
+              onChangeText={setPickerQuery}
+              placeholder={t('setlists.pickSongSearchPlaceholder')}
+            />
+            {hasSavedFilters ? (
+              <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+                <Chip
+                  label={t('setlists.usePreferences')}
+                  selected={usePreferences}
+                  onPress={() => setUsePreferences((v) => !v)}
+                />
+              </View>
+            ) : null}
             <ScrollView>
-              {songs.map((song) => {
+              {pickerSongs.map((song) => {
                 const already = usedIds.has(song.id);
                 const isCurrent = replacingId === song.id;
                 const blocked =
@@ -388,6 +431,10 @@ export default function SetlistDetailScreen() {
               {songs.length === 0 ? (
                 <Card>
                   <Body muted>{t('repertoire.empty')}</Body>
+                </Card>
+              ) : pickerSongs.length === 0 ? (
+                <Card>
+                  <Body muted>{t('setlists.pickSongNoMatches')}</Body>
                 </Card>
               ) : null}
             </ScrollView>

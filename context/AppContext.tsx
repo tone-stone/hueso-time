@@ -26,6 +26,7 @@ import type {
   Setlist,
   SetlistInput,
   Song,
+  SongFilters,
   SongInput,
 } from '@/types/models';
 
@@ -45,6 +46,7 @@ interface AppContextValue {
     setCount?: number;
     targetMinutes?: number;
     genreFocus?: Genre;
+    songFilters?: SongFilters;
   }) => Promise<Setlist>;
   updateSetlistSets: (setlistId: string, sets: SetBlock[]) => Promise<void>;
   updateSettings: (partial: Partial<AppSettings>) => Promise<void>;
@@ -145,6 +147,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setCount?: number;
       targetMinutes?: number;
       genreFocus?: Genre;
+      songFilters?: SongFilters;
     }) => {
       const count = opts?.setCount ?? settings.defaultSetCount;
       const target = opts?.targetMinutes ?? settings.defaultSetMinutes;
@@ -158,6 +161,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         name: opts?.name ?? 'Show',
         venue: opts?.venue,
         genreFocus: opts?.genreFocus,
+        songFilters: opts?.songFilters,
         sets,
       });
     },
@@ -174,6 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           venue: current.venue,
           date: current.date,
           genreFocus: current.genreFocus,
+          songFilters: current.songFilters,
           sets,
         },
         setlistId,

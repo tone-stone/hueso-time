@@ -18,9 +18,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AmbientBackground, Waveform } from '@/components/AmbientBackground';
 import Colors from '@/constants/Colors';
+import { FontFamily } from '@/constants/Fonts';
 import { useTranslation } from 'react-i18next';
 
 const theme = Colors.dark;
+
+/** Subtle white ripple that reads on any surface color used across buttons/cards/chips. */
+const RIPPLE = { color: 'rgba(255,255,255,0.16)' };
 
 const techplaceCat = require('../assets/images/brand/techplace-cat.png');
 
@@ -33,14 +37,15 @@ export function useDesktopWeb() {
 }
 
 /** Status bar / notch / punch-hole clearance (Android often reports insets.top = 0). */
-export function useTopSafePad(extra = 14) {
+export function useTopSafePad(extra = 56) {
   const insets = useSafeAreaInsets();
   if (Platform.OS === 'web') return Math.max(extra, 8);
-  // Android: StatusBar.currentHeight covers classic bars; bump for punch-hole cameras.
+  // Android: StatusBar.currentHeight covers classic bars; bump generously for punch-hole
+  // cameras, since safe-area-context can under-report insets.top on some OEM skins.
   const fallback =
     Platform.OS === 'android'
-      ? Math.max(RNStatusBar.currentHeight ?? 0, 32) + 8
-      : 47;
+      ? Math.max(RNStatusBar.currentHeight ?? 0, 64) + 20
+      : 70;
   return Math.max(insets.top, fallback) + extra;
 }
 
@@ -54,7 +59,7 @@ export function Screen({
   /** Apply notch / Dynamic Island / status-bar top inset (default true). */
   safeTop = true,
   /** Extra space under the system bar so content clears camera + wifi icons. */
-  topGap = 14,
+  topGap = 56,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
@@ -133,7 +138,13 @@ export function PageHeader({
             hitSlop={10}
             accessibilityRole="button"
             style={({ pressed }) => [{ marginBottom: 10, opacity: pressed ? 0.75 : 1 }]}>
-            <Text style={{ color: theme.tint, fontWeight: '800', fontSize: 14 }}>
+            <Text
+              style={{
+                color: theme.tint,
+                fontWeight: '800',
+                fontSize: 14,
+                fontFamily: FontFamily.display,
+              }}>
               ← {backLabel ?? t('common.back')}
             </Text>
           </Pressable>
@@ -229,7 +240,10 @@ export function Card({
   if (!onPress) return body;
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+    <Pressable
+      onPress={onPress}
+      android_ripple={{ color: 'rgba(255,255,255,0.08)' }}
+      style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
       {body}
     </Pressable>
   );
@@ -278,7 +292,7 @@ export function Body({
 export function Field({ label, ...props }: { label: string } & TextInputProps) {
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { fontFamily: FontFamily.display }]}>{label}</Text>
       <TextInput
         placeholderTextColor={theme.textMuted}
         style={styles.input}
@@ -292,15 +306,19 @@ export function PrimaryButton({
   label,
   onPress,
   disabled,
+  icon = '♫',
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  /** Leading glyph — swap for the action (e.g. 🎲 for "generate random"). */
+  icon?: string;
 }) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
+      android_ripple={disabled ? undefined : RIPPLE}
       style={({ pressed }) => [
         styles.primaryBtnWrap,
         { opacity: disabled ? 0.45 : pressed ? 0.9 : 1 },
@@ -311,7 +329,7 @@ export function PrimaryButton({
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={styles.primaryBtn}>
-        <Text style={styles.primaryBtnText}>♫  {label}</Text>
+        <Text style={styles.primaryBtnText}>{icon}  {label}</Text>
       </LinearGradient>
     </Pressable>
   );
@@ -329,6 +347,7 @@ export function GhostButton({
   return (
     <Pressable
       onPress={onPress}
+      android_ripple={{ color: danger ? theme.tintSoft : 'rgba(255,255,255,0.12)' }}
       style={({ pressed }) => [
         styles.ghostBtn,
         {
@@ -340,7 +359,12 @@ export function GhostButton({
             : 'transparent',
         },
       ]}>
-      <Text style={{ color: danger ? theme.tint : theme.text, fontWeight: '700' }}>
+      <Text
+        style={{
+          color: danger ? theme.tint : theme.text,
+          fontWeight: '700',
+          fontFamily: FontFamily.display,
+        }}>
         {label}
       </Text>
     </Pressable>
@@ -359,6 +383,7 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
+      android_ripple={{ color: theme.tintSoft }}
       style={[
         styles.chip,
         {
@@ -371,6 +396,7 @@ export function Chip({
           color: selected ? theme.tint : theme.textMuted,
           fontWeight: '700',
           fontSize: 13,
+          fontFamily: FontFamily.display,
         }}>
         {label}
       </Text>
@@ -393,6 +419,7 @@ export function MetaPill({ label, accent }: { label: string; accent?: boolean })
           color: accent ? theme.accent : theme.textMuted,
           fontSize: 12,
           fontWeight: '700',
+          fontFamily: FontFamily.display,
         }}>
         {label}
       </Text>
@@ -493,6 +520,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.4,
     textAlign: 'center',
+    fontFamily: FontFamily.display,
   },
   brandName: {
     color: theme.text,
@@ -500,6 +528,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.6,
     textTransform: 'uppercase',
+    fontFamily: FontFamily.display,
   },
   brandTag: {
     color: theme.accent,
@@ -508,6 +537,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginTop: 2,
     textAlign: 'center',
+    fontFamily: FontFamily.display,
   },
   brandTagLeft: { textAlign: 'left' },
   brandSub: {
@@ -545,6 +575,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.8,
     flexShrink: 1,
     width: '100%',
+    fontFamily: FontFamily.display,
   },
   subtitle: {
     color: theme.textMuted,
@@ -564,6 +595,7 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
+    fontFamily: FontFamily.display,
   },
   input: {
     borderWidth: 1,
@@ -577,19 +609,27 @@ const styles = StyleSheet.create({
   },
   primaryBtnWrap: {
     borderRadius: 14,
+    overflow: 'hidden',
   },
   primaryBtn: {
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  primaryBtnText: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: 0.2 },
+  primaryBtnText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 16,
+    letterSpacing: 0.2,
+    fontFamily: FontFamily.display,
+  },
   ghostBtn: {
     borderWidth: 1,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
     paddingHorizontal: 14,
+    overflow: 'hidden',
   },
   chip: {
     borderWidth: 1,
@@ -599,6 +639,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
     flexShrink: 1,
+    overflow: 'hidden',
   },
   meta: {
     borderWidth: 1,

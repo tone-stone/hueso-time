@@ -72,12 +72,21 @@ export interface SetBlock {
   songs: SetSongRef[];
 }
 
+export interface SongFilters {
+  artists: string[];
+  genres: Genre[];
+  bpmMin?: number;
+  bpmMax?: number;
+  keys: MusicalKey[];
+}
+
 export interface Setlist {
   id: string;
   name: string;
   venue?: string;
   date?: string;
   genreFocus?: Genre;
+  songFilters?: SongFilters;
   sets: SetBlock[];
   createdAt: string;
   updatedAt: string;

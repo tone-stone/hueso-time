@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Modal,
   Pressable,
@@ -29,6 +30,7 @@ import {
   useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
+import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
 import { Waveform } from '@/components/AmbientBackground';
 import { MusicSearchField } from '@/components/MusicSearchField';
 import { showToast } from '@/components/Toast';
@@ -37,6 +39,7 @@ import { DEFAULT_SONG_DURATION_SEC } from '@/constants/defaults';
 import { useApp } from '@/context/AppContext';
 import { confirmDestructive } from '@/lib/confirm';
 import { formatDuration } from '@/lib/id';
+import { mapGenreHint, searchMusic, type MusicSearchHit } from '@/lib/musicSearch';
 import type { Genre, KeyMode, MusicalKey, Song, SongInput } from '@/types/models';
 
 const emptyForm = (): SongInput => ({
@@ -64,6 +67,7 @@ export default function RepertoireScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
   const desktop = useDesktopWeb();
+  const tabBarInset = useFloatingTabBarInset();
   const { songs, upsertSong, deleteSong } = useApp();
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState<Genre | 'all'>('all');
@@ -75,6 +79,8 @@ export default function RepertoireScreen() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Song | null>(null);
   const [form, setForm] = useState<SongInput>(emptyForm());
+  const [externalResults, setExternalResults] = useState<MusicSearchHit[]>([]);
+  const [externalBusy, setExternalBusy] = useState(false);
 
   const artists = useMemo(() => {
     const set = new Set(songs.map((s) => s.artist.trim()).filter(Boolean));
@@ -101,6 +107,36 @@ export default function RepertoireScreen() {
     });
   }, [songs, query, genre, artist]);
 
+  // When nothing in the repertoire matches what's typed, offer iTunes/Spotify
+  // suggestions inline instead of leaving the user at a dead end.
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (filtered.length > 0 || trimmed.length < 2) {
+      setExternalResults([]);
+      setExternalBusy(false);
+      return;
+    }
+    let cancelled = false;
+    setExternalBusy(true);
+    const timer = setTimeout(() => {
+      void searchMusic(trimmed)
+        .then(({ results }) => {
+          if (cancelled) return;
+          setExternalResults(results);
+        })
+        .catch(() => {
+          if (!cancelled) setExternalResults([]);
+        })
+        .finally(() => {
+          if (!cancelled) setExternalBusy(false);
+        });
+    }, 450);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, filtered.length]);
+
   const sections = useMemo<ArtistSection[]>(() => {
     const map = new Map<string, Song[]>();
     for (const song of filtered) {
@@ -122,6 +158,21 @@ export default function RepertoireScreen() {
   function openCreate() {
     setEditing(null);
     setForm(emptyForm());
+    setEditorOpen(true);
+  }
+
+  function openCreateFromHit(hit: MusicSearchHit) {
+    setEditing(null);
+    setForm({
+      ...emptyForm(),
+      title: hit.title,
+      artist: hit.artist,
+      durationSec: hit.durationSec,
+      imageUrl: hit.imageUrl,
+      spotifyId: hit.spotifyId,
+      externalUrl: hit.externalUrl,
+      genre: mapGenreHint(hit.genreHint) ?? emptyForm().genre,
+    });
     setEditorOpen(true);
   }
 
@@ -237,7 +288,11 @@ export default function RepertoireScreen() {
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled
           style={{ width: '100%' }}
-          contentContainerStyle={[styles.listContent, desktop && styles.listContentDesktop]}
+          contentContainerStyle={[
+            styles.listContent,
+            desktop && styles.listContentDesktop,
+            !desktop && { paddingBottom: 32 + tabBarInset },
+          ]}
           ListEmptyComponent={
             <Card style={desktop ? styles.emptyCardDesktop : undefined}>
               <Body muted align={desktop ? 'center' : 'left'}>
@@ -252,6 +307,53 @@ export default function RepertoireScreen() {
                   <GhostButton label={t('repertoire.clearFilters')} onPress={clearFilters} />
                 </View>
               )}
+
+              {query.trim().length >= 2 ? (
+                <View style={{ marginTop: 18 }}>
+                  <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+                    {t('repertoire.externalSuggestions')}
+                  </Text>
+                  {externalBusy ? (
+                    <ActivityIndicator color={c.tint} style={{ marginVertical: 8 }} />
+                  ) : null}
+                  {!externalBusy && externalResults.length === 0 ? (
+                    <Body muted>{t('musicSearch.empty')}</Body>
+                  ) : null}
+                  {externalResults.length > 0 ? (
+                    <Body muted>{t('repertoire.externalHint')}</Body>
+                  ) : null}
+                  <View style={{ gap: 8, marginTop: 8 }}>
+                    {externalResults.map((hit) => (
+                      <Pressable
+                        key={hit.id}
+                        onPress={() => openCreateFromHit(hit)}
+                        style={[
+                          styles.externalHit,
+                          { borderColor: c.border, backgroundColor: c.surfaceElevated },
+                        ]}>
+                        {hit.imageUrl ? (
+                          <Image source={{ uri: hit.imageUrl }} style={styles.thumb} />
+                        ) : (
+                          <View style={[styles.thumb, { backgroundColor: c.tintSoft }]} />
+                        )}
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text
+                            style={{ color: c.text, fontWeight: '700' }}
+                            numberOfLines={1}>
+                            {hit.title}
+                          </Text>
+                          <Text style={{ color: c.textMuted, marginTop: 2 }} numberOfLines={1}>
+                            {hit.artist} · {formatDuration(hit.durationSec)}
+                          </Text>
+                        </View>
+                        <Text style={{ color: c.accent, fontWeight: '800', fontSize: 12 }}>
+                          {t('repertoire.addSong')}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
             </Card>
           }
         renderSectionHeader={({ section }) => {
@@ -589,6 +691,14 @@ const styles = StyleSheet.create({
   },
   rowBetween: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   thumb: { width: 48, height: 48, borderRadius: 10 },
+  externalHit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 8,
+  },
   previewArt: {
     width: 96,
     height: 96,

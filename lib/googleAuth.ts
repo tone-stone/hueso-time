@@ -1,9 +1,10 @@
 export function isAuthSkipped(): boolean {
-  // Pruebas: por defecto salteamos login. Poné EXPO_PUBLIC_SKIP_AUTH=0 para exigir Gmail.
+  // Por defecto SE EXIGE login. Poné EXPO_PUBLIC_SKIP_AUTH=1 explícitamente
+  // para saltearlo en pruebas locales — así ningún build que se olvide de
+  // setear esta variable queda accesible sin cuenta.
   const flag = process.env.EXPO_PUBLIC_SKIP_AUTH?.trim().toLowerCase();
-  if (flag === '0' || flag === 'false' || flag === 'off') return false;
   if (flag === '1' || flag === 'true' || flag === 'on') return true;
-  return true;
+  return false;
 }
 
 export function isGmailAddress(email: string): boolean {

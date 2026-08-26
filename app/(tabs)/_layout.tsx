@@ -1,34 +1,29 @@
 import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GlassSurface } from '@/components/Glass';
 import { useDesktopWeb } from '@/components/ui';
 import Colors from '@/constants/Colors';
+import { FontFamily } from '@/constants/Fonts';
+import { TAB_BAR_BOTTOM_GAP, TAB_BAR_HEIGHT, TAB_BAR_RADIUS, TAB_BAR_SIDE_GAP } from '@/lib/tabBarLayout';
 
 const c = Colors.dark;
+
+function TabBarBg() {
+  return <GlassSurface radius={TAB_BAR_RADIUS} intensity={80} style={StyleSheet.absoluteFill} />;
+}
 
 export const unstable_settings = {
   initialRouteName: 'setlists',
 };
 
-function TabBarBg() {
-  return (
-    <LinearGradient
-      colors={['#12121E', '#0A0A14']}
-      style={StyleSheet.absoluteFill}
-    />
-  );
-}
-
 export default function TabLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const desktopWeb = useDesktopWeb();
-  const bottomPad = Math.max(insets.bottom, Platform.OS === 'android' ? 8 : 4);
-  const tabBarHeight = 52 + bottomPad;
 
   return (
     <Tabs
@@ -43,8 +38,10 @@ export default function TabLayout() {
           : [
               styles.tabBar,
               {
-                height: tabBarHeight,
-                paddingBottom: bottomPad,
+                bottom: insets.bottom + TAB_BAR_BOTTOM_GAP,
+                left: TAB_BAR_SIDE_GAP,
+                right: TAB_BAR_SIDE_GAP,
+                height: TAB_BAR_HEIGHT,
               },
             ],
         tabBarLabelStyle: styles.tabLabel,
@@ -109,16 +106,19 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: c.tabBar,
-    borderTopColor: 'rgba(255,45,123,0.28)',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 4,
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    borderTopWidth: 0,
+    borderRadius: TAB_BAR_RADIUS,
+    overflow: 'hidden',
+    elevation: 0,
   },
   tabLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.3,
     marginBottom: 2,
+    fontFamily: FontFamily.display,
   },
   iconWrap: {
     alignItems: 'center',

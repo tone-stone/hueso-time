@@ -3,7 +3,7 @@ import { cors } from 'hono/cors';
 import { z } from 'zod';
 
 import * as store from './store.js';
-import { isSpotifyConfigured, searchSpotifyTracks } from './spotify.js';
+import { isSpotifyConfigured, searchSpotifyArtists, searchSpotifyTracks } from './spotify.js';
 import type { Genre, KeyMode, MusicalKey, SongInput, SetlistInput } from './types.js';
 
 const songSchema = z.object({
@@ -20,11 +20,20 @@ const songSchema = z.object({
   externalUrl: z.string().optional(),
 });
 
+const songFiltersSchema = z.object({
+  artists: z.array(z.string()),
+  genres: z.array(z.string()),
+  bpmMin: z.number().optional(),
+  bpmMax: z.number().optional(),
+  keys: z.array(z.string()),
+});
+
 const setlistSchema = z.object({
   name: z.string().min(1),
   venue: z.string().optional(),
   date: z.string().optional(),
   genreFocus: z.string().optional(),
+  songFilters: songFiltersSchema.optional(),
   sets: z.array(
     z.object({
       id: z.string(),
@@ -78,6 +87,32 @@ app.get('/v1/music/search', async (c) => {
 
   try {
     const results = await searchSpotifyTracks(q, limit);
+    return c.json({ results, source: 'spotify' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'spotify_error';
+    return c.json({ results: [], source: 'none', error: message }, 502);
+  }
+});
+
+app.get('/v1/music/search-artists', async (c) => {
+  const q = (c.req.query('q') || '').trim();
+  const limit = Math.min(10, Math.max(1, Number(c.req.query('limit') || 10)));
+  if (!q) return c.json({ results: [], source: 'none' });
+
+  if (!isSpotifyConfigured()) {
+    return c.json(
+      {
+        results: [],
+        source: 'none',
+        error: 'spotify_not_configured',
+        hint: 'Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in backend/.env',
+      },
+      503,
+    );
+  }
+
+  try {
+    const results = await searchSpotifyArtists(q, limit);
     return c.json({ results, source: 'spotify' });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'spotify_error';

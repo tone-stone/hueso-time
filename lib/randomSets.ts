@@ -1,14 +1,8 @@
 import { createId } from '@/lib/id';
 import { pickBestIndex } from '@/lib/setEnergy';
-import type { Genre, MusicalKey, SetBlock, SetSongRef, Song } from '@/types/models';
+import type { SetBlock, SetSongRef, Song, SongFilters } from '@/types/models';
 
-export interface SongFilters {
-  artists: string[];
-  genres: Genre[];
-  bpmMin?: number;
-  bpmMax?: number;
-  keys: MusicalKey[];
-}
+export type { SongFilters } from '@/types/models';
 
 export const emptyFilters = (): SongFilters => ({
   artists: [],

@@ -20,11 +20,13 @@ import { BARRA_LIBRE_COUNT } from '@/data/seedBarraLibre';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { isAuthSkipped } from '@/lib/googleAuth';
+import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
   const desktop = useDesktopWeb();
+  const tabBarInset = useFloatingTabBarInset();
   const router = useRouter();
   const { settings, updateSettings, importBarraLibreSeed, songs } = useApp();
   const { user, exitToLogin } = useAuth();
@@ -66,7 +68,7 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <PageColumn maxWidth={720}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 40 + tabBarInset }}>
           <PageHeader title={t('settings.title')} subtitle={t('settings.about')} />
 
           <View style={[styles.pad, desktop && styles.padDesktop]}>

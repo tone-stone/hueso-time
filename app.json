@@ -94,7 +94,13 @@
       ],
       "expo-localization",
       "expo-secure-store",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-navigation-bar",
+        {
+          "style": "light"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

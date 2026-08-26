@@ -43,6 +43,11 @@ describe('googleAuth', () => {
     expect(isAuthSkipped()).toBe(false);
   });
 
+  it('requires login by default when EXPO_PUBLIC_SKIP_AUTH is unset', () => {
+    delete process.env.EXPO_PUBLIC_SKIP_AUTH;
+    expect(isAuthSkipped()).toBe(false);
+  });
+
   it('reports configured google clients', () => {
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID = '';
     process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID = '';
