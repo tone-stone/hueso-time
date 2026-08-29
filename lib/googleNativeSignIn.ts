@@ -47,6 +47,21 @@ export function configureNativeGoogleSignIn() {
 }
 
 /**
+ * Clears the native Google Sign-In SDK's cached session. Without this, signing
+ * back in silently re-authenticates the same account instead of prompting a
+ * chooser — call before/at app-level sign-out so "switch account" actually works.
+ */
+export async function signOutNativeGoogle(): Promise<void> {
+  if (!canUseNativeGoogleSignIn()) return;
+  try {
+    const { GoogleSignin } = getNativeModule();
+    await GoogleSignin.signOut();
+  } catch {
+    // Best-effort — app-level sign-out must still proceed either way.
+  }
+}
+
+/**
  * Native Google Sign-In → id_token.
  * Throws Error with message codes: missing_config | cancelled | play_services | developer_error | error
  */

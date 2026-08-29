@@ -15,6 +15,7 @@ import {
   isIdTokenFresh,
   userFromIdToken,
 } from '@/lib/googleAuth';
+import { signOutNativeGoogle } from '@/lib/googleNativeSignIn';
 import type { AuthUser } from '@/types/auth';
 
 type AuthContextValue = {

@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/nocturne-13a554b1-64ad-41cd-b049-fdab71821c1f/styles.css">
+<script src="_ds/nocturne-13a554b1-64ad-41cd-b049-fdab71821c1f/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+body{margin:0;background:#0f111c;font-family:"Inter",system-ui,sans-serif;color:#e9e9ed}
+a{color:#9184d9}a:hover{color:#b5abfc}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(233,233,237,.08)}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#e9e9ed;color:#161826;border-radius:4px;text-decoration:none}
+.dv-tname{font:500 13px/1.2 "Inter",system-ui,sans-serif;color:#e9e9ed}
+.dv-opts{display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(233,233,237,.1);color:#e9e9ed;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 "Inter",system-ui,sans-serif;color:rgba(233,233,237,.55)}
+.dv-opt:target .dv-oid{background:#9184d9;color:#161826}
+.dv-next{margin:22px 0 0;font:12px/1.6 "Inter",system-ui,sans-serif;color:rgba(233,233,237,.5)}
+.ph{line-height:1}
+@keyframes hsspin{to{transform:rotate(360deg)}}
+@keyframes hspulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.9;transform:scale(1.04)}}
+@keyframes hsrise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dv-opt *{scrollbar-width:none;-ms-overflow-style:none}
+.dv-opt *::-webkit-scrollbar{width:0;height:0;display:none}
+</style></helmet>
+
+<section class="dv-turn" id="t7">
+<div class="dv-thd"><a class="dv-tid" href="#t7">7</a><span class="dv-tname">Modo escritorio web — la barra flotante arriba, sin tabs, columna de 920</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="7a">
+<div class="dv-olabel"><a class="dv-oid" href="#7a">7a</a>Generar en escritorio — consola a la izquierda, resultado a la derecha</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1180 }}" height="{{ 760 }}" url="huesotime.app/setlists" tabs="{{ chromeTabs }}" hint-size="1180px,760px">
+<div style="min-height:100%;background:#161826;font-family:'Inter',system-ui,sans-serif;color:#e9e9ed;padding:16px 0 40px">
+  <div style="position:sticky;top:0;z-index:3;padding:0 16px 12px">
+    <div style="display:flex;align-items:center;gap:20px;padding:12px 18px;border-radius:12px;background:rgba(43,39,65,.55);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 16px 40px rgba(0,0,0,.45)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <img src="assets/brand/techplace-cat.png" alt="Hueso Time" style="width:42px;height:42px;object-fit:contain;mix-blend-mode:lighten;flex:none">
+        <div>
+          <div style="font-size:14px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;line-height:1">Hueso Time</div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.12em;color:#9184d9;margin-top:5px">SETLIST · STAGE · COVERS</div>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div style="position:relative;padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:#d2cefd;background:rgba(145,132,217,.18);cursor:pointer">Setlists<div style="position:absolute;left:14px;right:14px;bottom:4px;height:2px;border-radius:2px;background:#9184d9"></div></div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:13.5px;color:rgba(233,233,237,.62);cursor:pointer" style-hover="background:rgba(233,233,237,.07);color:#e9e9ed">Repertorio</div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:13.5px;color:rgba(233,233,237,.62);cursor:pointer" style-hover="background:rgba(233,233,237,.07);color:#e9e9ed">Ajustes</div>
+      </div>
+      <div style="width:1px;height:24px;background:rgba(233,233,237,.14)"></div>
+      <div style="display:flex;align-items:center;gap:9px;padding:6px 12px 6px 6px;border-radius:999px;cursor:pointer" style-hover="background:rgba(233,233,237,.07)">
+        <div style="width:28px;height:28px;border-radius:50%;background:#2b2741;display:flex;align-items:center;justify-content:center;font:600 11px ui-monospace,Menlo,monospace;color:#d2cefd">VS</div>
+        <span style="font-size:13px;color:rgba(233,233,237,.7)">Salir</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:920px;margin:0 auto;padding:14px 28px 0">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+      <div>
+        <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9184d9">Generar</div>
+        <div style="font-size:32px;font-weight:500;letter-spacing:-.024em;margin-top:10px">Armá el show</div>
+        <div style="font-size:14px;color:rgba(233,233,237,.55);margin-top:5px">128 canciones en tu repertorio · 41 artistas</div>
+      </div>
+      <div style="display:flex;gap:9px">
+        <div style="height:44px;padding:0 16px;white-space:nowrap;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:rgba(233,233,237,.7);box-shadow:inset 0 0 0 1px #3f424d;cursor:pointer" style-hover="background:rgba(233,233,237,.07)"><i class="ph ph-bookmark-simple" style="font-size:16px"></i>Presets</div>
+        <div style="height:44px;padding:0 20px;white-space:nowrap;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;gap:9px;font-size:14px;font-weight:500;cursor:pointer;background:radial-gradient(120% 160% at 50% 130%,rgba(145,132,217,.18),transparent)" style-hover="background:rgba(145,132,217,.16)"><i class="ph ph-dice-five" style="font-size:18px"></i>Tirar los 3 sets</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:24px;margin-top:26px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="padding:16px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+          <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.45)">Formato</div>
+          <div style="margin-top:12px;display:inline-flex;border-radius:8px;border:1px solid #3f424d;overflow:hidden">
+            <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6)">2 sets</div>
+            <div style="padding:7px 12px;font-size:13px;color:#9184d9;box-shadow:inset 0 0 0 1px #9184d9;border-left:1px solid #3f424d">3 sets</div>
+            <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6);border-left:1px solid #3f424d">4 sets</div>
+          </div>
+          <div style="margin-top:10px;display:inline-flex;border-radius:8px;border:1px solid #3f424d;overflow:hidden">
+            <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6)">30</div>
+            <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6);border-left:1px solid #3f424d">40</div>
+            <div style="padding:7px 12px;font-size:13px;color:#9184d9;box-shadow:inset 0 0 0 1px #9184d9;border-left:1px solid #3f424d">45</div>
+            <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6);border-left:1px solid #3f424d">60 min</div>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+          <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.45)">Pool · 74 de 128</div>
+          <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">rock</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">latin</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">funk</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">blues</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">indie</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">favoritas</span>
+          </div>
+          <div style="margin-top:14px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.45)">Tempo</div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">cualquiera</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">lento</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">medio</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">arriba</span>
+            <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">rápido</span>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #9184d9;background:#9184d9;box-shadow:inset 0 0 0 4px #232532"></div><span style="font-size:13.5px">Sin repetir en el show</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #9184d9;background:#9184d9;box-shadow:inset 0 0 0 4px #232532"></div><span style="font-size:13.5px">Alternar artistas</span></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #3f424d"></div><span style="font-size:13.5px;color:rgba(233,233,237,.6)">Curva de energía ascendente</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="padding:13px 16px;border-radius:8px;background:rgba(145,132,217,.1);box-shadow:0 0 0 1px rgba(145,132,217,.35);display:flex;align-items:center;gap:12px">
+          <i class="ph ph-check-circle" style="font-size:18px;color:#9184d9"></i>
+          <div style="flex:1"><div style="font-size:13.5px;color:#d2cefd">Alcanza para 3 sets completos</div><div style="font-size:12px;color:rgba(233,233,237,.55);margin-top:2px">Sobran 11 canciones de margen</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          <div style="padding:14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+            <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Set 1</span><span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5)">44:12</span></div>
+            <div style="margin-top:10px;height:3px;border-radius:2px;background:rgba(233,233,237,.1);overflow:hidden"><div style="height:100%;width:98%;background:#9184d9"></div></div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">01</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lamento Boliviano</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">02</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Vasos Vacíos</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">03</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Aquí No Es Así</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">04</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">La Ingrata</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">05</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ji Ji Ji</span></div>
+              <div style="font-size:11.5px;color:rgba(233,233,237,.4);padding-left:20px">+ 6 más</div>
+            </div>
+          </div>
+          <div style="padding:14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+            <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Set 2</span><span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5)">43:05</span></div>
+            <div style="margin-top:10px;height:3px;border-radius:2px;background:rgba(233,233,237,.1);overflow:hidden"><div style="height:100%;width:95%;background:#9184d9"></div></div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">01</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Persiana Americana</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">02</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">El Matador</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">03</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mariposa Tecknicolor</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">04</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Seminare</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">05</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Cactus</span></div>
+              <div style="font-size:11.5px;color:rgba(233,233,237,.4);padding-left:20px">+ 5 más</div>
+            </div>
+          </div>
+          <div style="padding:14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+            <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Set 3</span><span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5)">41:38</span></div>
+            <div style="margin-top:10px;height:3px;border-radius:2px;background:rgba(233,233,237,.1);overflow:hidden"><div style="height:100%;width:92%;background:#9184d9"></div></div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">01</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Un Poco de Amor</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">02</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sábado</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">03</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Irresponsables</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">04</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Todo un Palo</span></div>
+              <div style="display:flex;gap:8px"><span style="font:400 10.5px/1.4 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">05</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Superstition</span></div>
+              <div style="font-size:11.5px;color:rgba(233,233,237,.4);padding-left:20px">+ 4 más</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="height:42px;padding:0 16px;white-space:nowrap;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:rgba(233,233,237,.7);box-shadow:inset 0 0 0 1px #3f424d;cursor:pointer" style-hover="background:rgba(233,233,237,.07)"><i class="ph ph-shuffle" style="font-size:16px"></i>Volver a tirar</div>
+          <div style="height:42px;padding:0 16px;white-space:nowrap;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)"><i class="ph ph-check" style="font-size:16px"></i>Guardar como setlist</div>
+          <div style="flex:1"></div>
+          <div style="font-size:12px;color:rgba(233,233,237,.42)">Atajo: <span style="font-family:ui-monospace,Menlo,monospace;color:#d2cefd">R</span> vuelve a tirar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-import>
+</div>
+
+<div class="dv-opt" id="7b">
+<div class="dv-olabel"><a class="dv-oid" href="#7b">7b</a>Notas del modo escritorio</div>
+<div style="width:352px;padding:22px;border-radius:8px;background:#191b2a;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;gap:16px">
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Qué se respeta</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">En escritorio la app ya oculta la tab bar y muestra <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">WebTopNav</span> fija arriba (glass, radio 24, alto 100). El rediseño mantiene esa barra, la marca a la izquierda, los tres links con subrayado de acento en el activo y salir a la derecha.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Ancho de columna</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty"><span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">PageColumn</span> ya limita a 920 con 28 de padding: eso queda igual. Dentro de esos 920, en escritorio los filtros pasan a columna fija de 340 y los sets se ven los tres a la vez — en móvil son uno abajo del otro.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Lo que gana el escritorio</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Los filtros y el resultado a la vez: cambiás un chip y ves los tres sets sin navegar. Ahí tiene sentido el atajo de teclado para volver a tirar. El botón grande circular no va acá; en escritorio el disparador es el botón de la cabecera.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Modo show en escritorio</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Se abre a pantalla completa sin la barra, con los mismos tamaños de <a href="#4a">4a</a> escalados: el atril suele ser una tablet o una laptop apoyada.</div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Auditoría del turno <a class="dv-tid" href="#t3">3</a> actualizada: ya no queda nada en “falta dibujar”.</p>
+</section>
+
+<section class="dv-turn" id="t6">
+<div class="dv-thd"><a class="dv-tid" href="#t6">6</a><span class="dv-tname">Lo último: reordenar arrastrando, editar el show e importar datos</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="6a">
+<div class="dv-olabel"><a class="dv-oid" href="#6a">6a</a>Reordenar arrastrando — el estado mientras se sostiene una canción</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px 6px;font-size:12px;font-weight:600;flex:none"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+  <div style="flex:none;display:flex;align-items:center;gap:12px;padding:8px 18px 12px">
+    <div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,233,237,.75)"><i class="ph ph-arrow-left"></i></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:15px;font-weight:500">Barra Libre · Sábado</div>
+      <div style="font-size:11.5px;color:#9184d9;margin-top:1px">Reordenando · soltá para fijar</div>
+    </div>
+    <div style="height:32px;padding:0 13px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;font-size:12.5px;font-weight:500">Listo</div>
+  </div>
+
+  <div style="flex:1;min-height:0;overflow:hidden;padding:0 18px">
+    <div style="display:flex;align-items:baseline;gap:8px;padding:6px 4px;border-bottom:1px solid rgba(233,233,237,.12)">
+      <span style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Set 1</span>
+      <span style="flex:1"></span>
+      <span style="font-size:11.5px;color:rgba(233,233,237,.5)">44:12 / 45 min</span>
+    </div>
+
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:8px">
+        <i class="ph ph-dots-six-vertical" style="font-size:17px;color:rgba(233,233,237,.3)"></i>
+        <span style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">01</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">Lamento Boliviano</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Enanitos Verdes · 120 BPM · D</div></div>
+      </div>
+
+      <div style="height:2px;border-radius:2px;background:#9184d9;margin:2px 6px"></div>
+
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 6px;border-radius:8px;background:#2b2741;box-shadow:0 0 0 1px #9184d9,0 14px 30px rgba(0,0,0,.5);transform:scale(1.02) rotate(-.4deg)">
+        <i class="ph ph-dots-six-vertical" style="font-size:17px;color:#d2cefd"></i>
+        <span style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:#d2cefd">03</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500;color:#e7e5fe">Aquí No Es Así</div><div style="font-size:11.5px;color:rgba(233,233,237,.65);margin-top:2px">Los Piojos · 126 BPM · A</div></div>
+        <i class="ph ph-arrows-out-line-vertical" style="font-size:15px;color:#b5abfc"></i>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:8px;opacity:.55">
+        <i class="ph ph-dots-six-vertical" style="font-size:17px;color:rgba(233,233,237,.3)"></i>
+        <span style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">02</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">Vasos Vacíos</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Cadillacs & Celia Cruz · 136 BPM · Dm</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:8px;opacity:.55">
+        <i class="ph ph-dots-six-vertical" style="font-size:17px;color:rgba(233,233,237,.3)"></i>
+        <span style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">04</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">La Ingrata</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Café Tacvba · 152 BPM · Am</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:8px;opacity:.55">
+        <i class="ph ph-dots-six-vertical" style="font-size:17px;color:rgba(233,233,237,.3)"></i>
+        <span style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">05</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">Ji Ji Ji</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Patricio Rey · 138 BPM · A</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:8px 6px;border-radius:8px;opacity:.55">
+        <i class="ph ph-dots-six-vertical" style="font-size:17px;color:rgba(233,233,237,.3)"></i>
+        <span style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">06</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">Sábado</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Divididos · 148 BPM · D</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding:12px 14px;border-radius:8px;background:rgba(145,132,217,.1);box-shadow:0 0 0 1px rgba(145,132,217,.35)">
+      <div style="font-size:12.5px;color:#d2cefd">Al soltar acá, el set queda en 44:12.</div>
+      <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:3px">Mover entre sets también recalcula el otro.</div>
+    </div>
+  </div>
+
+  <div style="flex:none;height:96px"></div>
+  <div style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-shuffle" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:rgba(145,132,217,.28);color:#d2cefd"><i class="ph-fill ph-microphone-stage" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Setlists</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-queue" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-sliders-horizontal" style="font-size:19px"></i></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="6b">
+<div class="dv-olabel"><a class="dv-oid" href="#6b">6b</a>Editar el show y borrarlo — nombre, venue, fecha y la confirmación</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#0f111c;display:flex;flex-direction:column;justify-content:flex-end">
+  <div style="flex:none;padding:0 22px;font-size:12px;color:rgba(233,233,237,.3);position:absolute;top:15px;left:0;right:0;display:flex;justify-content:space-between"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+  <div style="flex:none;height:62%;border-radius:22px 22px 36px 36px;background:#191b2a;box-shadow:0 -1px 0 #3f424d,0 -20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex:none;display:flex;align-items:center;justify-content:center;padding:10px 0 4px"><div style="width:38px;height:4px;border-radius:999px;background:rgba(233,233,237,.22)"></div></div>
+    <div style="flex:none;display:flex;align-items:center;gap:12px;padding:6px 20px 14px">
+      <div style="font-family:'Inter';font-size:19px;font-weight:500;letter-spacing:-.02em;flex:1">Datos del show</div>
+      <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.55);font-size:17px;cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-x"></i></div>
+    </div>
+    <div style="flex:1;min-height:0;overflow:auto;padding:0 20px 12px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Nombre</div>
+        <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #9184d9;font-size:14px">Barra Libre · Sábado</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Venue</div>
+        <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #3f424d;font-size:14px">Bar Rosario</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Fecha</div>
+        <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #3f424d;font-size:14px;font-family:ui-monospace,Menlo,monospace">2026-09-12</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:8px;background:#232532">
+        <i class="ph ph-funnel" style="font-size:16px;color:#9184d9"></i>
+        <div style="flex:1;min-width:0"><div style="font-size:13px">Preferencias guardadas</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">rock, latin · 96–140 BPM</div></div>
+        <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i>
+      </div>
+      <div style="height:1px;background:linear-gradient(to right,transparent,rgba(233,233,237,.12) 48px,rgba(233,233,237,.12) calc(100% - 48px),transparent)"></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:#b5abfc;cursor:pointer"><i class="ph ph-trash" style="font-size:17px"></i>Borrar este setlist</div>
+    </div>
+    <div style="flex:none;display:flex;gap:9px;padding:12px 20px 26px;border-top:1px solid rgba(233,233,237,.1)">
+      <div style="flex:1;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:rgba(233,233,237,.7);cursor:pointer" style-hover="background:rgba(233,233,237,.07)">Cancelar</div>
+      <div style="flex:1;height:46px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)"><i class="ph ph-check" style="font-size:16px"></i>Guardar</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;inset:0;background:rgba(15,17,28,.62);display:flex;align-items:center;justify-content:center;padding:26px">
+    <div style="width:100%;display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:12px;background:#232532;box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px #3f424d">
+      <div style="font-family:'Inter';font-size:19px;font-weight:500;letter-spacing:-.02em">¿Borrar el setlist?</div>
+      <div style="font-size:13.5px;line-height:1.55;color:rgba(233,233,237,.7);text-wrap:pretty">Barra Libre · Sábado, con sus 3 sets. Las canciones siguen en tu repertorio.</div>
+      <div style="display:flex;justify-content:flex-end;gap:9px;margin-top:6px">
+        <div style="height:40px;padding:0 16px;white-space:nowrap;border-radius:8px;display:flex;align-items:center;font-size:13.5px;font-weight:500;color:rgba(233,233,237,.7);cursor:pointer" style-hover="background:rgba(233,233,237,.07)">No</div>
+        <div style="height:40px;padding:0 16px;white-space:nowrap;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)">Sí, borrar</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="6c">
+<div class="dv-olabel"><a class="dv-oid" href="#6c">6c</a>Fuentes de datos — Sheets, CSV y la semilla Barra Libre con su contador</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px 6px;font-size:12px;font-weight:600;flex:none"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+  <div style="flex:1;min-height:0;overflow:auto;padding:10px 22px 0">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,233,237,.75)"><i class="ph ph-arrow-left"></i></div>
+      <div style="font-size:15px;font-weight:500">Fuentes de datos</div>
+    </div>
+
+    <div style="margin-top:20px;padding:16px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+      <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Semilla Barra Libre</div>
+      <div style="font-family:'Inter';font-size:17px;font-weight:500;letter-spacing:-.01em;margin-top:10px">128 de 214 importadas</div>
+      <div style="margin-top:11px;height:4px;border-radius:999px;background:rgba(233,233,237,.1);overflow:hidden"><div style="height:100%;width:60%;background:#9184d9;border-radius:999px"></div></div>
+      <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.6);margin-top:12px;text-wrap:pretty">El repertorio base del proyecto: rock y latin con BPM y tonalidad ya cargados. Importar no duplica lo que ya tenés.</div>
+      <div style="margin-top:14px;height:44px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)"><i class="ph ph-download-simple" style="font-size:17px"></i>Importar las 86 que faltan</div>
+    </div>
+
+    <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Importar de otro lado</div>
+    <div style="margin-top:11px;display:flex;flex-direction:column;gap:1px;border-radius:8px;overflow:hidden;background:rgba(233,233,237,.09)">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532;cursor:pointer" style-hover="background:#2a2c3b"><i class="ph ph-table" style="font-size:17px;color:#9184d9"></i><div style="flex:1;min-width:0"><div style="font-size:13px">Google Sheets</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Pegá el link de la hoja</div></div><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532;cursor:pointer" style-hover="background:#2a2c3b"><i class="ph ph-file-csv" style="font-size:17px;color:#9184d9"></i><div style="flex:1;min-width:0"><div style="font-size:13px">Archivo CSV</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">título, artista, bpm, tonalidad, género</div></div><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532;cursor:pointer" style-hover="background:#2a2c3b"><i class="ph ph-magnifying-glass" style="font-size:17px;color:#9184d9"></i><div style="flex:1;min-width:0"><div style="font-size:13px">Buscar en Spotify o iTunes</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">Trae carátula y duración</div></div><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+    </div>
+
+    <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Dónde se guarda</div>
+    <div style="margin-top:11px;padding:14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+      <div style="font-size:12.5px;line-height:1.6;color:rgba(233,233,237,.68);text-wrap:pretty">Con cuenta, el repertorio y los setlists se sincronizan. Sin cuenta, quedan solo en este teléfono.</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:11px;font-size:12px;color:#b5abfc"><i class="ph-fill ph-check-circle" style="font-size:15px"></i>Sincronizado hace 2 min</div>
+    </div>
+  </div>
+
+  <div style="flex:none;height:96px"></div>
+  <div style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-shuffle" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-microphone-stage" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-queue" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:rgba(145,132,217,.28);color:#d2cefd"><i class="ph-fill ph-sliders-horizontal" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Ajustes</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Con el turno 6 quedan cubiertas todas las funciones del turno <a class="dv-tid" href="#t3">3</a>. Decime si querés que actualice la auditoría marcando todo como cubierto.</p>
+</section>
+
+<section class="dv-turn" id="t5">
+<div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Repertorio, editor de canción y los dos modales del setlist</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="5a">
+<div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a>Repertorio — buscador, filtros de artista y género, secciones plegables</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px 6px;font-size:12px;font-weight:600;flex:none"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+  <div style="flex:none;padding:10px 22px 0">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-family:'Inter';font-size:27px;font-weight:500;letter-spacing:-.02em">Repertorio</div>
+        <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:4px">128 canciones · 41 artistas</div>
+      </div>
+      <div style="width:44px;height:44px;border-radius:10px;border:1px solid #9184d9;display:flex;align-items:center;justify-content:center;color:#9184d9;background:radial-gradient(circle at 50% 130%,rgba(145,132,217,.24),transparent);cursor:pointer" style-hover="background:rgba(145,132,217,.16)"><i class="ph ph-plus" style="font-size:21px"></i></div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;align-items:center;gap:9px;min-height:36px;padding:6px 11px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+      <i class="ph ph-magnifying-glass" style="font-size:16px;color:rgba(233,233,237,.45)"></i>
+      <span style="font-size:13.5px;color:rgba(233,233,237,.4)">Buscar por título o artista</span>
+    </div>
+    <div style="margin-top:9px;display:flex;gap:9px">
+      <div style="flex:1;display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 11px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;cursor:pointer" style-hover="box-shadow:0 0 0 1px #595d6c"><span style="flex:1;min-width:0;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Todos los artistas</span><i class="ph ph-caret-down" style="font-size:13px;color:#9184d9"></i></div>
+      <div style="flex:1;display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 11px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #9184d9;cursor:pointer"><span style="flex:1;min-width:0;font-size:13px;font-weight:500;color:#d2cefd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rock</span><i class="ph ph-caret-down" style="font-size:13px;color:#9184d9"></i></div>
+    </div>
+    <div style="margin-top:9px;font-size:12.5px;color:#9184d9;cursor:pointer">Limpiar filtros</div>
+  </div>
+
+  <div style="flex:1;min-height:0;overflow:auto;margin-top:12px;padding:0 22px">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 2px;background:#161826;position:sticky;top:0;border-bottom:1px solid rgba(233,233,237,.1)">
+      <span style="flex:1;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Los Piojos</span>
+      <span style="font-size:11.5px;color:rgba(233,233,237,.5)">6</span>
+      <i class="ph ph-caret-down" style="font-size:13px;color:rgba(233,233,237,.4)"></i>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;padding:8px 0 4px">
+      <div style="display:flex;align-items:center;gap:11px;padding:9px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:42px;height:42px;border-radius:6px;background:#2a2c3b;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:16px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Aquí No Es Así</span><i class="ph-fill ph-star" style="font-size:11px;color:#9184d9"></i></div>
+          <div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">126 BPM · A mayor · 3:51</div>
+        </div>
+        <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">lista</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:9px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:42px;height:42px;border-radius:6px;background:#2a2c3b;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:16px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Verano del 92</div>
+          <div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">134 BPM · G mayor · 3:38</div>
+        </div>
+        <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2a2c3b;color:rgba(233,233,237,.7);white-space:nowrap">ensayar</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:9px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:42px;height:42px;border-radius:6px;background:#2a2c3b;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:16px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Maradó</span><i class="ph-fill ph-star" style="font-size:11px;color:#9184d9"></i></div>
+          <div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">118 BPM · Em menor · 4:12</div>
+        </div>
+        <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">cierre</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 2px;background:#161826;position:sticky;top:0;border-bottom:1px solid rgba(233,233,237,.1);margin-top:8px">
+      <span style="flex:1;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Divididos</span>
+      <span style="font-size:11.5px;color:rgba(233,233,237,.5)">4</span>
+      <i class="ph ph-caret-down" style="font-size:13px;color:rgba(233,233,237,.4)"></i>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;padding:8px 0 4px">
+      <div style="display:flex;align-items:center;gap:11px;padding:9px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:42px;height:42px;border-radius:6px;background:#2a2c3b;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:16px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">El Rey Lloró</div>
+          <div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">106 BPM · Bm menor · 4:28</div>
+        </div>
+        <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">lista</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:9px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:42px;height:42px;border-radius:6px;background:#2a2c3b;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:16px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sábado</div>
+          <div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">148 BPM · D mayor · 3:17</div>
+        </div>
+        <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">lista</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:none;height:96px"></div>
+  <div style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-shuffle" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-microphone-stage" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:rgba(145,132,217,.28);color:#d2cefd"><i class="ph-fill ph-queue" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Repertorio</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-sliders-horizontal" style="font-size:19px"></i></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5b">
+<div class="dv-olabel"><a class="dv-oid" href="#5b">5b</a>Editor de canción — todos los campos del modelo, en una hoja</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#0f111c;display:flex;flex-direction:column;justify-content:flex-end">
+  <div style="flex:none;padding:0 22px;font-size:12px;color:rgba(233,233,237,.3);position:absolute;top:15px;left:0;right:0;display:flex;justify-content:space-between"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+  <div style="flex:none;height:92%;border-radius:22px 22px 36px 36px;background:#191b2a;box-shadow:0 -1px 0 #3f424d,0 -20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex:none;display:flex;align-items:center;justify-content:center;padding:10px 0 4px"><div style="width:38px;height:4px;border-radius:999px;background:rgba(233,233,237,.22)"></div></div>
+    <div style="flex:none;display:flex;align-items:center;gap:12px;padding:6px 20px 12px">
+      <div style="font-family:'Inter';font-size:19px;font-weight:500;letter-spacing:-.02em;flex:1">Editar canción</div>
+      <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.55);font-size:17px;cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-trash"></i></div>
+      <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.55);font-size:17px;cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-x"></i></div>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:auto;padding:0 20px 12px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:64px;height:64px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.28);font-size:22px;flex:none"><i class="ph ph-image-square"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;color:rgba(233,233,237,.6);text-wrap:pretty">Carátula de Spotify o iTunes</div>
+          <div style="font-size:12.5px;color:#9184d9;margin-top:6px;cursor:pointer">Buscar la canción</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Título</div>
+        <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #3f424d;font-size:14px">Aquí No Es Así</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Artista</div>
+        <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #3f424d;font-size:14px">Los Piojos</div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">BPM</div>
+          <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #9184d9;font-size:14px;font-family:ui-monospace,Menlo,monospace">126</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Duración</div>
+          <div style="min-height:36px;padding:6px 10px;display:flex;align-items:center;border-radius:8px;background:#232532;border:1px solid #3f424d;font-size:14px;font-family:ui-monospace,Menlo,monospace">3:51</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:7px">Tonalidad</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">C</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">D</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">E</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">F</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">G</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;color:#9184d9;box-shadow:inset 0 0 0 1px #9184d9">A</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">B</span>
+          <span style="font-size:12px;padding:5px 9px;border-radius:6px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;color:rgba(233,233,237,.6)">Bb</span>
+        </div>
+        <div style="margin-top:9px;display:inline-flex;border-radius:8px;border:1px solid #3f424d;overflow:hidden">
+          <div style="padding:7px 12px;font-size:13px;color:#9184d9;box-shadow:inset 0 0 0 1px #9184d9">Mayor</div>
+          <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6);border-left:1px solid #3f424d">Menor</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:7px">Género</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">rock</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">latin</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">blues</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">funk</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">indie</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">+ 19 más</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:7px">Estado de ensayo</div>
+        <div style="display:inline-flex;border-radius:8px;border:1px solid #3f424d;overflow:hidden">
+          <div style="padding:7px 12px;font-size:13px;color:#9184d9;box-shadow:inset 0 0 0 1px #9184d9">Lista</div>
+          <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6);border-left:1px solid #3f424d">Ensayar</div>
+          <div style="padding:7px 12px;font-size:13px;color:rgba(233,233,237,.6);border-left:1px solid #3f424d">Cierre</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;background:#232532">
+        <i class="ph-fill ph-star" style="font-size:17px;color:#9184d9"></i>
+        <span style="flex:1;font-size:13.5px">Favorita</span>
+        <div style="width:38px;height:22px;border-radius:999px;background:rgba(145,132,217,.35);position:relative"><div style="position:absolute;top:2px;left:18px;width:18px;height:18px;border-radius:50%;background:#d2cefd"></div></div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:rgba(233,233,237,.7);margin-bottom:5px">Notas</div>
+        <div style="min-height:64px;padding:8px 10px;border-radius:8px;background:#232532;border:1px solid #3f424d;font-size:13.5px;color:rgba(233,233,237,.55)">Entra con la batería. Bajar medio tono si canta Vera.</div>
+      </div>
+    </div>
+
+    <div style="flex:none;display:flex;gap:9px;padding:12px 20px 26px;border-top:1px solid rgba(233,233,237,.1)">
+      <div style="flex:1;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:rgba(233,233,237,.7);cursor:pointer" style-hover="background:rgba(233,233,237,.07)">Cancelar</div>
+      <div style="flex:1;height:46px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)"><i class="ph ph-check" style="font-size:16px"></i>Guardar</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="5c">
+<div class="dv-olabel"><a class="dv-oid" href="#5c">5c</a>Agregar canción al set — con las preferencias del show aplicadas</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#0f111c;display:flex;flex-direction:column;justify-content:flex-end">
+  <div style="flex:none;padding:0 22px;font-size:12px;color:rgba(233,233,237,.3);position:absolute;top:15px;left:0;right:0;display:flex;justify-content:space-between"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+  <div style="flex:none;height:84%;border-radius:22px 22px 36px 36px;background:#191b2a;box-shadow:0 -1px 0 #3f424d,0 -20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex:none;display:flex;align-items:center;justify-content:center;padding:10px 0 4px"><div style="width:38px;height:4px;border-radius:999px;background:rgba(233,233,237,.22)"></div></div>
+    <div style="flex:none;padding:6px 20px 12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1">
+          <div style="font-family:'Inter';font-size:19px;font-weight:500;letter-spacing:-.02em">Agregar al Set 2</div>
+          <div style="font-size:12px;color:rgba(233,233,237,.5);margin-top:3px">Quedan 8 min para llegar a 45</div>
+        </div>
+        <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.55);font-size:17px;cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-x"></i></div>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:9px;min-height:36px;padding:6px 11px;border-radius:8px;background:#232532;border:1px solid #9184d9">
+        <i class="ph ph-magnifying-glass" style="font-size:16px;color:#9184d9"></i>
+        <span style="font-size:13.5px;color:rgba(233,233,237,.45)">Buscar en el repertorio</span>
+      </div>
+      <div style="margin-top:11px;display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:8px;background:rgba(145,132,217,.1);box-shadow:0 0 0 1px rgba(145,132,217,.35)">
+        <i class="ph ph-funnel" style="font-size:16px;color:#9184d9"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:#d2cefd">Usar preferencias del show</div>
+          <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">rock, latin · 96–140 BPM · 74 canciones</div>
+        </div>
+        <div style="width:38px;height:22px;border-radius:999px;background:rgba(145,132,217,.35);position:relative;flex:none"><div style="position:absolute;top:2px;left:18px;width:18px;height:18px;border-radius:50%;background:#d2cefd"></div></div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:auto;padding:0 20px 8px;display:flex;flex-direction:column;gap:2px">
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:40px;height:40px;border-radius:6px;background:#232532;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:15px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mariposa Tecknicolor</div><div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">116 BPM · Bb · 4:34</div></div>
+        <i class="ph ph-plus-circle" style="font-size:21px;color:#9184d9"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:40px;height:40px;border-radius:6px;background:#232532;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:15px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Un Poco de Amor</div><div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">132 BPM · G · 3:25</div></div>
+        <i class="ph ph-plus-circle" style="font-size:21px;color:#9184d9"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 2px;opacity:.45">
+        <div style="width:40px;height:40px;border-radius:6px;background:#232532;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:15px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Vasos Vacíos</div><div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">Ya está en el Set 1</div></div>
+        <i class="ph ph-check-circle" style="font-size:21px;color:rgba(233,233,237,.4)"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:40px;height:40px;border-radius:6px;background:#232532;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:15px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">El Matador</div><div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">142 BPM · Dm · 3:52</div></div>
+        <i class="ph ph-plus-circle" style="font-size:21px;color:#9184d9"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:40px;height:40px;border-radius:6px;background:#232532;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:15px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Seminare</div><div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">92 BPM · F · 4:48</div></div>
+        <i class="ph ph-plus-circle" style="font-size:21px;color:#9184d9"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 2px;cursor:pointer" style-hover="background:rgba(233,233,237,.05)">
+        <div style="width:40px;height:40px;border-radius:6px;background:#232532;display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.3);font-size:15px;flex:none"><i class="ph ph-music-notes-simple"></i></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Cactus</div><div style="font:400 11.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.5);margin-top:5px">108 BPM · Bm · 4:24</div></div>
+        <i class="ph ph-plus-circle" style="font-size:21px;color:#9184d9"></i>
+      </div>
+    </div>
+
+    <div style="flex:none;padding:12px 20px 26px;border-top:1px solid rgba(233,233,237,.1);display:flex;align-items:center;gap:12px">
+      <div style="flex:1;font-size:12px;color:rgba(233,233,237,.5);text-wrap:pretty">Tocá una canción para agregarla al final del set.</div>
+      <div style="height:44px;padding:0 20px;white-space:nowrap;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)">Listo</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Con esto queda cubierta toda la app. Puedo seguir con el detalle de reordenar arrastrando o el editar meta del setlist si querés verlos dibujados.</p>
+</section>
+
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Modo show y login — las dos pantallas que quedaban</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="4a">
+<div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>Modo show — tocá la pantalla para avanzar, cronómetro real</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#12141f;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px 6px;font-size:12px;font-weight:600;flex:none;color:rgba(233,233,237,.6)"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+  <div style="flex:none;display:flex;align-items:center;gap:10px;padding:8px 20px 0">
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ showSetLabel }}</div>
+    <div onClick="{{ showToggle }}" style="display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid #3f424d;cursor:pointer;color:{{ showClockTint }}" style-hover="border-color:#595d6c">
+      <i class="ph ph-timer" style="font-size:14px"></i><span style="font:600 12px/1 ui-monospace,Menlo,monospace">{{ showElapsed }}</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;width:32px;height:30px;border-radius:999px;border:1px solid #3f424d;color:rgba(233,233,237,.6);cursor:pointer" style-hover="border-color:#595d6c"><i class="ph ph-x" style="font-size:15px"></i></div>
+  </div>
+
+  <div onClick="{{ showNext }}" style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 24px;cursor:pointer">
+    <div style="font-family:'Inter';font-size:44px;font-weight:500;line-height:1.03;letter-spacing:-.03em;text-wrap:pretty">{{ showTitle }}</div>
+    <div style="font-size:17px;color:rgba(233,233,237,.6);margin-top:2px">{{ showArtist }}</div>
+    <div style="display:flex;align-items:flex-end;gap:9px;margin-top:26px">
+      <div style="font-family:'Inter';font-size:76px;font-weight:500;line-height:.86;letter-spacing:-.04em;color:{{ showBpmTint }}">{{ showBpm }}</div>
+      <div style="font:600 13px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:{{ showBpmTint }};padding-bottom:9px">BPM</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;margin-top:20px">
+      <span style="font-size:22px;font-weight:500;color:#d2cefd">{{ showKey }}</span>
+      <span style="width:1px;height:16px;background:rgba(233,233,237,.18)"></span>
+      <span style="font-size:13px;color:rgba(233,233,237,.55)">{{ showFooter }}</span>
+    </div>
+  </div>
+
+  <div style="flex:none;padding:0 24px 4px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;font:600 12px/1 ui-monospace,Menlo,monospace">
+      <span style="color:rgba(233,233,237,.5)">{{ showSongElapsed }}</span>
+      <span style="color:{{ showRemainTint }}">{{ showRemaining }}</span>
+      <span style="color:rgba(233,233,237,.5)">{{ showSongTotal }}</span>
+    </div>
+    <div style="margin-top:9px;height:6px;border-radius:999px;background:#232532;box-shadow:inset 0 0 0 1px #3f424d;overflow:hidden">
+      <div style="height:100%;border-radius:999px;background:{{ showBpmTint }};width:{{ showProgress }}"></div>
+    </div>
+  </div>
+
+  <div style="flex:none;display:flex;align-items:center;gap:12px;padding:18px 20px 8px">
+    <div onClick="{{ showPrev }}" style="display:flex;align-items:center;justify-content:center;width:52px;height:48px;border-radius:8px;border:1px solid #3f424d;color:rgba(233,233,237,.65);cursor:pointer" style-hover="border-color:#595d6c"><i class="ph ph-skip-back" style="font-size:19px"></i></div>
+    <div onClick="{{ showNext }}" style="flex:1;height:48px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:9px;font-size:14.5px;font-weight:500;cursor:pointer;background:radial-gradient(120% 160% at 50% 130%,rgba(145,132,217,.18),transparent)" style-hover="background:radial-gradient(120% 160% at 50% 130%,rgba(145,132,217,.3),transparent)"><i class="ph ph-skip-forward" style="font-size:18px"></i>Siguiente</div>
+  </div>
+
+  <div style="flex:none;padding:6px 20px 24px;display:flex;align-items:center;gap:11px;border-top:1px solid rgba(233,233,237,.08);margin:8px 20px 0;padding-left:0;padding-right:0">
+    <span style="font:600 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.35);padding-top:12px;align-self:flex-start">Sigue</span>
+    <div style="flex:1;min-width:0;padding-top:8px">
+      <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ showNextTitle }}</div>
+      <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">{{ showNextSub }}</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:999px;background:#e9e9ed;opacity:.5"></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4b">
+<div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>Login — marca, Google, y entrar sin cuenta</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(145,132,217,.22),transparent 66%);pointer-events:none"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px 6px;font-size:12px;font-weight:600;flex:none;position:relative"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 30px;position:relative">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <img src="assets/brand/techplace-cat.png" alt="Hueso Time" style="width:104px;height:104px;object-fit:contain;mix-blend-mode:lighten">
+        <div>
+          <div style="font-family:'Inter';font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1">Hueso Time</div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.12em;color:#9184d9;margin-top:7px">SETLIST · STAGE · COVERS</div>
+        </div>
+      </div>
+      <div style="font-family:'Inter';font-size:31px;font-weight:500;letter-spacing:-.026em;line-height:1.12;margin-top:26px;text-wrap:pretty">Tu repertorio,<br>armado en un tiro</div>
+      <div style="font-size:14px;line-height:1.6;color:rgba(233,233,237,.6);max-width:280px;text-wrap:pretty">Entrá con Google y tus setlists quedan sincronizados en todos tus dispositivos.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:11px;margin-top:38px">
+      <div style="height:50px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)"><i class="ph ph-google-logo" style="font-size:19px"></i>Continuar con Google</div>
+      <div style="height:50px;border-radius:8px;color:rgba(233,233,237,.7);display:flex;align-items:center;justify-content:center;gap:9px;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:rgba(233,233,237,.07)"><i class="ph ph-arrow-right" style="font-size:17px"></i>Entrar sin cuenta</div>
+      <div style="font-size:12px;line-height:1.55;color:rgba(233,233,237,.4);text-align:center;margin-top:6px;text-wrap:pretty">Por ahora solo cuentas de Gmail. Sin cuenta, los datos quedan en este teléfono.</div>
+    </div>
+  </div>
+
+  <div style="flex:none;padding:0 30px 34px;position:relative">
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(233,233,237,.14) 48px,rgba(233,233,237,.14) calc(100% - 48px),transparent)"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:16px;font-size:11.5px;color:rgba(233,233,237,.38)"><i class="ph ph-lock-simple" style="font-size:14px"></i>Privacidad · Términos</div>
+  </div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:999px;background:#e9e9ed;opacity:.7"></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4c">
+<div class="dv-olabel"><a class="dv-oid" href="#4c">4c</a>Estados del modo show</div>
+<div style="width:352px;padding:22px;border-radius:8px;background:#191b2a;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;gap:18px">
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Casi termina</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Al 85 % de la canción el BPM, la barra y el tiempo restante pasan al acento claro — la señal que ya existe en <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">nearEnd</span>. Sin parpadeos: solo cambia el color.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Set pasado de tiempo</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Cuando el set supera su objetivo por más de 5 % (<span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">overrun</span>), la píldora del cronómetro toma borde de acento y agrega “+3:20”. No hay alertas ni modales en escena.</div>
+    <div style="margin-top:11px;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid #9184d9;color:#9184d9"><i class="ph ph-timer" style="font-size:14px"></i><span style="font:600 12px/1 ui-monospace,Menlo,monospace">48:20 · +3:20</span></div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Pausa y navegación</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Tocar la píldora pausa el conteo y el texto central dice “En pausa”. La pantalla entera avanza al toque; los botones de abajo son de 48 pt para no fallar con poca luz. <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">useKeepAwake</span> sigue activo, la pantalla no se apaga.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Legibilidad en escenario</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Título a 44 px y BPM a 76 px: se leen a un metro y medio del atril. El fondo baja a #12141f para que el escenario no rebote luz en la pantalla.</div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Quedan pendientes del turno <a class="dv-tid" href="#t3">3</a>: el tab Repertorio, agregar canción y editar meta del setlist.</p>
+</section>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Auditoría de funciones — todo lo que hace la app hoy, y dónde queda en el rediseño</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Paridad de funciones — leído del código, no del diseño</div>
+<div style="width:860px;padding:26px 28px;border-radius:8px;background:#191b2a;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;gap:22px">
+
+  <div>
+    <div style="font-family:'Inter';font-size:21px;font-weight:500;letter-spacing:-.02em">Nada se pierde ni se rompe</div>
+    <div style="font-size:13px;line-height:1.6;color:rgba(233,233,237,.7);margin-top:7px;max-width:640px;text-wrap:pretty">Revisé <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">app/</span>, <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">components/</span>, <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">lib/</span> y <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">types/models.ts</span>. El rediseño no toca lógica: ninguna función se elimina. Abajo está cada una, con su estado en las pantallas nuevas y las que todavía no dibujé.</div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px">
+    <span style="letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto en el rediseño</span>
+    <span style="letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2a2c3b;color:rgba(233,233,237,.7);white-space:nowrap">Igual que hoy, sin cambios</span>
+    <span style="letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">Falta dibujar</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:26px">
+
+    <div>
+      <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Generación de sets · lib/randomSets.ts</div>
+      <div style="margin-top:12px;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Cantidad de sets (2 / 3 / 4) y minutos objetivo (30 / 40 / 45 / 60)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Fila “Formato” en <a href="#1a">1a</a>, consola <a href="#1b">1b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Filtros por género, artista y tonalidad</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Chips de pool en <a href="#1b">1b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Presets de BPM (lento / medio / arriba / rápido) y rango a mano</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Tarjeta “Tempo” en <a href="#1b">1b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Repetir canciones entre sets (<span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#d2cefd">allowReuse</span>)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Switch “sin repetir” en Ajustes</span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Variedad de artista y curva de energía (<span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#d2cefd">smartEnergy</span>)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Fila “Energía”, tarjeta en <a href="#1b">1b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Conteo de canciones que matchean antes de generar</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">“74 de 128” + aviso de margen</span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px"><span style="flex:1;font-size:13px">Regenerar dentro de un setlist manteniendo ids y nombres de set</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">“Volver a tirar” en el detalle</span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Setlists · app/setlist/[id].tsx</div>
+      <div style="margin-top:12px;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Lista de setlists con venue, fecha y duración total</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Pantalla Setlists de <a href="#1a">1a</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Tabla de sets con duración real contra objetivo</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Barra de progreso por set</span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Reemplazar una canción por otra del pool</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Ícono de recambio por fila</span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Compartir como texto (<span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#d2cefd">formatSetlistShareText</span>)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Pantalla Compartir de <a href="#1a">1a</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Reordenar canciones arrastrando (draggable-flatlist)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#6a">6a</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Agregar canción con buscador y filtro por preferencias del show</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#5c">5c</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Editar nombre, venue y fecha; borrar setlist con confirmación</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#6b">6b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px"><span style="flex:1;font-size:13px">Modo show: pantalla activa, cronómetro por canción y por set</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#4a">4a</a> y <a href="#4c">4c</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Repertorio, datos y cuenta</div>
+      <div style="margin-top:12px;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Alta y edición de canciones: BPM, tonalidad, modo, género, duración, notas</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#5a">5a</a> y <a href="#5b">5b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Favoritas y estado de ensayo (lista / ensayar / showstopper)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Se usa como pool en <a href="#1a">1a</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Buscador de música con carátulas (Spotify / iTunes)</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#5b">5b</a> y <a href="#6c">6c</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Importar de Google Sheets y CSV</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Fila en Ajustes de <a href="#1a">1a</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Semilla “Barra Libre” con su contador de canciones</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#6c">6c</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Idioma español / inglés y valores por defecto de sets</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px">Ajustes de <a href="#1a">1a</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(233,233,237,.08)"><span style="flex:1;font-size:13px">Login con Google, modo sin cuenta y salir de la cuenta</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#4b">4b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:9px 2px"><span style="flex:1;font-size:13px">Layout de escritorio web con barra fija y columna de 920</span><span style="font-size:11.5px;color:rgba(233,233,237,.45);width:170px"><a href="#7a">7a</a> y <a href="#7b">7b</a></span><span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">Cubierto</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:14px 16px;border-radius:8px;background:rgba(145,132,217,.1);box-shadow:0 0 0 1px rgba(145,132,217,.35)">
+    <div style="font-size:13px;color:#d2cefd;font-weight:500">Dos cosas que sí cambian de estructura</div>
+    <div style="font-size:12.5px;line-height:1.6;color:rgba(233,233,237,.72);margin-top:6px;text-wrap:pretty">1. Hoy la app abre en <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">setlists</span> y tiene tres tabs: Setlists, Repertorio, Ajustes. El rediseño agrega “Generar” como cuarta — la píldora final está en <a href="#3b">3b</a> y se usa desde <a href="#5a">5a</a> en adelante.<br>2. La tab bar flotante con glass ya existe en <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">lib/tabBarLayout.ts</span> + <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">GlassSurface</span>, y en escritorio ya se oculta a favor de <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">WebTopNav</span>: la píldora nueva es un cambio de tokens, no de arquitectura.</div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>La píldora con las cuatro tabs reales de la app</div>
+<div style="width:390px;padding:26px 20px 30px;border-radius:8px;background:#191b2a;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;gap:20px;align-items:center">
+  <div style="align-self:stretch;font-size:12.5px;line-height:1.6;color:rgba(233,233,237,.7);text-wrap:pretty">Con Repertorio de vuelta, las etiquetas no entran todas: la activa muestra texto, las otras solo ícono. Así la píldora nunca pasa de 300 px de ancho.</div>
+  <div style="display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.6);backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:rgba(145,132,217,.28);color:#d2cefd"><i class="ph-fill ph-shuffle" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Generar</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-microphone-stage" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-queue" style="font-size:19px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-sliders-horizontal" style="font-size:19px"></i></div>
+  </div>
+  <div style="align-self:stretch;display:flex;flex-direction:column;gap:9px;font-size:12px;color:rgba(233,233,237,.6)">
+    <div style="display:flex;align-items:center;gap:10px"><i class="ph ph-shuffle" style="font-size:16px;color:#9184d9"></i>Generar — el tiro y su resultado</div>
+    <div style="display:flex;align-items:center;gap:10px"><i class="ph ph-microphone-stage" style="font-size:16px;color:#9184d9"></i>Setlists — guardados y modo show</div>
+    <div style="display:flex;align-items:center;gap:10px"><i class="ph ph-queue" style="font-size:16px;color:#9184d9"></i>Repertorio — las 128 canciones</div>
+    <div style="display:flex;align-items:center;gap:10px"><i class="ph ph-sliders-horizontal" style="font-size:16px;color:#9184d9"></i>Ajustes — defaults, fuentes, cuenta</div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Si querés, sigo con las pantallas marcadas “falta dibujar”: modo show, agregar canción y el tab Repertorio.</p>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">La misma home en las dos plataformas — mismo layout, chrome nativo distinto</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>iOS — barra de tabs traslúcida, home indicator, safe area de 34 pt</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:105px;height:31px;border-radius:999px;background:#05060c;z-index:5"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:17px 30px 8px;font-size:13px;font-weight:600;flex:none;letter-spacing:-.01em">
+    <span>9:41</span>
+    <span style="display:flex;gap:6px;align-items:center;font-size:13px;color:#e9e9ed"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span>
+  </div>
+  <div style="flex:1;min-height:0;overflow:hidden;padding:14px 22px 0;display:flex;flex-direction:column">
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9184d9">Hueso Time</div>
+    <div style="font-family:'Inter';font-size:29px;font-weight:500;letter-spacing:-.024em;margin-top:9px">Armá el show</div>
+    <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:4px">128 canciones en tu repertorio</div>
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:30px">
+      <div style="position:relative;width:212px;height:212px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px solid #9184d9;background:radial-gradient(circle at 50% 42%,rgba(145,132,217,.22),rgba(145,132,217,.04) 62%,transparent 74%)">
+        <div style="position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(145,132,217,.16);animation:hspulse 3.6s ease-in-out infinite"></div>
+        <i class="ph ph-shuffle" style="font-size:30px;color:#9184d9"></i>
+        <div style="font:500 20px/1 'Inter';letter-spacing:.02em">Generar</div>
+        <div style="font:400 11.5px/1.3 'Inter';color:rgba(233,233,237,.55);text-align:center;max-width:150px">3 sets × 45 min · todo el repertorio</div>
+      </div>
+    </div>
+    <div style="margin-top:30px;display:flex;flex-direction:column;gap:1px;border-radius:10px;overflow:hidden;background:rgba(233,233,237,.09)">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-list-checks" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Pool</span><span style="font-size:13px;font-weight:500">Todo el repertorio</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-waveform" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Energía</span><span style="font-size:13px;font-weight:500">Ascendente</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-clock" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Formato</span><span style="font-size:13px;font-weight:500">3 sets × 45 min</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+    </div>
+    <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Últimos tiros</div>
+    <div style="margin-top:12px;display:flex;align-items:center;gap:11px">
+      <div style="width:38px;height:38px;border-radius:9px;background:rgba(145,132,217,.16);display:flex;align-items:center;justify-content:center;color:#b5abfc;font-size:16px"><i class="ph ph-playlist"></i></div>
+      <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">Barra Libre · Sábado</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">3 sets × 45 min · sin repetir</div></div>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.3)"></i>
+    </div>
+  </div>
+  <div style="flex:none;height:104px"></div>
+  <div style="position:absolute;left:50%;bottom:44px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.48);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 1px 0 rgba(233,233,237,.15),0 0 0 1px rgba(233,233,237,.1),0 16px 36px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;color:#d2cefd;background:rgba(145,132,217,.28)"><i class="ph-fill ph-shuffle" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Generar</span></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-playlist" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Setlists</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-gear-six" style="font-size:19px"></i></div>
+  </div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:999px;background:#e9e9ed;opacity:.85"></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Android — status bar de 24 dp, tabs Material con pastilla, barra de gestos</div>
+<div style="width:390px;height:844px;border-radius:30px;padding:9px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:22px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:#05060c;z-index:5"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px 6px;font-size:12.5px;font-weight:500;flex:none">
+    <span>9:41</span>
+    <span style="display:flex;gap:5px;align-items:center;font-size:12.5px;color:#e9e9ed"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span>
+  </div>
+  <div style="flex:1;min-height:0;overflow:hidden;padding:14px 20px 0;display:flex;flex-direction:column">
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9184d9">Hueso Time</div>
+    <div style="font-family:'Inter';font-size:28px;font-weight:500;letter-spacing:-.02em;margin-top:9px">Armá el show</div>
+    <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:4px">128 canciones en tu repertorio</div>
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:28px">
+      <div style="position:relative;width:208px;height:208px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px solid #9184d9;background:radial-gradient(circle at 50% 42%,rgba(145,132,217,.22),rgba(145,132,217,.04) 62%,transparent 74%)">
+        <div style="position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(145,132,217,.16);animation:hspulse 3.6s ease-in-out infinite"></div>
+        <i class="ph ph-shuffle" style="font-size:30px;color:#9184d9"></i>
+        <div style="font:500 20px/1 'Inter';letter-spacing:.02em">Generar</div>
+        <div style="font:400 11.5px/1.3 'Inter';color:rgba(233,233,237,.55);text-align:center;max-width:150px">3 sets × 45 min · todo el repertorio</div>
+      </div>
+    </div>
+    <div style="margin-top:28px;display:flex;flex-direction:column;gap:1px;border-radius:12px;overflow:hidden;background:rgba(233,233,237,.09)">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#232532"><i class="ph ph-list-checks" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Pool</span><span style="font-size:13px;font-weight:500">Todo el repertorio</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#232532"><i class="ph ph-waveform" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Energía</span><span style="font-size:13px;font-weight:500">Ascendente</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#232532"><i class="ph ph-clock" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Formato</span><span style="font-size:13px;font-weight:500">3 sets × 45 min</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+    </div>
+    <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Últimos tiros</div>
+    <div style="margin-top:12px;display:flex;align-items:center;gap:11px">
+      <div style="width:38px;height:38px;border-radius:10px;background:rgba(145,132,217,.16);display:flex;align-items:center;justify-content:center;color:#b5abfc;font-size:16px"><i class="ph ph-playlist"></i></div>
+      <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">Barra Libre · Sábado</div><div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">3 sets × 45 min · sin repetir</div></div>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.3)"></i>
+    </div>
+  </div>
+  <div style="flex:none;height:106px"></div>
+  <div style="position:absolute;left:50%;bottom:38px;transform:translateX(-50%);display:flex;gap:2px;padding:7px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.13),0 0 0 1px rgba(233,233,237,.1),0 12px 30px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:rgba(145,132,217,.28);color:#d2cefd"><i class="ph-fill ph-shuffle" style="font-size:20px"></i><span style="font-size:12.5px;font-weight:600">Generar</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:38px;border-radius:999px;color:rgba(233,233,237,.55)"><i class="ph ph-playlist" style="font-size:20px"></i></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:44px;height:38px;border-radius:999px;color:rgba(233,233,237,.55)"><i class="ph ph-gear-six" style="font-size:20px"></i></div>
+  </div>
+  <div style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%);width:108px;height:3px;border-radius:999px;background:#e9e9ed;opacity:.6"></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2c">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Notas de implementación en React Native</div>
+<div style="width:352px;padding:22px;border-radius:12px;background:#191b2a;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;gap:16px">
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Safe areas</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">iOS reserva 34 pt abajo (home indicator) y 47–59 pt arriba; Android 24 dp de status bar y 24 dp de barra de gestos. El contenido usa el mismo padding horizontal de 20–22 y deja que <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">useSafeAreaInsets</span> maneje el resto.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Tab bar</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">iOS: fondo traslúcido con blur, ícono relleno cuando está activo. Android: pastilla de fondo detrás del ícono activo, label siempre visible, ripple al tocar. Ambas salen del mismo <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">Tabs</span> con <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">Platform.select</span>.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Radios y sombras</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">Android sube los radios (10–12 en vez de 8–9) y usa <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">elevation</span>; iOS usa borde de 1 px. Nocturne define bordes, no sombras de color, así que se traduce limpio en las dos.</div>
+  </div>
+  <div style="height:1px;background:rgba(233,233,237,.1)"></div>
+  <div>
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">Botón de generar</div>
+    <div style="font-size:12.5px;line-height:1.55;color:rgba(233,233,237,.72);margin-top:7px;text-wrap:pretty">212 pt de diámetro entra en pantallas de 360 dp de ancho sin recortarse. El anillo giratorio va con <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#d2cefd">Reanimated</span> en el hilo de UI para que no se trabe mientras se calcula el set.</div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Turno 1 abajo: el flujo navegable completo (<a class="dv-oid" href="#1a">1a</a>) y las dos exploraciones alternativas.</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Hueso Time · rediseño sobre Nocturne — flujo completo + dos variantes de la pantalla de generar</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Directo — un botón, cinco pantallas, prototipo navegable</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px 6px;font-size:12px;font-weight:600;color:#e9e9ed;flex:none">
+<span>9:41</span>
+<span style="display:flex;gap:6px;align-items:center;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span>
+</div>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:10px 22px 0">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between">
+    <div>
+      <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9184d9">Hueso Time</div>
+      <div style="font-family:'Inter';font-size:27px;font-weight:500;letter-spacing:-.02em;margin-top:9px">Armá el show</div>
+      <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:4px">128 canciones en tu repertorio</div>
+    </div>
+    <div style="width:36px;height:36px;border-radius:8px;border:1px solid rgba(233,233,237,.16);display:flex;align-items:center;justify-content:center;font-size:17px;color:rgba(233,233,237,.7)"><i class="ph ph-magnifying-glass"></i></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;margin-top:26px">
+    <div onClick="{{ roll }}" role="button" tabindex="0" style="position:relative;width:212px;height:212px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;border:1px solid #9184d9;background:radial-gradient(circle at 50% 42%,rgba(145,132,217,.22),rgba(145,132,217,.04) 62%,transparent 74%)" style-hover="background:radial-gradient(circle at 50% 42%,rgba(145,132,217,.34),rgba(145,132,217,.07) 62%,transparent 74%)" style-active="background:radial-gradient(circle at 50% 42%,rgba(145,132,217,.46),rgba(145,132,217,.1) 62%,transparent 74%)">
+      {{ rollRing }}
+      <i class="ph ph-shuffle" style="font-size:30px;color:#9184d9"></i>
+      <div style="font:500 20px/1 'Inter';letter-spacing:.02em;color:#e9e9ed">{{ ctaLabel }}</div>
+      <div style="font:400 11.5px/1.3 'Inter';color:rgba(233,233,237,.55);text-align:center;max-width:150px">{{ ctaSub }}</div>
+    </div>
+    <div style="font:400 11px/1 'Inter';color:rgba(233,233,237,.4);margin-top:16px;height:12px">{{ tickerLine }}</div>
+  </div>
+
+  <div style="margin-top:18px;display:flex;flex-direction:column;gap:1px;border-radius:8px;overflow:hidden;background:rgba(233,233,237,.09)">
+    <div onClick="{{ cyclePool }}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532;cursor:pointer" style-hover="background:#2a2c3b">
+      <i class="ph ph-list-checks" style="font-size:17px;color:#9184d9"></i>
+      <span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Pool</span>
+      <span style="font-size:13px;font-weight:500">{{ poolLabel }}</span>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i>
+    </div>
+    <div onClick="{{ cycleEnergy }}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532;cursor:pointer" style-hover="background:#2a2c3b">
+      <i class="ph ph-waveform" style="font-size:17px;color:#9184d9"></i>
+      <span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Energía</span>
+      <span style="font-size:13px;font-weight:500">{{ energyLabel }}</span>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i>
+    </div>
+    <div onClick="{{ cycleShape }}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532;cursor:pointer" style-hover="background:#2a2c3b">
+      <i class="ph ph-clock" style="font-size:17px;color:#9184d9"></i>
+      <span style="font-size:13px;color:rgba(233,233,237,.6);flex:1">Formato</span>
+      <span style="font-size:13px;font-weight:500">{{ shapeLabel }}</span>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Últimos tiros</div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+    <div onClick="{{ openLast }}" style="display:flex;align-items:center;gap:11px;cursor:pointer">
+      <div style="width:38px;height:38px;border-radius:8px;background:rgba(145,132,217,.16);display:flex;align-items:center;justify-content:center;color:#b5abfc;font-size:16px"><i class="ph ph-playlist"></i></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13.5px;font-weight:500">Barra Libre · Sábado</div>
+        <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">3 sets × 45 min · sin repetir</div>
+      </div>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.3)"></i>
+    </div>
+    <div onClick="{{ openLast }}" style="display:flex;align-items:center;gap:11px;cursor:pointer">
+      <div style="width:38px;height:38px;border-radius:8px;background:rgba(233,233,237,.07);display:flex;align-items:center;justify-content:center;color:rgba(233,233,237,.6);font-size:16px"><i class="ph ph-playlist"></i></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13.5px;font-weight:500">Club Córdoba</div>
+        <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px">2 sets × 50 min · solo favoritas</div>
+      </div>
+      <i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.3)"></i>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPlaylist }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 18px 12px">
+    <div onClick="{{ goHome }}" style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,233,237,.75);cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-arrow-left"></i></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:15px;font-weight:500" >{{ setlistName }}</div>
+      <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:1px">{{ setlistMeta }}</div>
+    </div>
+    <div onClick="{{ goShare }}" style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;color:rgba(233,233,237,.75);cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-share-network"></i></div>
+  </div>
+  <div style="flex:1;min-height:0;overflow:auto;padding:0 18px 8px">
+    <sc-for list="{{ sets }}" as="set" hint-placeholder-count="3">
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:baseline;gap:8px;padding:6px 4px;border-bottom:1px solid rgba(233,233,237,.12)">
+          <span style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#9184d9">{{ set.name }}</span>
+          <span style="flex:1"></span>
+          <span style="font-size:11.5px;color:rgba(233,233,237,.5)">{{ set.meta }}</span>
+        </div>
+        <div style="height:3px;border-radius:2px;background:rgba(233,233,237,.09);margin:9px 4px 12px;overflow:hidden">
+          <div style="height:100%;background:#9184d9;width:{{ set.fill }}"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px;padding:0 4px">
+          <sc-for list="{{ set.songs }}" as="song" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:11px">
+              <div style="width:19px;text-align:right;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">{{ song.n }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ song.title }}</div>
+                <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ song.sub }}</div>
+              </div>
+              <div onClick="{{ swapOne }}" style="width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(233,233,237,.4);cursor:pointer" style-hover="background:rgba(145,132,217,.16);color:#b5abfc"><i class="ph ph-arrows-clockwise"></i></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="flex:none;padding:12px 18px 26px;border-top:1px solid rgba(233,233,237,.1);background:#191b2a;display:flex;gap:9px;align-items:center">
+    <div onClick="{{ roll }}" style="flex:1;height:44px;border-radius:8px;border:1px solid rgba(233,233,237,.16);display:flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(233,233,237,.07)"><i class="ph ph-shuffle" style="font-size:16px"></i>Volver a tirar</div>
+    <div onClick="{{ save }}" style="flex:1;height:44px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(145,132,217,.14)"><i class="ph ph-check" style="font-size:16px"></i>{{ saveLabel }}</div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLibrary }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow:auto;padding:10px 22px 8px">
+  <div style="font-family:'Inter';font-size:27px;font-weight:500;letter-spacing:-.02em">Setlists</div>
+  <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:4px">Guardados y listos para escenario</div>
+  <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ library }}" as="item" hint-placeholder-count="4">
+      <div onClick="{{ openLast }}" style="padding:14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;cursor:pointer" style-hover="box-shadow:0 0 0 1px #595d6c">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="font-size:15px;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.name }}</div>
+          <div style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.4)">{{ item.date }}</div>
+        </div>
+        <div style="font-size:12px;color:rgba(233,233,237,.5);margin-top:3px">{{ item.venue }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:11px">
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2b2741;color:#d2cefd;white-space:nowrap">{{ item.sets }}</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2a2c3b;color:rgba(233,233,237,.7);white-space:nowrap">{{ item.len }}</span>
+          <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;background:#2a2c3b;color:rgba(233,233,237,.7);white-space:nowrap">{{ item.tag }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow:auto;padding:10px 22px 8px">
+  <div style="font-family:'Inter';font-size:27px;font-weight:500;letter-spacing:-.02em">Ajustes</div>
+  <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:4px">Lo que usa el generador por defecto</div>
+
+  <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Por defecto</div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:1px;border-radius:8px;overflow:hidden;background:rgba(233,233,237,.09)">
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Cantidad de sets</span><span style="font-size:13px;font-weight:500">3</span></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Minutos por set</span><span style="font-size:13px;font-weight:500">45</span></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Sin repetir en el show</span><div style="width:38px;height:22px;border-radius:999px;background:rgba(145,132,217,.35);position:relative"><div style="position:absolute;top:2px;left:18px;width:18px;height:18px;border-radius:50%;background:#d2cefd"></div></div></div>
+  </div>
+
+  <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Fuentes</div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:1px;border-radius:8px;overflow:hidden;background:rgba(233,233,237,.09)">
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-spotify-logo" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Spotify</span><span style="font-size:12px;color:#b5abfc">Conectado</span></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-table" style="font-size:17px;color:rgba(233,233,237,.5)"></i><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Importar Google Sheets</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+  </div>
+
+  <div style="margin-top:22px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">App</div>
+  <div style="margin-top:10px;display:flex;flex-direction:column;gap:1px;border-radius:8px;overflow:hidden;background:rgba(233,233,237,.09)">
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Idioma</span><span style="font-size:13px;font-weight:500">Español</span></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><span style="font-size:13px;color:rgba(233,233,237,.65);flex:1">Modo show</span><span style="font-size:13px;font-weight:500">Pantalla activa</span></div>
+  </div>
+  <div style="margin-top:18px;font:400 11px/1.5 'Inter';color:rgba(233,233,237,.35)">Hueso Time 1.4 · repertorio sincronizado hace 2 min</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isShare }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow:auto;padding:8px 22px 8px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div onClick="{{ goPlaylist }}" style="width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,233,237,.75);cursor:pointer" style-hover="background:rgba(233,233,237,.08)"><i class="ph ph-arrow-left"></i></div>
+    <div style="font-size:15px;font-weight:500">Compartir</div>
+  </div>
+
+  <div style="margin-top:16px;border-radius:12px;padding:22px 20px;background:linear-gradient(160deg,#262a60,#191b2a 70%);box-shadow:0 0 0 1px #3f424d">
+    <div style="font:600 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:#b5abfc">Hueso Time</div>
+    <div style="font-family:'Inter';font-size:22px;font-weight:500;letter-spacing:-.02em;margin-top:10px">{{ setlistName }}</div>
+    <div style="font-size:12px;color:rgba(233,233,237,.6);margin-top:3px">{{ setlistMeta }}</div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(233,233,237,.2),transparent);margin:16px 0"></div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <sc-for list="{{ posterSongs }}" as="song" hint-placeholder-count="6">
+        <div style="display:flex;gap:9px;font-size:12.5px">
+          <span style="width:16px;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.4)">{{ song.n }}</span>
+          <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ song.title }}</span>
+        </div>
+      </sc-for>
+      <div style="font-size:11.5px;color:rgba(233,233,237,.45);padding-left:25px">{{ posterRest }}</div>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;display:flex;flex-direction:column;gap:1px;border-radius:8px;overflow:hidden;background:rgba(233,233,237,.09)">
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-link-simple" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;flex:1;color:rgba(233,233,237,.65)">Copiar link del show</span><span style="font-size:11.5px;color:rgba(233,233,237,.4)">huesotime.app/s/9f2</span></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-image" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;flex:1;color:rgba(233,233,237,.65)">Guardar imagen para historias</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:#232532"><i class="ph ph-file-pdf" style="font-size:17px;color:#9184d9"></i><span style="font-size:13px;flex:1;color:rgba(233,233,237,.65)">PDF para el atril</span><i class="ph ph-caret-right" style="font-size:14px;color:rgba(233,233,237,.35)"></i></div>
+  </div>
+
+  <div style="margin-top:16px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Mandar a la banda</div>
+  <div style="margin-top:11px;display:flex;gap:10px">
+    <div style="flex:1;height:64px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:11px;color:rgba(233,233,237,.7)"><i class="ph ph-users-three" style="font-size:19px;color:#9184d9"></i>La banda</div>
+    <div style="flex:1;height:64px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:11px;color:rgba(233,233,237,.7)"><i class="ph ph-chat-circle" style="font-size:19px;color:#9184d9"></i>Mensaje</div>
+    <div style="flex:1;height:64px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:11px;color:rgba(233,233,237,.7)"><i class="ph ph-export" style="font-size:19px;color:#9184d9"></i>Otra app</div>
+  </div>
+</div>
+</sc-if>
+
+<div style="flex:none;height:96px"></div>
+<div style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+  <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;cursor:pointer;color:{{ homeTint }};background:{{ homeBg }}">
+    <i class="ph ph-shuffle" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Generar</span>
+  </div>
+  <div onClick="{{ goLibrary }}" style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;cursor:pointer;color:{{ libTint }};background:{{ libBg }}">
+    <i class="ph ph-playlist" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Setlists</span>
+  </div>
+  <div onClick="{{ goSettings }}" style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;cursor:pointer;color:{{ setTint }};background:{{ setBg }}">
+    <i class="ph ph-gear-six" style="font-size:19px"></i>
+  </div>
+</div>
+
+{{ toast }}
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Consola — el azar con perillas: pool, tempo y energía a la vista</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px 6px;font-size:12px;font-weight:600;flex:none"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+  <div style="flex:1;min-height:0;overflow:hidden;padding:10px 22px 0;display:flex;flex-direction:column">
+    <div style="font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#9184d9">Consola</div>
+    <div style="font-family:'Inter';font-size:26px;font-weight:500;letter-spacing:-.02em;margin-top:8px">3 sets × 45 min</div>
+
+    <div style="margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+      <div style="border-radius:8px;padding:12px 11px;background:#232532;box-shadow:0 0 0 1px #595d6c">
+        <div style="font:600 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:rgba(233,233,237,.45)">Tempo</div>
+        <div style="font-size:19px;font-weight:500;margin-top:7px;color:#d2cefd">96–140</div>
+        <div style="margin-top:9px;height:56px;display:flex;align-items:flex-end;gap:3px">
+          <div style="flex:1;height:24%;background:rgba(233,233,237,.14);border-radius:1px"></div><div style="flex:1;height:46%;background:rgba(233,233,237,.14);border-radius:1px"></div><div style="flex:1;height:70%;background:#9184d9;border-radius:1px"></div><div style="flex:1;height:100%;background:#9184d9;border-radius:1px"></div><div style="flex:1;height:62%;background:#9184d9;border-radius:1px"></div><div style="flex:1;height:34%;background:rgba(233,233,237,.14);border-radius:1px"></div>
+        </div>
+      </div>
+      <div style="border-radius:8px;padding:12px 11px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+        <div style="font:600 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:rgba(233,233,237,.45)">Energía</div>
+        <div style="font-size:19px;font-weight:500;margin-top:7px">Sube</div>
+        <div style="margin-top:9px;height:56px;position:relative">
+          <div style="position:absolute;inset:0;border-left:1px solid rgba(233,233,237,.12);border-bottom:1px solid rgba(233,233,237,.12)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:100%;background:linear-gradient(to top right,transparent 48%,rgba(145,132,217,.5) 49%,transparent 52%)"></div>
+        </div>
+      </div>
+      <div style="border-radius:8px;padding:12px 11px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+        <div style="font:600 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:rgba(233,233,237,.45)">Tonalidad</div>
+        <div style="font-size:19px;font-weight:500;margin-top:7px">Libre</div>
+        <div style="margin-top:9px;height:56px;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start">
+          <span style="font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(233,233,237,.08);color:rgba(233,233,237,.55)">Am</span><span style="font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(233,233,237,.08);color:rgba(233,233,237,.55)">C</span><span style="font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(233,233,237,.08);color:rgba(233,233,237,.55)">G</span><span style="font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(233,233,237,.08);color:rgba(233,233,237,.55)">Em</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Pool · 74 de 128 canciones</div>
+    <div style="margin-top:11px;display:flex;flex-wrap:wrap;gap:7px">
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">Rock</span>
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">Latin</span>
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">Funk</span>
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">Blues</span>
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">Indie</span>
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #9184d9;color:#9184d9;white-space:nowrap">Favoritas</span>
+      <span style="font-size:11px;letter-spacing:.02em;padding:3px 10px;border-radius:6px;border:1px solid #3f424d;color:rgba(233,233,237,.6);white-space:nowrap">+ artista</span>
+    </div>
+
+    <div style="margin-top:18px;padding:13px 14px;border-radius:8px;background:rgba(145,132,217,.1);box-shadow:0 0 0 1px rgba(145,132,217,.35)">
+      <div style="font-size:12.5px;color:#d2cefd">Con este filtro alcanza para 3 sets completos.</div>
+      <div style="font-size:11.5px;color:rgba(233,233,237,.5);margin-top:3px">Sobran 11 canciones de margen.</div>
+    </div>
+
+    <div style="margin-top:16px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,233,237,.4)">Anticipo del set 1</div>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:17px;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">01</span>
+        <span style="flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lamento Boliviano</span>
+        <span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.45)">120 · D</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:17px;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">02</span>
+        <span style="flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Vasos Vacíos</span>
+        <span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.45)">136 · Dm</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:17px;font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.35)">03</span>
+        <span style="flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Aquí No Es Así</span>
+        <span style="font:400 11px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.45)">126 · A</span>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:14px;padding-bottom:14px">
+      <div style="height:52px;border-radius:8px;border:1px solid #9184d9;color:#9184d9;display:flex;align-items:center;justify-content:center;gap:9px;font-size:15px;font-weight:500;background:radial-gradient(120% 140% at 50% 120%,rgba(145,132,217,.2),transparent)"><i class="ph ph-dice-five" style="font-size:20px"></i>Tirar los 3 sets</div>
+      <div style="text-align:center;font-size:11.5px;color:rgba(233,233,237,.4);margin-top:9px">Guardá el filtro como preset “Barra Libre”</div>
+    </div>
+  </div>
+  <div style="flex:none;height:96px"></div>
+    <div style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;color:#d2cefd;background:rgba(145,132,217,.28)"><i class="ph ph-shuffle" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Generar</span></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-playlist" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Setlists</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-gear-six" style="font-size:19px"></i></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Prestado — el show sale del repertorio de otra banda</div>
+<div style="width:390px;height:844px;border-radius:46px;padding:11px;background:#05060c;box-shadow:0 0 0 1px #3f424d,0 22px 60px rgba(0,0,0,.7)">
+<div style="position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#161826;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px 6px;font-size:12px;font-weight:600;flex:none"><span>9:41</span><span style="display:flex;gap:6px;font-size:13px;color:rgba(233,233,237,.8)"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-high"></i></span></div>
+  <div style="flex:1;min-height:0;overflow:hidden;padding:14px 22px 0;display:flex;flex-direction:column">
+    <div style="font-family:'Inter';font-size:26px;font-weight:500;letter-spacing:-.02em;max-width:280px;text-wrap:pretty">¿De qué repertorio tiramos?</div>
+    <div style="font-size:13px;color:rgba(233,233,237,.55);margin-top:6px">El tuyo, o el de alguien que compartió el suyo.</div>
+
+    <div style="margin-top:22px;display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:8px;background:rgba(145,132,217,.1);box-shadow:0 0 0 1px #9184d9">
+        <div style="width:40px;height:40px;border-radius:8px;background:rgba(145,132,217,.25);display:flex;align-items:center;justify-content:center;font:600 13px ui-monospace,Menlo,monospace;color:#e7e5fe">HT</div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">Tu repertorio</div><div style="font-size:11.5px;color:rgba(233,233,237,.55);margin-top:2px">128 canciones · 41 artistas</div></div>
+        <i class="ph-fill ph-check-circle" style="font-size:20px;color:#9184d9"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+        <div style="width:40px;height:40px;border-radius:8px;background:rgba(233,233,237,.08);display:flex;align-items:center;justify-content:center;font:600 13px ui-monospace,Menlo,monospace;color:rgba(233,233,237,.7)">LM</div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">Los Mismos · Rosario</div><div style="font-size:11.5px;color:rgba(233,233,237,.55);margin-top:2px">96 canciones · 31 en común</div></div>
+        <i class="ph ph-circle" style="font-size:20px;color:rgba(233,233,237,.25)"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:8px;background:#232532;box-shadow:0 0 0 1px #3f424d">
+        <div style="width:40px;height:40px;border-radius:8px;background:rgba(233,233,237,.08);display:flex;align-items:center;justify-content:center;font:600 13px ui-monospace,Menlo,monospace;color:rgba(233,233,237,.7)">VB</div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">Vera Blues Trío</div><div style="font-size:11.5px;color:rgba(233,233,237,.55);margin-top:2px">62 canciones · blues, soul</div></div>
+        <i class="ph ph-circle" style="font-size:20px;color:rgba(233,233,237,.25)"></i>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:8px;border:1px dashed rgba(233,233,237,.2);color:rgba(233,233,237,.6);font-size:13px"><i class="ph ph-link-simple" style="font-size:17px;color:#9184d9"></i>Pegar link de un repertorio compartido</div>
+    </div>
+
+    <div style="margin-top:26px;display:flex;flex-direction:column;align-items:center;gap:14px">
+      <div style="position:relative;width:150px;height:150px;border-radius:50%;border:1px solid rgba(145,132,217,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(circle at 50% 45%,rgba(145,132,217,.18),transparent 70%)">
+        <div style="position:absolute;inset:-9px;border-radius:50%;border:1px solid rgba(145,132,217,.18);animation:hspulse 3.4s ease-in-out infinite"></div>
+        <i class="ph ph-dice-five" style="font-size:26px;color:#9184d9"></i>
+        <div style="font-size:15px;font-weight:500">Tirar</div>
+      </div>
+      <div style="font-size:11.5px;color:rgba(233,233,237,.45);text-align:center;max-width:230px;text-wrap:pretty">Mezcla 60 % tuyas y 40 % de Los Mismos. Se puede ajustar después.</div>
+    </div>
+  </div>
+  <div style="flex:none;height:96px"></div>
+    <div style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:3px;padding:6px;border-radius:999px;background:rgba(43,39,65,.5);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(233,233,237,.14),0 0 0 1px rgba(233,233,237,.1),0 14px 34px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;color:#d2cefd;background:rgba(145,132,217,.28)"><i class="ph ph-shuffle" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Generar</span></div>
+    <div style="display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-playlist" style="font-size:19px"></i><span style="font-size:12.5px;font-weight:500;letter-spacing:-.01em">Setlists</span></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:38px;border-radius:999px;color:rgba(233,233,237,.5)"><i class="ph ph-gear-six" style="font-size:19px"></i></div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Probá: “llevá el detalle de <a class="dv-oid" href="#1b">1b</a> a la home de <a class="dv-oid" href="#1a">1a</a>” · “agregá modo show al flujo de <a class="dv-oid" href="#1a">1a</a>” · “más opciones para la pantalla de compartir”</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;ctaCopy&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Generar&quot;,&quot;Tirar&quot;,&quot;Sorprendeme&quot;],&quot;default&quot;:&quot;Generar&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;showMeta&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Densidad&quot;}}">
+const POOL = [
+  { t: 'De Música Ligera', a: 'Soda Stereo', bpm: 128, k: 'Am', d: 213 },
+  { t: 'Persiana Americana', a: 'Soda Stereo', bpm: 118, k: 'Em', d: 240 },
+  { t: 'Un Poco de Amor', a: 'Los Rodríguez', bpm: 132, k: 'G', d: 205 },
+  { t: 'El Matador', a: 'Los Fabulosos Cadillacs', bpm: 142, k: 'Dm', d: 232 },
+  { t: 'Manuel Santillán', a: 'Los Fabulosos Cadillacs', bpm: 96, k: 'C', d: 258 },
+  { t: 'Ji Ji Ji', a: 'Patricio Rey', bpm: 138, k: 'A', d: 226 },
+  { t: 'Todo un Palo', a: 'Patricio Rey', bpm: 124, k: 'E', d: 244 },
+  { t: 'El Rey Lloró', a: 'Divididos', bpm: 106, k: 'Bm', d: 268 },
+  { t: 'Sábado', a: 'Divididos', bpm: 148, k: 'D', d: 197 },
+  { t: 'Irresponsables', a: 'Babasónicos', bpm: 112, k: 'F', d: 221 },
+  { t: 'Putita', a: 'Babasónicos', bpm: 104, k: 'Gm', d: 214 },
+  { t: 'Eres', a: 'Café Tacvba', bpm: 88, k: 'C', d: 252 },
+  { t: 'La Ingrata', a: 'Café Tacvba', bpm: 152, k: 'Am', d: 189 },
+  { t: 'Oye Mi Amor', a: 'Maná', bpm: 130, k: 'G', d: 236 },
+  { t: 'Vasos Vacíos', a: 'Cadillacs & Celia Cruz', bpm: 136, k: 'Dm', d: 249 },
+  { t: 'Lamento Boliviano', a: 'Enanitos Verdes', bpm: 120, k: 'D', d: 258 },
+  { t: 'Mariposa Tecknicolor', a: 'Fito Páez', bpm: 116, k: 'Bb', d: 274 },
+  { t: 'Seminare', a: 'Serú Girán', bpm: 92, k: 'F', d: 288 },
+  { t: 'Rasguña las Piedras', a: 'Sui Generis', bpm: 84, k: 'Em', d: 262 },
+  { t: 'Cactus', a: 'Gustavo Cerati', bpm: 108, k: 'Bm', d: 264 },
+  { t: 'Aquí No Es Así', a: 'Los Piojos', bpm: 126, k: 'A', d: 231 },
+  { t: 'Verano del 92', a: 'Los Piojos', bpm: 134, k: 'G', d: 218 },
+  { t: 'Zamba del Riesgo', a: 'Las Pelotas', bpm: 98, k: 'C', d: 246 },
+  { t: 'Come As You Are', a: 'Nirvana', bpm: 120, k: 'Em', d: 219 },
+  { t: 'Should I Stay', a: 'The Clash', bpm: 114, k: 'D', d: 187 },
+  { t: 'Superstition', a: 'Stevie Wonder', bpm: 100, k: 'Ebm', d: 265 },
+];
+
+const POOLS = ['Todo el repertorio', 'Solo favoritas', 'Listas para tocar'];
+const ENERGIES = ['Ascendente', 'Fiesta', 'Tranqui', 'Variada'];
+const SHAPES = ['3 sets × 45 min', '2 sets × 50 min', '1 set × 60 min'];
+
+const LIBRARY = [
+  { name: 'Barra Libre · Sábado', date: '12 SEP', venue: 'Bar Rosario', sets: '3 sets', len: '2 h 18', tag: 'sin repetir' },
+  { name: 'Club Córdoba', date: '30 AGO', venue: 'Club Córdoba', sets: '2 sets', len: '1 h 42', tag: 'favoritas' },
+  { name: 'Casamiento Vera', date: '16 AGO', venue: 'Quinta Los Álamos', sets: '4 sets', len: '3 h 05', tag: 'variada' },
+  { name: '2 sets × 45 min', date: '02 AGO', venue: 'Sin venue', sets: '2 sets', len: '1 h 31', tag: 'rock, latin' },
+];
+
+function mmss(sec) {
+  const m = Math.floor(sec / 60);
+  return m + ':' + String(sec % 60).padStart(2, '0');
+}
+
+const SHOW = [
+  { t: 'Lamento Boliviano', a: 'Enanitos Verdes', bpm: 120, k: 'D', mode: 'mayor', g: 'rock', d: 258, fav: true },
+  { t: 'Vasos Vacíos', a: 'Cadillacs & Celia Cruz', bpm: 136, k: 'Dm', mode: 'menor', g: 'latin', d: 249, fav: false },
+  { t: 'Aquí No Es Así', a: 'Los Piojos', bpm: 126, k: 'A', mode: 'mayor', g: 'rock', d: 231, fav: true },
+  { t: 'La Ingrata', a: 'Café Tacvba', bpm: 152, k: 'Am', mode: 'menor', g: 'latin', d: 189, fav: false },
+  { t: 'Ji Ji Ji', a: 'Patricio Rey', bpm: 138, k: 'A', mode: 'mayor', g: 'rock', d: 226, fav: true },
+];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home', rolling: false, tick: 0, sets: null, pool: 0, energy: 0, shape: 0,
+    saved: false, toast: null, showIdx: 0, showSec: 42, showTotal: 1284, showRun: true,
+  };
+
+  componentDidMount() {
+    this._clock = setInterval(() => {
+      this.setState((s) => {
+        if (!s.showRun) return null;
+        const dur = SHOW[s.showIdx].d;
+        if (s.showSec + 1 >= dur) {
+          return { showIdx: (s.showIdx + 1) % SHOW.length, showSec: 0, showTotal: s.showTotal + 1 };
+        }
+        return { showSec: s.showSec + 1, showTotal: s.showTotal + 1 };
+      });
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._iv);
+    clearInterval(this._clock);
+    clearTimeout(this._to);
+  }
+
+  build() {
+    const [count, minutes] = [[3, 45], [2, 50], [1, 60]][this.state.shape];
+    const bag = POOL.slice().sort(() => Math.random() - 0.5);
+    const sets = [];
+    let i = 0;
+    for (let s = 0; s < count; s++) {
+      const songs = [];
+      let dur = 0;
+      while (dur < minutes * 60 - 90 && i < bag.length) {
+        const song = bag[i++];
+        dur += song.d;
+        songs.push(song);
+      }
+      sets.push({ name: 'Set ' + (s + 1), songs, dur, target: minutes * 60 });
+    }
+    return sets;
+  }
+
+  roll = () => {
+    if (this.state.rolling) return;
+    clearInterval(this._iv);
+    this.setState({ rolling: true, tick: 0, saved: false, toast: null });
+    this._iv = setInterval(() => this.setState((s) => ({ tick: s.tick + 1 })), 95);
+    this._to = setTimeout(() => {
+      clearInterval(this._iv);
+      this.setState({ rolling: false, sets: this.build(), screen: 'playlist' });
+    }, 950);
+  };
+
+  go = (screen) => () => this.setState({ screen });
+
+  cycle = (key, list) => () => this.setState((s) => ({ [key]: (s[key] + 1) % list.length }));
+
+  swapOne = () => {
+    if (!this.state.sets) return;
+    const sets = this.state.sets.map((set) => ({ ...set, songs: set.songs.slice() }));
+    const si = Math.floor(Math.random() * sets.length);
+    const set = sets[si];
+    const used = new Set([].concat(...sets.map((s) => s.songs.map((x) => x.t))));
+    const spare = POOL.filter((s) => !used.has(s.t));
+    if (spare.length && set.songs.length) {
+      const idx = Math.floor(Math.random() * set.songs.length);
+      const next = spare[Math.floor(Math.random() * spare.length)];
+      set.songs[idx] = next;
+      set.dur = set.songs.reduce((a, b) => a + b.d, 0);
+    }
+    this.setState({ sets, toast: 'Canción cambiada' });
+    clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast: null }), 1600);
+  };
+
+  save = () => {
+    this.setState({ saved: true, toast: 'Setlist guardado' });
+    clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast: null }), 1600);
+  };
+
+  renderVals() {
+    const st = this.state;
+    const sets = st.sets || this.build();
+    const showMeta = this.props.showMeta ?? true;
+    const shapeLabel = SHAPES[st.shape];
+    const totalSec = sets.reduce((a, s) => a + s.dur, 0);
+    const flat = [].concat(...sets.map((s) => s.songs));
+
+    const isTab = (name) =>
+      name === 'home' ? st.screen === 'home' || st.screen === 'playlist' || st.screen === 'share' : st.screen === name;
+    const tabTint = (name) => (isTab(name) ? '#d2cefd' : 'rgba(233,233,237,.5)');
+    const cur = SHOW[st.showIdx];
+    const nxt = SHOW[(st.showIdx + 1) % SHOW.length];
+    const nearEnd = st.showSec / cur.d >= 0.85;
+    const showVals = {
+      showSetLabel: 'Set 1 · ' + (st.showIdx + 1) + '/' + SHOW.length,
+      showElapsed: mmss(st.showTotal),
+      showClockTint: st.showRun ? 'rgba(233,233,237,.6)' : '#9184d9',
+      showTitle: cur.t,
+      showArtist: cur.a,
+      showBpm: cur.bpm,
+      showBpmTint: nearEnd ? '#d2cefd' : '#9184d9',
+      showKey: cur.k + ' ' + cur.mode,
+      showFooter: mmss(cur.d) + ' · ' + cur.g + (cur.fav ? ' · ★' : ''),
+      showSongElapsed: mmss(st.showSec),
+      showSongTotal: mmss(cur.d),
+      showRemaining: st.showRun ? '-' + mmss(Math.max(0, cur.d - st.showSec)) : 'En pausa',
+      showRemainTint: st.showRun ? (nearEnd ? '#d2cefd' : 'rgba(233,233,237,.5)') : '#9184d9',
+      showProgress: Math.min(100, (st.showSec / cur.d) * 100).toFixed(1) + '%',
+      showNextTitle: nxt.t,
+      showNextSub: nxt.a + ' · ' + nxt.bpm + ' BPM · ' + nxt.k,
+      showNext: () => this.setState((s) => ({ showIdx: (s.showIdx + 1) % SHOW.length, showSec: 0 })),
+      showPrev: () => this.setState((s) => ({ showIdx: (s.showIdx + SHOW.length - 1) % SHOW.length, showSec: 0 })),
+      showToggle: () => this.setState((s) => ({ showRun: !s.showRun })),
+    };
+    const tabBg = (name) => (isTab(name) ? 'rgba(145,132,217,.28)' : 'transparent');
+
+    return {
+      chromeTabs: [{ title: 'Hueso Time · Setlists' }, { title: 'Spotify' }],
+      ...showVals,
+      isHome: st.screen === 'home',
+      isPlaylist: st.screen === 'playlist',
+      isLibrary: st.screen === 'library',
+      isSettings: st.screen === 'settings',
+      isShare: st.screen === 'share',
+      ctaLabel: this.props.ctaCopy ?? 'Generar',
+      ctaSub: shapeLabel + ' · ' + POOLS[st.pool].toLowerCase(),
+      poolLabel: POOLS[st.pool],
+      energyLabel: ENERGIES[st.energy],
+      shapeLabel,
+      tickerLine: st.rolling ? POOL[(st.tick * 7) % POOL.length].t : 'Toca para armar el show',
+      rollRing: st.rolling
+        ? React.createElement('div', {
+            style: {
+              position: 'absolute', inset: '-6px', borderRadius: '50%',
+              border: '1px solid rgba(145,132,217,.22)', borderTopColor: '#9184d9',
+              animation: 'hsspin .75s linear infinite',
+            },
+          })
+        : React.createElement('div', {
+            style: {
+              position: 'absolute', inset: '-6px', borderRadius: '50%',
+              border: '1px solid rgba(145,132,217,.16)',
+              animation: 'hspulse 3.6s ease-in-out infinite',
+            },
+          }),
+      roll: this.roll,
+      cyclePool: this.cycle('pool', POOLS),
+      cycleEnergy: this.cycle('energy', ENERGIES),
+      cycleShape: this.cycle('shape', SHAPES),
+      goHome: this.go('home'),
+      goLibrary: this.go('library'),
+      goSettings: this.go('settings'),
+      goShare: this.go('share'),
+      goPlaylist: this.go('playlist'),
+      openLast: () => this.setState({ sets: st.sets || this.build(), screen: 'playlist' }),
+      swapOne: this.swapOne,
+      save: this.save,
+      saveLabel: st.saved ? 'Guardado' : 'Guardar',
+      homeTint: tabTint('home'),
+      libTint: tabTint('library'),
+      setTint: tabTint('settings'),
+      homeBg: tabBg('home'),
+      libBg: tabBg('library'),
+      setBg: tabBg('settings'),
+      setlistName: shapeLabel,
+      setlistMeta:
+        flat.length + ' canciones · ' + Math.round(totalSec / 60) + ' min · ' + ENERGIES[st.energy].toLowerCase(),
+      library: LIBRARY,
+      sets: sets.map((s) => ({
+        name: s.name,
+        meta: mmss(s.dur) + ' / ' + Math.round(s.target / 60) + ' min',
+        fill: Math.min(100, Math.round((s.dur / s.target) * 100)) + '%',
+        songs: s.songs.map((song, i) => ({
+          n: String(i + 1).padStart(2, '0'),
+          title: song.t,
+          sub: showMeta ? song.a + ' · ' + song.bpm + ' BPM · ' + song.k : song.a,
+        })),
+      })),
+      posterSongs: flat.slice(0, 6).map((song, i) => ({ n: String(i + 1).padStart(2, '0'), title: song.t })),
+      posterRest: '+ ' + Math.max(0, flat.length - 6) + ' más',
+      toast: st.toast
+        ? React.createElement(
+            'div',
+            {
+              style: {
+                position: 'absolute', left: '50%', bottom: '104px', transform: 'translateX(-50%)',
+                padding: '9px 15px', borderRadius: '8px', background: '#2b2741',
+                boxShadow: '0 0 0 1px #595d6c, 0 6px 18px rgba(0,0,0,.55)',
+                fontSize: '12.5px', whiteSpace: 'nowrap', animation: 'hsrise .18s ease-out',
+              },
+            },
+            st.toast,
+          )
+        : null,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

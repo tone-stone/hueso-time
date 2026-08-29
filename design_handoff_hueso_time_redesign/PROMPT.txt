@@ -1,0 +1,70 @@
+Implementá el rediseño visual que está en `design_handoff_hueso_time_redesign/`.
+
+Contexto: es un rediseño solo visual de esta app (Expo + React Native + expo-router).
+No cambia lógica de negocio. `lib/randomSets.ts`, `lib/setEnergy.ts`, `lib/setMath.ts`,
+`data/*`, `context/*` y el auth NO se tocan. Ninguna función se elimina.
+
+Decisiones ya tomadas, no las vuelvas a preguntar:
+- Paleta: Nocturne (fondo azul-grisáceo oscuro, un solo acento blurple #9184D9 usado
+  como línea y glow, botones DELINEADOS nunca sólidos).
+- Navegación: cuatro tabs — Generar / Setlists / Repertorio / Ajustes, con Generar
+  como ruta inicial.
+
+Antes de escribir código, leé estos dos archivos completos:
+1. `design_handoff_hueso_time_redesign/README.md` — tokens exactos, y cada pantalla con
+   medidas, colores, tipografía, copy e interacciones.
+2. `design_handoff_hueso_time_redesign/implementacion/README.md` — los pasos concretos,
+   qué archivo va a dónde, y los ajustes manuales que quedan.
+
+En `design_handoff_hueso_time_redesign/implementacion/` hay código ya escrito para pegar.
+Copialo a su destino, revisando que compile contra el estado actual del repo:
+- `constants-Colors.ts`        → `constants/Colors.ts`        (reemplaza)
+- `lib-tabBarLayout.ts`        → `lib/tabBarLayout.ts`        (reemplaza)
+- `app-(tabs)-_layout.tsx`     → `app/(tabs)/_layout.tsx`     (reemplaza)
+- `app-(tabs)-generate.tsx`    → `app/(tabs)/generate.tsx`    (archivo nuevo)
+- `i18n-claves-nuevas.ts`      → mergear en `i18n/locales.ts` (es y en). OJO: el bloque
+  `generate` YA EXISTE en locales.ts — agregá las claves nuevas dentro, no lo reemplaces.
+
+Después de eso, en este orden:
+
+1. Reemplazá los hexes sueltos que quedaron de la paleta vieja por `useThemeColors()`.
+   Buscá `#FF2D7B`, `#00E5FF`, `rgba(255, 45, 123`, `rgba(0, 229, 255` en todo el repo.
+2. Actualizá las primitivas de `components/ui.tsx` a la especificación del README
+   principal, sección "Componentes base": `PrimaryButton` delineado (borde de acento,
+   fondo transparente, nunca relleno), `GhostButton`, `Field`/`input` (min-height 36,
+   padding 6/10, radio 8), segmentado (`.seg`: opciones de 7/12, la activa con
+   `inset 0 0 0 1px` de acento), `Chip`/tag (11px, padding 3/10, radio 6, nowrap),
+   fila de lista agrupada, y la regla horizontal que se desvanece en los extremos.
+   Esto es lo que hace que el resto de las pantallas se actualicen casi solas.
+3. `components/WebTopNav.tsx`: agregá `{ href: '/generate', key: 'generate' }` como
+   primer link, sumá `'/generate'` a `isPrimaryTab()`, y aplicá el estilo nuevo de la
+   barra (README principal, sección 14).
+4. Portá las pantallas en este orden, siguiendo la sección "Screens / Views" del README
+   principal: detalle de setlist (2) → Setlists (4) → Repertorio (9) → editor de canción
+   (10) → modo show (7) → login (8) → los sheets de agregar canción (11), editar show
+   (13) y fuentes de datos (6c) → reordenar arrastrando (12).
+5. En `app/(tabs)/generate.tsx` reemplazá los íconos placeholder de texto
+   (`⤨ ☰ ∿ ◷ ♪ ›`) por `SymbolView`, con el mapeo que da el README principal.
+6. Decidí a dónde cae el login: si querés que abra en Generar, cambiá los
+   `router.replace('/(tabs)/setlists')` de `login.tsx` y `settings.tsx` a
+   `/(tabs)/generate`.
+
+Reglas de la paleta que hay que respetar en todo lo que escribas:
+- El acento no rellena áreas grandes. La única excepción es el degradado del póster de
+  compartir (#262A60 → #191B2A).
+- Nada de negro ni blanco puros: todo sale de la rampa.
+- La elevación en fondo oscuro es borde de 1 px más oscuridad ambiental, no sombras
+  apiladas.
+- Los títulos no pasan de peso 500. La jerarquía es tamaño y espacio.
+- Mínimo táctil 44 pt (48 en modo show).
+- Todo el texto por `t()`, en es y en. No hardcodees copy.
+
+Al terminar, corré `npx tsc --noEmit` y `npm test`, y verificá en un simulador:
+- Los cuatro íconos de la píldora entran sin tocar los bordes en una pantalla de 360 dp.
+- El último ítem de cada lista se ve completo, sin quedar debajo de la píldora
+  (si no, ese scroll no está usando `useFloatingTabBarInset()`).
+- La barra de acciones del detalle de setlist no queda pegada a la píldora.
+- En escritorio web la píldora no aparece y WebTopNav muestra los cuatro links.
+
+Si algo del diseño choca con un patrón que ya existe en el codebase, seguí el patrón del
+codebase y avisame en el resumen.
