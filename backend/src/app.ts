@@ -15,6 +15,7 @@ const songSchema = z.object({
   genre: z.string().min(1),
   durationSec: z.number().int().min(1).max(3600),
   notes: z.string().optional(),
+  favorite: z.boolean().optional(),
   imageUrl: z.string().optional(),
   spotifyId: z.string().optional(),
   externalUrl: z.string().optional(),
@@ -34,6 +35,7 @@ const setlistSchema = z.object({
   date: z.string().optional(),
   genreFocus: z.string().optional(),
   songFilters: songFiltersSchema.optional(),
+  favorite: z.boolean().optional(),
   sets: z.array(
     z.object({
       id: z.string(),

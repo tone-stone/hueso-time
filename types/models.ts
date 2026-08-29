@@ -94,6 +94,8 @@ export interface Setlist {
   genreFocus?: Genre;
   /** Preferred artists/genre/BPM/key for this show, set at creation — pre-filters the "add song" picker. */
   songFilters?: SongFilters;
+  /** Mark as favorite for quick access. */
+  favorite?: boolean;
   sets: SetBlock[];
   createdAt: string;
   updatedAt: string;

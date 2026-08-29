@@ -109,6 +109,11 @@ const nocturne = {
   success: '#8FD9B6',
   warning: '#D9C48F',
 
+  /** Heart "like" red — the one deliberate break from the mono palette; a liked heart
+   * has to read as red everywhere, on any theme, or it stops reading as "liked". */
+  like: '#FF5C7A',
+  likeSoft: 'rgba(255, 92, 122, 0.16)',
+
   tabIconDefault: 'rgba(233, 233, 237, 0.5)',
   tabIconSelected: '#D2CEFD',
   /** The pill is glass; this is the fallback under GlassSurface. */

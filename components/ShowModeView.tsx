@@ -271,7 +271,7 @@ export function ShowModeView({
         </Text>
         <Text style={{ color: c.textMuted, marginTop: 8, fontSize: 13 }}>
           {formatDuration(current.song.durationSec)} · {t(`genres.${current.song.genre}`)}
-          {current.song.favorite ? ` · ★` : ''}
+          {current.song.favorite ? ` · ♥` : ''}
         </Text>
       </Pressable>
 

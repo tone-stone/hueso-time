@@ -66,8 +66,12 @@ const PRACTICE_STATUSES = ['ready', 'practice', 'showstopper'] as const;
 
 const SEARCH_ICON = { ios: 'magnifyingglass', android: 'search', web: 'search' } as const;
 const MUSIC_NOTE_ICON = { ios: 'music.note', android: 'music_note', web: 'music_note' } as const;
-const STAR_FILL_ICON = { ios: 'star.fill', android: 'star', web: 'star' } as const;
-const STAR_OUTLINE_ICON = { ios: 'star', android: 'star_border', web: 'star_border' } as const;
+const HEART_FILL_ICON = { ios: 'heart.fill', android: 'favorite', web: 'favorite' } as const;
+const HEART_OUTLINE_ICON = {
+  ios: 'heart',
+  android: 'favorite_border',
+  web: 'favorite_border',
+} as const;
 const TRASH_ICON = { ios: 'trash', android: 'delete', web: 'delete' } as const;
 const CLOSE_ICON = { ios: 'xmark', android: 'close', web: 'close' } as const;
 const CARET_DOWN = { ios: 'chevron.down', android: 'expand_more', web: 'expand_more' } as const;
@@ -93,6 +97,7 @@ export default function RepertoireScreen() {
   const [query, setQuery] = useState('');
   const [genre, setGenre] = useState<Genre | 'all'>('all');
   const [artist, setArtist] = useState<string | 'all'>('all');
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [genreOpen, setGenreOpen] = useState(false);
   const [artistOpen, setArtistOpen] = useState(false);
   const [artistQuery, setArtistQuery] = useState('');
@@ -117,6 +122,7 @@ export default function RepertoireScreen() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return songs.filter((s) => {
+      if (favoritesOnly && !s.favorite) return false;
       if (genre !== 'all' && s.genre !== genre) return false;
       if (artist !== 'all' && s.artist.trim() !== artist) return false;
       if (!q) return true;
@@ -126,7 +132,7 @@ export default function RepertoireScreen() {
         s.key.toLowerCase().includes(q)
       );
     });
-  }, [songs, query, genre, artist]);
+  }, [songs, query, genre, artist, favoritesOnly]);
 
   // When nothing in the repertoire matches what's typed, offer iTunes/Spotify
   // suggestions inline instead of leaving the user at a dead end.
@@ -233,6 +239,11 @@ export default function RepertoireScreen() {
     showToast(editing ? t('toast.songUpdated') : t('toast.songSaved'));
   }
 
+  async function toggleFavorite(song: Song) {
+    const { id, createdAt, updatedAt, ...input } = song;
+    await upsertSong({ ...input, favorite: !song.favorite }, id);
+  }
+
   function confirmDelete(song: Song) {
     confirmDestructive({
       title: t('common.confirmDelete'),
@@ -250,9 +261,11 @@ export default function RepertoireScreen() {
     setQuery('');
     setGenre('all');
     setArtist('all');
+    setFavoritesOnly(false);
   }
 
-  const hasFilters = genre !== 'all' || artist !== 'all' || query.trim().length > 0;
+  const hasFilters =
+    genre !== 'all' || artist !== 'all' || favoritesOnly || query.trim().length > 0;
   const artistActive = artist !== 'all';
   const genreActive = genre !== 'all';
 
@@ -320,6 +333,22 @@ export default function RepertoireScreen() {
                 {genre === 'all' ? t('repertoire.allGenres') : t(`genres.${genre}`)}
               </Text>
               <SymbolView name={CARET_DOWN} size={11} tintColor={c.accent} />
+            </Pressable>
+            <Pressable
+              onPress={() => setFavoritesOnly((v) => !v)}
+              accessibilityLabel={t('repertoire.favoritesOnly')}
+              style={[
+                styles.filterHeartBtn,
+                {
+                  borderColor: favoritesOnly ? c.like : c.border,
+                  backgroundColor: favoritesOnly ? c.likeSoft : c.surface,
+                },
+              ]}>
+              <SymbolView
+                name={favoritesOnly ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
+                size={15}
+                tintColor={favoritesOnly ? c.like : c.textFaint}
+              />
             </Pressable>
           </View>
           {hasFilters ? (
@@ -442,33 +471,41 @@ export default function RepertoireScreen() {
         renderItem={({ item }) => {
           const status = item.practiceStatus ?? 'practice';
           return (
-            <Pressable
-              onPress={() => openEdit(item)}
-              style={({ pressed, hovered }: any) => [
-                styles.songRow,
-                hovered && { backgroundColor: 'rgba(233, 233, 237, 0.05)' },
-                pressed && { backgroundColor: c.surfaceElevated },
-              ]}>
-              <View style={[styles.thumb, { backgroundColor: c.surfaceElevated }]}>
-                {item.imageUrl ? (
-                  <Image source={{ uri: item.imageUrl }} style={styles.thumbImg} />
-                ) : (
-                  <SymbolView name={MUSIC_NOTE_ICON} size={16} tintColor={c.textFaint} />
-                )}
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <View style={styles.songTitleRow}>
+            <View style={styles.songRow}>
+              <Pressable
+                onPress={() => openEdit(item)}
+                style={({ pressed, hovered }: any) => [
+                  styles.songRowMain,
+                  hovered && { backgroundColor: 'rgba(233, 233, 237, 0.05)' },
+                  pressed && { backgroundColor: c.surfaceElevated },
+                ]}>
+                <View style={[styles.thumb, { backgroundColor: c.surfaceElevated }]}>
+                  {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl }} style={styles.thumbImg} />
+                  ) : (
+                    <SymbolView name={MUSIC_NOTE_ICON} size={16} tintColor={c.textFaint} />
+                  )}
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={[styles.songTitle, { color: c.text }]} numberOfLines={1}>
                     {item.title}
                   </Text>
-                  {item.favorite ? (
-                    <SymbolView name={STAR_FILL_ICON} size={11} tintColor={c.accent} />
-                  ) : null}
+                  <Text style={[styles.songMeta, { color: c.textMuted }]} numberOfLines={1}>
+                    {metaLine(item, t)}
+                  </Text>
                 </View>
-                <Text style={[styles.songMeta, { color: c.textMuted }]} numberOfLines={1}>
-                  {metaLine(item, t)}
-                </Text>
-              </View>
+              </Pressable>
+              <Pressable
+                onPress={() => void toggleFavorite(item)}
+                hitSlop={8}
+                accessibilityLabel={t('practice.favorite')}
+                style={styles.heartBtn}>
+                <SymbolView
+                  name={item.favorite ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
+                  size={17}
+                  tintColor={item.favorite ? c.like : c.textFaint}
+                />
+              </Pressable>
               <View style={styles.statusTagWrap}>
                 {status === 'ready' ? (
                   <MetaPill accent label={t('practice.ready')} />
@@ -478,7 +515,7 @@ export default function RepertoireScreen() {
                   <MetaPill label={t('practice.practice')} />
                 )}
               </View>
-            </Pressable>
+            </View>
           );
         }}
       />
@@ -704,14 +741,20 @@ export default function RepertoireScreen() {
 
             <Pressable
               onPress={() => setForm((f) => ({ ...f, favorite: !f.favorite }))}
-              style={[styles.favoriteRow, { borderColor: c.border, backgroundColor: c.surface }]}>
+              style={[
+                styles.favoriteRow,
+                {
+                  borderColor: form.favorite ? c.like : c.border,
+                  backgroundColor: form.favorite ? c.likeSoft : c.surface,
+                },
+              ]}>
               <Text style={[styles.favoriteLabel, { color: c.text }]}>
                 {t('practice.favorite')}
               </Text>
               <SymbolView
-                name={form.favorite ? STAR_FILL_ICON : STAR_OUTLINE_ICON}
+                name={form.favorite ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
                 size={18}
-                tintColor={form.favorite ? c.accent : c.textFaint}
+                tintColor={form.favorite ? c.like : c.textFaint}
               />
             </Pressable>
 
@@ -802,6 +845,14 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: FontFamily.display,
   },
+  filterHeartBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+  },
   clearFilters: { marginBottom: 8, alignSelf: 'flex-start' },
   clearFiltersText: { fontSize: 12.5, fontWeight: '500', fontFamily: FontFamily.display },
   sectionHeader: {
@@ -818,12 +869,23 @@ const styles = StyleSheet.create({
   songRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  songRowMain: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
     paddingVertical: 8,
     paddingHorizontal: 4,
     borderRadius: 8,
   },
-  songTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  heartBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   songTitle: { fontSize: 14, fontWeight: '500', flexShrink: 1 },
   songMeta: { fontSize: 11.5, marginTop: 2, fontFamily: FontFamily.display },
   statusTagWrap: { marginVertical: -8, marginRight: -8 },

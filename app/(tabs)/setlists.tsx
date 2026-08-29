@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { SymbolView } from 'expo-symbols';
 
 import { CreateManualSetlistForm } from '@/components/CreateManualSetlistForm';
 import { ImportSheetsForm } from '@/components/ImportSheetsForm';
+import { ShareSetlistMenu } from '@/components/ShareSetlistMenu';
 import { Waveform } from '@/components/AmbientBackground';
 import { showToast } from '@/components/Toast';
 import {
@@ -39,9 +41,16 @@ import { useApp } from '@/context/AppContext';
 import { createId, formatMinutes } from '@/lib/id';
 import { emptyFilters, generateRandomSets } from '@/lib/randomSets';
 import { setlistDurationSec } from '@/lib/setMath';
-import type { Genre, SetBlock, SongFilters } from '@/types/models';
+import type { Genre, SetBlock, Setlist, SongFilters } from '@/types/models';
 
 type CreateMode = 'choose' | 'manual' | null;
+
+const HEART_FILL_ICON = { ios: 'heart.fill', android: 'favorite', web: 'favorite' } as const;
+const HEART_OUTLINE_ICON = {
+  ios: 'heart',
+  android: 'favorite_border',
+  web: 'favorite_border',
+} as const;
 
 /** Card date, right-aligned in monospace: the setlist's own date if set, else its creation date. */
 function cardDateLabel(item: { date?: string; createdAt: string }): string {
@@ -68,6 +77,9 @@ export default function SetlistsScreen() {
   const [createMode, setCreateMode] = useState<CreateMode>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [shareTarget, setShareTarget] = useState<Setlist | null>(null);
+  const visibleSetlists = favoritesOnly ? setlists.filter((s) => s.favorite) : setlists;
 
   async function saveWizard(payload: {
     name: string;
@@ -126,6 +138,12 @@ export default function SetlistsScreen() {
       setImportBusy(false);
     }
   }
+
+  async function toggleSetlistFavorite(item: Setlist) {
+    const { id, createdAt, updatedAt, ...input } = item;
+    await upsertSetlist({ ...input, favorite: !item.favorite }, id);
+  }
+
 
   function confirmDelete(id: string, label: string) {
     confirmDestructive({
@@ -212,64 +230,152 @@ export default function SetlistsScreen() {
     </Card>
   );
 
+  const showFlatList =
+    !(desktop && createMode === 'manual') &&
+    !(desktop && setlists.length === 0 && createMode === null) &&
+    !(desktop && createMode === 'choose');
+
+  const pageHeader = (
+    <PageHeader
+      title={t('setlists.title')}
+      subtitle={t('setlists.subtitle')}
+      brandSubtitle={t('setlists.subtitle')}
+      onBack={
+        desktop && createMode
+          ? () => {
+              setCreateMode(null);
+            }
+          : undefined
+      }
+      right={
+        <>
+          {!desktop ? <Waveform /> : null}
+          {showFlatList && setlists.length > 0 ? (
+            <Pressable
+              onPress={() => setFavoritesOnly((v) => !v)}
+              hitSlop={8}
+              accessibilityLabel={t('setlists.favoritesOnly')}
+              style={[
+                styles.favoritesToggle,
+                {
+                  borderColor: favoritesOnly ? c.like : c.border,
+                  backgroundColor: favoritesOnly ? c.likeSoft : 'transparent',
+                },
+              ]}>
+              <SymbolView
+                name={favoritesOnly ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
+                size={15}
+                tintColor={favoritesOnly ? c.like : c.textFaint}
+              />
+            </Pressable>
+          ) : null}
+          {!(desktop && createMode) ? (
+            <Fab onPress={() => setCreateMode('choose')} />
+          ) : null}
+        </>
+      }
+    />
+  );
+
   return (
     <Screen>
       <PageColumn maxWidth={1100}>
-        <PageHeader
-          title={t('setlists.title')}
-          subtitle={t('setlists.subtitle')}
-          brandSubtitle={t('setlists.subtitle')}
-          onBack={
-            desktop && createMode
-              ? () => {
-                  setCreateMode(null);
-                }
-              : undefined
-          }
-          right={
-            <>
-              {!desktop ? <Waveform /> : null}
-              {!(desktop && createMode) ? (
-                <Fab onPress={() => setCreateMode('choose')} />
-              ) : null}
-            </>
-          }
-        />
+        {showFlatList ? pageHeader : null}
 
-        {desktop && createMode === 'manual' ? (
-          <View style={styles.inlineWorkspace}>
-            <View style={styles.split}>
-              <View style={styles.splitLeft}>
-                <CreateManualSetlistForm
-                  songs={songs}
-                  defaultSetCount={settings.defaultSetCount}
-                  defaultMinutes={settings.defaultSetMinutes}
-                  onCreate={(payload) => void onCreateManual(payload)}
-                  onCancel={() => setCreateMode(null)}
-                />
+        {!showFlatList ? (
+          <ScrollView
+            style={{ flex: 1, width: '100%' }}
+            contentContainerStyle={{ paddingBottom: 60 }}>
+            {pageHeader}
+
+            {desktop && createMode === 'manual' ? (
+              <View style={styles.inlineWorkspace}>
+                <View style={styles.split}>
+                  <View style={styles.splitLeft}>
+                    <CreateManualSetlistForm
+                      songs={songs}
+                      defaultSetCount={settings.defaultSetCount}
+                      defaultMinutes={settings.defaultSetMinutes}
+                      onCreate={(payload) => void onCreateManual(payload)}
+                      onCancel={() => setCreateMode(null)}
+                    />
+                  </View>
+                  <Card style={styles.selectCard}>
+                    <Text style={[styles.panelTitle, { color: c.text }]}>
+                      {t('setlists.selectPanelTitle')}
+                    </Text>
+                    <Body muted>{t('setlists.createManualBody')}</Body>
+                  </Card>
+                </View>
               </View>
-              <Card style={styles.selectCard}>
-                <Text style={[styles.panelTitle, { color: c.text }]}>
-                  {t('setlists.selectPanelTitle')}
+            ) : null}
+
+            {desktop &&
+            (createMode === 'choose' || (createMode === null && setlists.length === 0)) ? (
+              <View style={styles.split}>
+                {desktopCreateLeft}
+                {desktopSelectRight}
+              </View>
+            ) : null}
+
+            {/* When desktop has setlists and choose mode was opened via +, we already show split above.
+                Also show existing setlists below choose workspace. */}
+            {desktop && createMode === 'choose' && setlists.length > 0 ? (
+              <View style={{ marginTop: 28 }}>
+                <Text style={[styles.listHeading, { color: c.text }]}>
+                  {t('setlists.yourSetlists')}
                 </Text>
-                <Body muted>{t('setlists.createManualBody')}</Body>
-              </Card>
-            </View>
-          </View>
+                <View style={styles.desktopGrid}>
+                  {visibleSetlists.map((item, index) => {
+                    const total = setlistDurationSec(item.sets, songsById);
+                    const songCount = item.sets.reduce((n, s) => n + s.songs.length, 0);
+                    return (
+                      <Card key={item.id} index={index} style={styles.gridCardFixed}>
+                        <Pressable
+                          onPress={() => void toggleSetlistFavorite(item)}
+                          hitSlop={8}
+                          accessibilityLabel={t('practice.favorite')}
+                          style={styles.setlistHeartBtn}>
+                          <SymbolView
+                            name={item.favorite ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
+                            size={16}
+                            tintColor={item.favorite ? c.like : c.textFaint}
+                          />
+                        </Pressable>
+                        <Link href={`/setlist/${item.id}`} asChild>
+                          <Pressable>
+                            <View style={styles.nameRow}>
+                              <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+                                {item.name}
+                              </Text>
+                              <Text style={[styles.cardDate, { color: c.textMuted }]}>
+                                {cardDateLabel(item)}
+                              </Text>
+                            </View>
+                            {item.venue ? (
+                              <Text style={[styles.venue, { color: c.textMuted }]}>
+                                {item.venue}
+                              </Text>
+                            ) : null}
+                            <View style={styles.metaRow}>
+                              <MetaPill accent label={`${item.sets.length} ${t('common.sets')}`} />
+                              <MetaPill label={`${songCount} ${t('common.songs')}`} />
+                              <MetaPill label={formatMinutes(total)} />
+                            </View>
+                          </Pressable>
+                        </Link>
+                      </Card>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+          </ScrollView>
         ) : null}
 
-        {desktop && (createMode === 'choose' || (createMode === null && setlists.length === 0)) ? (
-          <View style={styles.split}>
-            {desktopCreateLeft}
-            {desktopSelectRight}
-          </View>
-        ) : null}
-
-        {!(desktop && createMode === 'manual') &&
-        !(desktop && setlists.length === 0 && createMode === null) &&
-        !(desktop && createMode === 'choose') ? (
+        {showFlatList ? (
           <FlatList
-            data={setlists}
+            data={visibleSetlists}
             keyExtractor={(item) => item.id}
             style={{ width: '100%' }}
             showsHorizontalScrollIndicator={false}
@@ -278,13 +384,13 @@ export default function SetlistsScreen() {
               desktop && styles.listContentDesktop,
               !desktop && { paddingBottom: 32 + tabBarInset },
             ]}
-            numColumns={desktop && setlists.length > 0 ? 2 : 1}
-            key={desktop ? 'desktop-list' : 'mobile-list'}
+            numColumns={desktop && visibleSetlists.length > 0 ? 2 : 1}
+            key={`${desktop ? 'desktop' : 'mobile'}-${visibleSetlists.length > 0 ? 'grid' : 'empty'}`}
             columnWrapperStyle={
-              desktop && setlists.length > 0 ? styles.columnWrap : undefined
+              desktop && visibleSetlists.length > 0 ? styles.columnWrap : undefined
             }
             ListHeaderComponent={
-              desktop && setlists.length > 0 ? (
+              desktop && visibleSetlists.length > 0 ? (
                 <Text style={[styles.listHeading, { color: c.text }]}>
                   {t('setlists.yourSetlists')}
                 </Text>
@@ -292,24 +398,30 @@ export default function SetlistsScreen() {
             }
             ListEmptyComponent={
               !desktop ? (
-                <Card>
-                  <Body muted>{t('setlists.empty')}</Body>
-                  <View style={styles.emptyActions}>
-                    <PrimaryButton
-                      label={t('setlists.createGenerate')}
-                      onPress={() => void quickGenerate()}
-                      icon="🎲"
-                    />
-                    <GhostButton
-                      label={t('setlists.createManual')}
-                      onPress={() => setCreateMode('manual')}
-                    />
-                    <GhostButton
-                      label={t('sheetsImport.open')}
-                      onPress={() => setImportOpen(true)}
-                    />
-                  </View>
-                </Card>
+                favoritesOnly && setlists.length > 0 ? (
+                  <Card>
+                    <Body muted>{t('setlists.emptyFavorites')}</Body>
+                  </Card>
+                ) : (
+                  <Card>
+                    <Body muted>{t('setlists.empty')}</Body>
+                    <View style={styles.emptyActions}>
+                      <PrimaryButton
+                        label={t('setlists.createGenerate')}
+                        onPress={() => void quickGenerate()}
+                        icon="🎲"
+                      />
+                      <GhostButton
+                        label={t('setlists.createManual')}
+                        onPress={() => setCreateMode('manual')}
+                      />
+                      <GhostButton
+                        label={t('sheetsImport.open')}
+                        onPress={() => setImportOpen(true)}
+                      />
+                    </View>
+                  </Card>
+                )
               ) : null
             }
             renderItem={({ item, index }) => {
@@ -317,10 +429,23 @@ export default function SetlistsScreen() {
               const songCount = item.sets.reduce((n, s) => n + s.songs.length, 0);
               return (
                 <Card index={index} style={desktop ? styles.gridCard : undefined}>
+                  <Pressable
+                    onPress={() => void toggleSetlistFavorite(item)}
+                    hitSlop={8}
+                    accessibilityLabel={t('practice.favorite')}
+                    style={styles.setlistHeartBtn}>
+                    <SymbolView
+                      name={item.favorite ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
+                      size={16}
+                      tintColor={item.favorite ? c.like : c.textFaint}
+                    />
+                  </Pressable>
                   <Link href={`/setlist/${item.id}`} asChild>
                     <Pressable>
                       <View style={styles.nameRow}>
-                        <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+                        <Text
+                          style={[styles.name, { color: c.text }]}
+                          numberOfLines={1}>
                           {item.name}
                         </Text>
                         <Text style={[styles.cardDate, { color: c.textMuted }]}>
@@ -340,57 +465,25 @@ export default function SetlistsScreen() {
                       </View>
                     </Pressable>
                   </Link>
-                  <View style={{ marginTop: 10 }}>
-                    <GhostButton
-                      label={t('common.delete')}
-                      danger
-                      onPress={() => confirmDelete(item.id, item.name)}
-                    />
+                  <View style={styles.cardActions}>
+                    <View style={{ flex: 1 }}>
+                      <GhostButton
+                        label={`↗ ${t('setlists.share')}`}
+                        onPress={() => setShareTarget(item)}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <GhostButton
+                        label={t('common.delete')}
+                        danger
+                        onPress={() => confirmDelete(item.id, item.name)}
+                      />
+                    </View>
                   </View>
                 </Card>
               );
             }}
           />
-        ) : null}
-
-        {/* When desktop has setlists and choose mode was opened via +, we already show split above.
-            Also show existing setlists below choose workspace. */}
-        {desktop && createMode === 'choose' && setlists.length > 0 ? (
-          <View style={{ marginTop: 28 }}>
-            <Text style={[styles.listHeading, { color: c.text }]}>
-              {t('setlists.yourSetlists')}
-            </Text>
-            <View style={styles.desktopGrid}>
-              {setlists.map((item, index) => {
-                const total = setlistDurationSec(item.sets, songsById);
-                const songCount = item.sets.reduce((n, s) => n + s.songs.length, 0);
-                return (
-                  <Card key={item.id} index={index} style={styles.gridCardFixed}>
-                    <Link href={`/setlist/${item.id}`} asChild>
-                      <Pressable>
-                        <View style={styles.nameRow}>
-                          <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          <Text style={[styles.cardDate, { color: c.textMuted }]}>
-                            {cardDateLabel(item)}
-                          </Text>
-                        </View>
-                        {item.venue ? (
-                          <Text style={[styles.venue, { color: c.textMuted }]}>{item.venue}</Text>
-                        ) : null}
-                        <View style={styles.metaRow}>
-                          <MetaPill accent label={`${item.sets.length} ${t('common.sets')}`} />
-                          <MetaPill label={`${songCount} ${t('common.songs')}`} />
-                          <MetaPill label={formatMinutes(total)} />
-                        </View>
-                      </Pressable>
-                    </Link>
-                  </Card>
-                );
-              })}
-            </View>
-          </View>
         ) : null}
       </PageColumn>
 
@@ -457,6 +550,13 @@ export default function SetlistsScreen() {
           </ScrollView>
         </Screen>
       </Modal>
+
+      <ShareSetlistMenu
+        visible={!!shareTarget}
+        onClose={() => setShareTarget(null)}
+        setlist={shareTarget}
+        songsById={songsById}
+      />
     </Screen>
   );
 }
@@ -548,11 +648,32 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  favoritesToggle: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 8,
+    paddingRight: 22,
+  },
+  setlistHeartBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    zIndex: 2,
+    padding: 4,
   },
   name: {
     fontSize: 15,

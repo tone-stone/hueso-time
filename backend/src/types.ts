@@ -87,6 +87,7 @@ export interface Setlist {
   date?: string;
   genreFocus?: Genre;
   songFilters?: SongFilters;
+  favorite?: boolean;
   sets: SetBlock[];
   createdAt: string;
   updatedAt: string;

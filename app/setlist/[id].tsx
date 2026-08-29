@@ -4,7 +4,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Share,
   StyleSheet,
   Text,
   View,
@@ -15,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { GenerateSetsForm } from '@/components/GenerateSetsForm';
+import { ShareSetlistMenu } from '@/components/ShareSetlistMenu';
 import { isEmptyFilters } from '@/components/SongFilterFields';
 import { SetsTables } from '@/components/SetsTables';
 import { ShowModeView } from '@/components/ShowModeView';
@@ -41,8 +41,7 @@ import { WebBackButton } from '@/components/WebTopNav';
 import { FontFamily } from '@/constants/Fonts';
 import { useApp } from '@/context/AppContext';
 import { confirmDestructive } from '@/lib/confirm';
-import { formatSetlistShareText } from '@/lib/exportSetlist';
-import { formatDuration, formatMinutes } from '@/lib/id';
+import { createId, formatDuration, formatMinutes } from '@/lib/id';
 import { filterSongs } from '@/lib/randomSets';
 import { setlistDurationSec } from '@/lib/setMath';
 import type { SetBlock } from '@/types/models';
@@ -53,6 +52,7 @@ type PickerMode =
   | null;
 
 const SHOW_MODE_OPTIONS = ['edit', 'show'] as const;
+const MINUTES_OPTIONS = [30, 40, 45, 60];
 
 export default function SetlistDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,6 +72,12 @@ export default function SetlistDetailScreen() {
   const [editName, setEditName] = useState('');
   const [editVenue, setEditVenue] = useState('');
   const [editDate, setEditDate] = useState('');
+  const [shareOpen, setShareOpen] = useState(false);
+  const [addSetOpen, setAddSetOpen] = useState(false);
+  const [newSetName, setNewSetName] = useState('');
+  const [newSetMinutes, setNewSetMinutes] = useState(45);
+  const [renameSetId, setRenameSetId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   function goBack() {
     if (router.canGoBack()) {
@@ -153,19 +159,6 @@ export default function SetlistDetailScreen() {
     showToast(t('toast.setlistUpdated'));
   }
 
-  async function shareSetlist() {
-    const message = formatSetlistShareText(setlist!, songsById, {
-      total: t('setlists.totalShow'),
-      set: (n, name) => `${name || t('setlists.setLabel', { n })}`,
-      bpm: 'BPM',
-    });
-    try {
-      await Share.share({ message, title: setlist!.name });
-    } catch {
-      showToast(t('toast.shareFailed'));
-    }
-  }
-
   async function addSongToSet(setId: string, songId: string) {
     const sets = setlist!.sets.map((block) => {
       if (block.id !== setId) return block;
@@ -229,6 +222,62 @@ export default function SetlistDetailScreen() {
       };
     });
     await persist(sets);
+  }
+
+  function openAddSet() {
+    setNewSetName('');
+    setNewSetMinutes(setlist!.sets[setlist!.sets.length - 1]?.targetMinutes ?? 45);
+    setAddSetOpen(true);
+  }
+
+  async function addSet() {
+    const block: SetBlock = {
+      id: createId('set'),
+      name: newSetName.trim(),
+      targetMinutes: newSetMinutes,
+      songs: [],
+    };
+    await persist([...setlist!.sets, block]);
+    setAddSetOpen(false);
+    showToast(t('toast.setAdded'));
+  }
+
+  function openRenameSet(setId: string) {
+    const block = setlist!.sets.find((s) => s.id === setId);
+    setRenameValue(block?.name ?? '');
+    setRenameSetId(setId);
+  }
+
+  async function saveRenameSet() {
+    if (!renameSetId) return;
+    const sets = setlist!.sets.map((b) =>
+      b.id === renameSetId ? { ...b, name: renameValue.trim() } : b,
+    );
+    await persist(sets);
+    setRenameSetId(null);
+    showToast(t('toast.setRenamed'));
+  }
+
+  async function deleteSet(setId: string) {
+    const sets = setlist!.sets.filter((b) => b.id !== setId);
+    await persist(sets);
+    showToast(t('toast.setDeleted'));
+  }
+
+  function confirmDeleteSet(setId: string) {
+    if (setlist!.sets.length <= 1) {
+      showToast(t('toast.setlistNeedsOneSet'));
+      return;
+    }
+    const index = setlist!.sets.findIndex((s) => s.id === setId);
+    const block = setlist!.sets[index];
+    confirmDestructive({
+      title: t('common.confirmDelete'),
+      message: block?.name || t('setlists.setLabel', { n: index + 1 }),
+      cancelLabel: t('common.no'),
+      confirmLabel: t('common.yes'),
+      onConfirm: () => void deleteSet(setId),
+    });
   }
 
   function confirmRemove(setId: string, songId: string) {
@@ -335,7 +384,7 @@ export default function SetlistDetailScreen() {
               <Text style={{ color: c.tint, fontSize: 15 }}>✎</Text>
             </Pressable>
             <Pressable
-              onPress={() => void shareSetlist()}
+              onPress={() => setShareOpen(true)}
               hitSlop={10}
               style={[styles.iconSquare, { borderColor: c.border }]}>
               <Text style={{ color: c.tint, fontSize: 15 }}>↗</Text>
@@ -361,6 +410,9 @@ export default function SetlistDetailScreen() {
             onChangeSong={({ setId, songId }) => setPicker({ type: 'replace', setId, songId })}
             onAddSong={(setId) => setPicker({ type: 'add', setId })}
             onReorderSongs={(setId, songIds) => void reorderSongs(setId, songIds)}
+            onAddSet={openAddSet}
+            onRenameSet={openRenameSet}
+            onDeleteSet={confirmDeleteSet}
           />
         </NestableScrollContainer>
 
@@ -505,6 +557,56 @@ export default function SetlistDetailScreen() {
         </Screen>
       </Modal>
 
+      <Modal visible={addSetOpen} animationType="slide" presentationStyle="pageSheet">
+        <Screen safeTop={false}>
+          <View style={{ padding: 16, flex: 1 }}>
+            <Title>{t('setlists.addSet')}</Title>
+            <Subtitle>{t('setlists.addSetHint')}</Subtitle>
+            <Field
+              label={t('setlists.name')}
+              value={newSetName}
+              onChangeText={setNewSetName}
+              placeholder={t('setlists.setLabel', { n: setlist.sets.length + 1 })}
+            />
+            <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
+              {t('setlists.targetMinutes')}
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 4 }}>
+              {MINUTES_OPTIONS.map((n) => (
+                <Chip
+                  key={n}
+                  label={`${n} ${t('common.minutes')}`}
+                  outlined={newSetMinutes === n}
+                  onPress={() => setNewSetMinutes(n)}
+                />
+              ))}
+            </View>
+            <View style={{ gap: 10, marginTop: 18 }}>
+              <PrimaryButton label={t('common.save')} onPress={() => void addSet()} />
+              <GhostButton label={t('common.cancel')} onPress={() => setAddSetOpen(false)} />
+            </View>
+          </View>
+        </Screen>
+      </Modal>
+
+      <Modal visible={!!renameSetId} animationType="slide" presentationStyle="pageSheet">
+        <Screen safeTop={false}>
+          <View style={{ padding: 16, flex: 1 }}>
+            <Title>{t('setlists.renameSetTitle')}</Title>
+            <Field
+              label={t('setlists.name')}
+              value={renameValue}
+              onChangeText={setRenameValue}
+              placeholder={t('setlists.namePlaceholder')}
+            />
+            <View style={{ gap: 10, marginTop: 18 }}>
+              <PrimaryButton label={t('common.save')} onPress={() => void saveRenameSet()} />
+              <GhostButton label={t('common.cancel')} onPress={() => setRenameSetId(null)} />
+            </View>
+          </View>
+        </Screen>
+      </Modal>
+
       <Modal visible={generateOpen} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
@@ -520,6 +622,13 @@ export default function SetlistDetailScreen() {
           </View>
         </Screen>
       </Modal>
+
+      <ShareSetlistMenu
+        visible={shareOpen}
+        onClose={() => setShareOpen(false)}
+        setlist={setlist}
+        songsById={songsById}
+      />
     </Screen>
   );
 }
@@ -554,5 +663,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingTop: 12,
     paddingHorizontal: 16,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: FontFamily.display,
+    letterSpacing: 1.4,
+    marginBottom: 8,
+    marginTop: 8,
+    textTransform: 'uppercase',
   },
 });

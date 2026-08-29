@@ -42,6 +42,9 @@ export function SetsTables({
   onChangeSong,
   onAddSong,
   onReorderSongs,
+  onAddSet,
+  onRenameSet,
+  onDeleteSet,
   nestable = false,
   defaultExpanded = true,
   showMode = false,
@@ -52,6 +55,9 @@ export function SetsTables({
   onChangeSong?: (action: SongAction) => void;
   onAddSong?: (setId: string) => void;
   onReorderSongs?: (setId: string, songIds: string[]) => void;
+  onAddSet?: () => void;
+  onRenameSet?: (setId: string) => void;
+  onDeleteSet?: (setId: string) => void;
   /** Use NestableDraggableFlatList when inside NestableScrollContainer. */
   nestable?: boolean;
   defaultExpanded?: boolean;
@@ -275,11 +281,51 @@ export function SetsTables({
                     </Text>
                   </Pressable>
                 ) : null}
+
+                {!showMode && (onRenameSet || onDeleteSet) ? (
+                  <View style={styles.setActionsRow}>
+                    {onRenameSet ? (
+                      <Pressable onPress={() => onRenameSet(block.id)} hitSlop={6}>
+                        <Text
+                          style={[
+                            styles.setActionText,
+                            { color: c.textMuted, fontFamily: FontFamily.display },
+                          ]}>
+                          ✎ {t('setlists.renameSet')}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                    {onDeleteSet ? (
+                      <Pressable onPress={() => onDeleteSet(block.id)} hitSlop={6}>
+                        <Text
+                          style={[
+                            styles.setActionText,
+                            { color: c.accentText, fontFamily: FontFamily.display },
+                          ]}>
+                          🗑 {t('setlists.deleteSet')}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                ) : null}
               </View>
             ) : null}
           </Card>
         );
       })}
+
+      {!showMode && onAddSet ? (
+        <Pressable
+          onPress={onAddSet}
+          style={[
+            styles.addSetBtn,
+            { borderColor: c.tint, backgroundColor: c.tintFaint },
+          ]}>
+          <Text style={{ color: c.tint, fontWeight: '500', fontFamily: FontFamily.display }}>
+            + {t('setlists.addSet')}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -336,4 +382,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
+  addSetBtn: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  setActionsRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: 10,
+  },
+  setActionText: { fontSize: 12, fontWeight: '500' },
 });
