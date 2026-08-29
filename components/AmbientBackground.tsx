@@ -6,13 +6,13 @@ import Colors from '@/constants/Colors';
 
 const c = Colors.dark;
 
-/** Solid background with one subtle diagonal tint — no pattern/orbs/decorations. */
+/** Solid Nocturne ground with one faint accent tint — no pattern/orbs/decorations. */
 export function AmbientBackground() {
   return (
     <View style={[styles.root, styles.noPointer]}>
       <View style={[StyleSheet.absoluteFill, { backgroundColor: c.background }]} />
       <LinearGradient
-        colors={['rgba(255,45,123,0.07)', 'transparent', 'rgba(0,229,255,0.05)']}
+        colors={['rgba(145,132,217,0.05)', 'transparent']}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}

@@ -10,10 +10,12 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
+import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { useThemeColors } from '@/components/ui';
+import { FontFamily } from '@/constants/Fonts';
 import { formatDuration, formatMinutes } from '@/lib/id';
 import { setDurationSec } from '@/lib/setMath';
 import type { SetBlock, Song } from '@/types/models';
@@ -183,13 +185,18 @@ export function ShowModeView({
     : 0;
   const overrun = setPlayedSec > setTargetSec * 1.05;
   const nearEnd = songProgress >= 0.85;
+  // Display-only formatting of already-computed values — no new timing/business logic.
+  const overrunDelta = overrun ? formatDuration(Math.round(setPlayedSec - setTargetSec)) : null;
+  const remainingAccent = !timerOn || nearEnd;
 
   if (!current) {
     return (
-      <View style={[styles.root, rootPad, { backgroundColor: c.background }]}>
+      <View style={[styles.root, rootPad, { backgroundColor: c.backgroundAlt }]}>
         <Text style={[styles.empty, { color: c.textMuted }]}>{t('show.empty')}</Text>
         <Pressable onPress={onExit} style={styles.exitBtn} hitSlop={12}>
-          <Text style={{ color: c.tint, fontWeight: '800' }}>{t('show.exit')}</Text>
+          <Text style={{ color: c.tint, fontWeight: '500', fontFamily: FontFamily.display }}>
+            {t('show.exit')}
+          </Text>
         </Pressable>
       </View>
     );
@@ -200,7 +207,7 @@ export function ShowModeView({
       style={[
         styles.root,
         rootPad,
-        { backgroundColor: c.background, minHeight: height * 0.75 },
+        { backgroundColor: c.backgroundAlt, minHeight: height * 0.75 },
       ]}>
       <View style={styles.topBar}>
         <Text
@@ -210,19 +217,35 @@ export function ShowModeView({
           {current.setName} · {current.songIndex + 1}/
           {sets[current.setIndex]?.songs.length ?? 0}
         </Text>
-        <Pressable onPress={() => setTimerOn((v) => !v)} hitSlop={12} style={styles.topAction}>
+        <Pressable
+          onPress={() => setTimerOn((v) => !v)}
+          hitSlop={12}
+          style={[
+            styles.timerPill,
+            { borderColor: overrun ? c.tint : c.border },
+          ]}>
+          <SymbolView
+            name={{ ios: 'timer', android: 'timer', web: 'timer' }}
+            tintColor={overrun ? c.tint : c.textMuted}
+            size={13}
+          />
           <Text
             style={{
               color: overrun ? c.tint : c.textMuted,
-              fontWeight: '800',
+              fontWeight: '500',
               fontSize: 13,
+              fontFamily: FontFamily.display,
             }}>
             {formatDuration(elapsedSec)}
-            {overrun ? ` · ${t('show.overrun')}` : ''}
+            {overrunDelta ? ` · +${overrunDelta}` : ''}
           </Text>
         </Pressable>
-        <Pressable onPress={onExit} hitSlop={12} style={styles.topAction}>
-          <Text style={{ color: c.tint, fontWeight: '800' }}>{t('show.exit')}</Text>
+        <Pressable onPress={onExit} hitSlop={12} style={[styles.exitAction, { borderColor: c.border }]}>
+          <SymbolView
+            name={{ ios: 'xmark', android: 'close', web: 'close' }}
+            tintColor={c.tint}
+            size={15}
+          />
         </Pressable>
       </View>
 
@@ -246,7 +269,7 @@ export function ShowModeView({
           {current.song.key}{' '}
           {current.song.keyMode === 'major' ? t('repertoire.major') : t('repertoire.minor')}
         </Text>
-        <Text style={{ color: c.textMuted, marginTop: 8 }}>
+        <Text style={{ color: c.textMuted, marginTop: 8, fontSize: 13 }}>
           {formatDuration(current.song.durationSec)} · {t(`genres.${current.song.genre}`)}
           {current.song.favorite ? ` · ★` : ''}
         </Text>
@@ -254,18 +277,31 @@ export function ShowModeView({
 
       <View style={styles.progressBlock}>
         <View style={styles.progressTimes}>
-          <Text style={{ color: c.textMuted, fontWeight: '700', fontSize: 12 }}>
+          <Text
+            style={{
+              color: c.textMuted,
+              fontWeight: '500',
+              fontSize: 12,
+              fontFamily: FontFamily.display,
+            }}>
             {formatDuration(songElapsedSec)}
           </Text>
           <Text
             style={{
-              color: nearEnd ? c.tint : c.textMuted,
-              fontWeight: '800',
+              color: remainingAccent ? c.accent : c.textMuted,
+              fontWeight: '600',
               fontSize: 12,
+              fontFamily: FontFamily.display,
             }}>
             {timerOn ? t('show.remaining', { time: formatDuration(songRemaining) }) : t('show.paused')}
           </Text>
-          <Text style={{ color: c.textMuted, fontWeight: '700', fontSize: 12 }}>
+          <Text
+            style={{
+              color: c.textMuted,
+              fontWeight: '500',
+              fontSize: 12,
+              fontFamily: FontFamily.display,
+            }}>
             {formatDuration(songDuration)}
           </Text>
         </View>
@@ -320,20 +356,26 @@ export function ShowModeView({
       <View style={styles.nav}>
         <Pressable
           onPress={() => setIndex((i) => Math.max(0, i - 1))}
-          style={[styles.navBtn, { borderColor: c.border }]}
+          style={[styles.prevBtn, { borderColor: c.border }]}
           disabled={index === 0}>
-          <Text style={{ color: index === 0 ? c.textMuted : c.text, fontWeight: '700' }}>
+          <Text
+            style={{
+              color: index === 0 ? c.textMuted : c.text,
+              fontWeight: '500',
+              fontFamily: FontFamily.display,
+            }}>
             {t('show.prev')}
           </Text>
         </Pressable>
         <Pressable
           onPress={() => setIndex((i) => Math.min(items.length - 1, i + 1))}
-          style={[styles.navBtn, { borderColor: c.border }]}
+          style={[styles.nextBtn, { borderColor: c.border }]}
           disabled={index >= items.length - 1}>
           <Text
             style={{
               color: index >= items.length - 1 ? c.textMuted : c.text,
-              fontWeight: '700',
+              fontWeight: '500',
+              fontFamily: FontFamily.display,
             }}>
             {t('show.next')}
           </Text>
@@ -342,13 +384,21 @@ export function ShowModeView({
 
       {next ? (
         <View style={[styles.nextBox, { borderColor: c.border }]}>
-          <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: '700' }}>
+          <Text
+            style={{
+              color: c.textFaint,
+              fontSize: 10,
+              fontWeight: '600',
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              fontFamily: FontFamily.display,
+            }}>
             {t('show.upNext')}
           </Text>
-          <Text style={{ color: c.text, fontWeight: '700', marginTop: 4 }} numberOfLines={1}>
+          <Text style={{ color: c.text, fontWeight: '500', marginTop: 4 }} numberOfLines={1}>
             {next.song.title}
           </Text>
-          <Text style={{ color: c.textMuted, marginTop: 2 }} numberOfLines={1}>
+          <Text style={{ color: c.textMuted, marginTop: 2, fontSize: 13 }} numberOfLines={1}>
             {next.song.artist} · {next.song.bpm} BPM · {next.song.key}
           </Text>
         </View>
@@ -376,11 +426,30 @@ const styles = StyleSheet.create({
   setLabel: {
     flex: 1,
     minWidth: 0,
-    fontWeight: '800',
-    fontSize: 13,
+    fontWeight: '600',
+    fontSize: 10,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    fontFamily: FontFamily.display,
   },
-  topAction: {
+  timerPill: {
     flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  exitAction: {
+    flexShrink: 0,
+    width: 32,
+    height: 30,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stage: {
     flex: 1,
@@ -389,13 +458,15 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontSize: 34,
-    fontWeight: '900',
-    letterSpacing: -0.6,
+    fontSize: 44,
+    fontWeight: '500',
+    letterSpacing: -1.32,
+    lineHeight: 45,
     textAlign: 'center',
+    fontFamily: FontFamily.display,
   },
   artist: {
-    fontSize: 18,
+    fontSize: 17,
     marginTop: 10,
     textAlign: 'center',
   },
@@ -406,20 +477,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   bpm: {
-    fontSize: 64,
-    fontWeight: '900',
-    letterSpacing: -2,
-    lineHeight: 70,
+    fontSize: 76,
+    fontWeight: '500',
+    letterSpacing: -3,
+    lineHeight: 80,
+    fontFamily: FontFamily.display,
   },
   bpmUnit: {
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 12,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 1.8,
+    marginBottom: 14,
+    fontFamily: FontFamily.display,
   },
   key: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '500',
     marginTop: 8,
+    fontFamily: FontFamily.display,
   },
   progressBlock: {
     marginBottom: 8,
@@ -431,7 +506,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressTrack: {
-    height: 10,
+    height: 6,
     borderRadius: 999,
     borderWidth: 1,
     overflow: 'hidden',
@@ -460,17 +535,26 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 12,
   },
-  navBtn: {
-    flex: 1,
+  prevBtn: {
+    width: 52,
+    height: 48,
     borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nextBtn: {
+    flex: 1,
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   nextBox: {
     marginTop: 20,
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 14,
   },
   empty: { textAlign: 'center', marginTop: 40 },

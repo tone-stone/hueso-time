@@ -13,6 +13,7 @@ import {
   useThemeColors,
 } from '@/components/ui';
 import { SongFilterFields, isEmptyFilters } from '@/components/SongFilterFields';
+import { FontFamily } from '@/constants/Fonts';
 import { emptyFilters } from '@/lib/randomSets';
 import type { Song, SongFilters } from '@/types/models';
 
@@ -77,7 +78,7 @@ export function CreateManualSetlistForm({
           <Chip
             key={n}
             label={String(n)}
-            selected={setCount === n}
+            outlined={setCount === n}
             onPress={() => setSetCount(n)}
           />
         ))}
@@ -91,7 +92,7 @@ export function CreateManualSetlistForm({
           <Chip
             key={n}
             label={`${n} ${t('common.minutes')}`}
-            selected={targetMinutes === n}
+            outlined={targetMinutes === n}
             onPress={() => setTargetMinutes(n)}
           />
         ))}
@@ -111,7 +112,7 @@ export function CreateManualSetlistForm({
             </Text>
           ) : null}
         </View>
-        <Text style={{ color: c.accent, fontSize: 18, fontWeight: '700' }}>
+        <Text style={{ color: c.accent, fontSize: 16, fontWeight: '500' }}>
           {filtersOpen ? '▾' : '▸'}
         </Text>
       </Pressable>
@@ -143,8 +144,10 @@ export function CreateManualSetlistForm({
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: FontFamily.display,
+    letterSpacing: 1.4,
     marginBottom: 8,
     marginTop: 8,
     textTransform: 'uppercase',

@@ -8,7 +8,7 @@ const webShadow =
   Platform.OS === 'web'
     ? ({
         boxShadow:
-          '0 16px 44px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03), 0 0 60px rgba(255,45,123,0.1)',
+          '0 14px 34px rgba(0,0,0,0.55), 0 0 0 1px rgba(233,233,237,0.1), inset 0 1px 0 rgba(233,233,237,0.14)',
       } as unknown as ViewStyle)
     : null;
 
@@ -57,20 +57,20 @@ export function GlassSurface({
       ]}>
       <BlurView intensity={intensity} tint="dark" style={StyleSheet.absoluteFill}>
         <LinearGradient
-          colors={['rgba(28,28,46,0.28)', 'rgba(10,10,20,0.38)']}
+          colors={['rgba(43,39,65,0.5)', 'rgba(43,39,65,0.5)']}
           style={StyleSheet.absoluteFill}
         />
       </BlurView>
       {sheen ? (
         <LinearGradient
-          colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0)']}
+          colors={['rgba(233,233,237,0.14)', 'rgba(233,233,237,0)']}
           style={styles.sheen}
           pointerEvents="none"
         />
       ) : null}
       {edgeGlow ? (
         <LinearGradient
-          colors={['rgba(255,45,123,0.16)', 'rgba(0,229,255,0.1)']}
+          colors={['rgba(145,132,217,0.12)', 'rgba(145,132,217,0.05)']}
           start={{ x: 0, y: 1 }}
           end={{ x: 1, y: 1 }}
           style={styles.bottomRim}
@@ -85,8 +85,8 @@ export function GlassSurface({
 const styles = StyleSheet.create({
   border: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    borderTopColor: 'rgba(255,255,255,0.38)',
+    borderColor: 'rgba(233,233,237,0.1)',
+    borderTopColor: 'rgba(233,233,237,0.14)',
   },
   sheen: {
     position: 'absolute',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   Platform,
@@ -11,6 +11,7 @@ import {
   View,
   type StyleProp,
   type TextInputProps,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,10 +24,10 @@ import { useTranslation } from 'react-i18next';
 
 const theme = Colors.dark;
 
-/** Subtle white ripple that reads on any surface color used across buttons/cards/chips. */
-const RIPPLE = { color: 'rgba(255,255,255,0.16)' };
-
 const techplaceCat = require('../assets/images/brand/techplace-cat.png');
+
+/** mix-blend-mode: lighten — the cat PNG's dark ground disappears into the app ground (web only). */
+const lightenStyle = Platform.OS === 'web' ? ({ mixBlendMode: 'lighten' } as any) : undefined;
 
 /** Desktop web breakpoint — site chrome + constrained page columns. */
 export const DESKTOP_WEB_MIN_WIDTH = 900;
@@ -141,7 +142,7 @@ export function PageHeader({
             <Text
               style={{
                 color: theme.tint,
-                fontWeight: '800',
+                fontWeight: '500',
                 fontSize: 14,
                 fontFamily: FontFamily.display,
               }}>
@@ -175,7 +176,7 @@ export function BrandMark({
       <View style={[styles.brandBlock, styles.brandHeroBlock]}>
         <Image
           source={techplaceCat}
-          style={styles.brandCatHero}
+          style={[styles.brandCatHero, lightenStyle]}
           resizeMode="contain"
           accessibilityLabel="Hueso Time"
         />
@@ -191,7 +192,7 @@ export function BrandMark({
       <View style={styles.brandRow}>
         <Image
           source={techplaceCat}
-          style={styles.brandBadgeImg}
+          style={[styles.brandBadgeImg, lightenStyle]}
           resizeMode="contain"
           accessibilityLabel="Hueso Time"
         />
@@ -226,13 +227,6 @@ export function Card({
         },
         style,
       ]}>
-      <LinearGradient
-        colors={['rgba(255,45,123,0.12)', 'rgba(0,229,255,0.06)', 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.cardSheen, { pointerEvents: 'none' }]}
-      />
-      <View style={styles.cardFret} />
       {children}
     </View>
   );
@@ -242,8 +236,11 @@ export function Card({
   return (
     <Pressable
       onPress={onPress}
-      android_ripple={{ color: 'rgba(255,255,255,0.08)' }}
-      style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+      android_ripple={{ color: 'rgba(233, 233, 237, 0.06)' }}
+      style={({ pressed, hovered }: any) => [
+        { opacity: pressed ? 0.92 : 1 },
+        hovered ? { borderColor: theme.borderStrong } : null,
+      ]}>
       {body}
     </Pressable>
   );
@@ -289,48 +286,96 @@ export function Body({
   );
 }
 
-export function Field({ label, ...props }: { label: string } & TextInputProps) {
+/** Small uppercase section label — kicker, 10/600/0.14em. */
+export function Kicker({ children, style }: { children: React.ReactNode; style?: StyleProp<TextStyle> }) {
+  return <Text style={[styles.kicker, style]}>{children}</Text>;
+}
+
+/** Horizontal rule that fades out at both ends instead of a hard line edge to edge. */
+export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
   return (
-    <View style={styles.field}>
+    <LinearGradient
+      colors={[
+        'transparent',
+        'rgba(233, 233, 237, 0.14)',
+        'rgba(233, 233, 237, 0.14)',
+        'transparent',
+      ]}
+      locations={[0, 0.12, 0.88, 1]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={[styles.divider, style]}
+    />
+  );
+}
+
+export function Field({
+  label,
+  style,
+  ...props
+}: { label: string; style?: StyleProp<ViewStyle> } & TextInputProps) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <View style={[styles.field, style]}>
       <Text style={[styles.label, { fontFamily: FontFamily.display }]}>{label}</Text>
       <TextInput
-        placeholderTextColor={theme.textMuted}
-        style={styles.input}
+        placeholderTextColor={theme.textFaint}
+        style={[styles.input, { borderColor: focused ? theme.tint : theme.border }]}
+        onFocus={(e) => {
+          setFocused(true);
+          props.onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          props.onBlur?.(e);
+        }}
         {...props}
       />
     </View>
   );
 }
 
+/**
+ * Outlined primary action — border + tint text, transparent ground with a soft glow
+ * rising from the bottom. Never a solid fill: that's the one Nocturne rule every button
+ * in this app follows.
+ */
 export function PrimaryButton({
   label,
   onPress,
   disabled,
-  icon = '♫',
+  icon,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
-  /** Leading glyph — swap for the action (e.g. 🎲 for "generate random"). */
+  /** Optional leading glyph. */
   icon?: string;
 }) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      android_ripple={disabled ? undefined : RIPPLE}
+      android_ripple={disabled ? undefined : { color: theme.tintSoft }}
       style={({ pressed }) => [
-        styles.primaryBtnWrap,
-        { opacity: disabled ? 0.45 : pressed ? 0.9 : 1 },
+        styles.primaryBtn,
+        {
+          borderColor: theme.tint,
+          backgroundColor: pressed ? theme.tintFaint : 'transparent',
+          opacity: disabled ? 0.45 : 1,
+        },
       ]}>
       <LinearGradient
-        colors={[theme.tint, theme.purple, theme.accent]}
-        locations={[0, 0.55, 1]}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={styles.primaryBtn}>
-        <Text style={styles.primaryBtnText}>{icon}  {label}</Text>
-      </LinearGradient>
+        pointerEvents="none"
+        colors={['transparent', 'rgba(145, 132, 217, 0.16)']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <Text style={styles.primaryBtnText}>
+        {icon ? `${icon}  ` : ''}
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -347,22 +392,21 @@ export function GhostButton({
   return (
     <Pressable
       onPress={onPress}
-      android_ripple={{ color: danger ? theme.tintSoft : 'rgba(255,255,255,0.12)' }}
+      android_ripple={{ color: danger ? theme.tintSoft : 'rgba(233, 233, 237, 0.09)' }}
       style={({ pressed }) => [
         styles.ghostBtn,
         {
-          borderColor: danger ? theme.tint : theme.borderStrong,
           backgroundColor: pressed
             ? danger
-              ? theme.tintSoft
-              : theme.surfaceElevated
+              ? theme.tintFaint
+              : 'rgba(233, 233, 237, 0.07)'
             : 'transparent',
         },
       ]}>
       <Text
         style={{
-          color: danger ? theme.tint : theme.text,
-          fontWeight: '700',
+          color: danger ? theme.accentText : 'rgba(233, 233, 237, 0.7)',
+          fontWeight: '500',
           fontFamily: FontFamily.display,
         }}>
         {label}
@@ -375,10 +419,13 @@ export function Chip({
   label,
   selected,
   onPress,
+  outlined,
 }: {
   label: string;
   selected?: boolean;
   onPress?: () => void;
+  /** Outlined variant: tint border, transparent ground, tint text — for filter pickers. */
+  outlined?: boolean;
 }) {
   return (
     <Pressable
@@ -386,18 +433,26 @@ export function Chip({
       android_ripple={{ color: theme.tintSoft }}
       style={[
         styles.chip,
-        {
-          borderColor: selected ? theme.tint : theme.border,
-          backgroundColor: selected ? theme.tintSoft : theme.surfaceElevated,
-        },
+        outlined
+          ? {
+              borderWidth: 1,
+              borderColor: theme.tint,
+              backgroundColor: 'transparent',
+            }
+          : {
+              borderWidth: 0,
+              backgroundColor: selected ? theme.surfaceAccent : theme.surfaceElevated,
+            },
       ]}>
       <Text
         style={{
-          color: selected ? theme.tint : theme.textMuted,
-          fontWeight: '700',
-          fontSize: 13,
+          color: outlined ? theme.tint : selected ? theme.accent : 'rgba(233, 233, 237, 0.7)',
+          fontWeight: '400',
+          fontSize: 11,
+          letterSpacing: 0.02,
           fontFamily: FontFamily.display,
-        }}>
+        }}
+        numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -409,21 +464,126 @@ export function MetaPill({ label, accent }: { label: string; accent?: boolean })
     <View
       style={[
         styles.meta,
-        {
-          backgroundColor: accent ? theme.accentSoft : theme.backgroundAlt,
-          borderColor: accent ? theme.accent : theme.border,
-        },
+        { backgroundColor: accent ? theme.surfaceAccent : theme.surfaceElevated },
       ]}>
       <Text
         style={{
-          color: accent ? theme.accent : theme.textMuted,
-          fontSize: 12,
-          fontWeight: '700',
+          color: accent ? theme.accent : 'rgba(233, 233, 237, 0.7)',
+          fontSize: 11,
+          fontWeight: '400',
           fontFamily: FontFamily.display,
-        }}>
+        }}
+        numberOfLines={1}>
         {label}
       </Text>
     </View>
+  );
+}
+
+/**
+ * Segmented control — bordered container, options divided by a hairline, the active one
+ * ringed in tint (approximating the web spec's `inset 0 0 0 1px accent`).
+ */
+export function Segmented<T extends string>({
+  options,
+  labels,
+  value,
+  onChange,
+}: {
+  options: readonly T[];
+  labels: Record<T, string>;
+  value: T;
+  onChange: (next: T) => void;
+}) {
+  return (
+    <View style={[styles.segmented, { borderColor: theme.border }]}>
+      {options.map((opt, i) => {
+        const active = opt === value;
+        return (
+          <Pressable
+            key={opt}
+            onPress={() => onChange(opt)}
+            style={[
+              styles.segment,
+              i > 0 && { borderLeftWidth: 1, borderLeftColor: theme.border },
+              active && { borderWidth: 1, borderColor: theme.tint, margin: -1 },
+            ]}>
+            <Text
+              style={{
+                color: active ? theme.tint : theme.textMuted,
+                fontSize: 13,
+                fontFamily: FontFamily.display,
+              }}
+              numberOfLines={1}>
+              {labels[opt]}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Groups ListRow children into one bordered, radius-8 block with 1px separators. */
+export function ListGroup({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.listGroup, style]}>{children}</View>;
+}
+
+/**
+ * Settings-style grouped row: accent icon, muted label, value on the right, chevron.
+ * `last` removes the bottom hairline (use on the final row of a ListGroup).
+ */
+export function ListRow({
+  icon,
+  label,
+  value,
+  onPress,
+  last,
+  danger,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value?: React.ReactNode;
+  onPress?: () => void;
+  last?: boolean;
+  danger?: boolean;
+}) {
+  const content = (
+    <View
+      style={[
+        styles.listRow,
+        { backgroundColor: theme.surface },
+        !last && { borderBottomWidth: 1, borderBottomColor: theme.divider },
+      ]}>
+      {icon}
+      <Text
+        style={[
+          styles.listRowLabel,
+          { color: danger ? theme.accentText : theme.textMuted },
+        ]}
+        numberOfLines={1}>
+        {label}
+      </Text>
+      {typeof value === 'string' ? (
+        <Text style={styles.listRowValue} numberOfLines={1}>
+          {value}
+        </Text>
+      ) : (
+        value
+      )}
+      {onPress ? (
+        <Text style={{ color: theme.textFaint }}>›</Text>
+      ) : null}
+    </View>
+  );
+
+  if (!onPress) return content;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [pressed && { backgroundColor: theme.surfaceElevated }]}>
+      {content}
+    </Pressable>
   );
 }
 
@@ -432,17 +592,12 @@ export function Fab({ onPress }: { onPress: () => void }) {
     <Pressable
       onPress={onPress}
       hitSlop={8}
-      android_ripple={{ color: 'rgba(255,255,255,0.2)', borderless: true, radius: 28 }}
-      style={({ pressed }) => [styles.fabHit, { opacity: pressed ? 0.9 : 1 }]}>
-      <View style={styles.fabWrap}>
-        <LinearGradient
-          colors={[theme.tint, theme.accent]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fab}>
-          <Text style={styles.fabText}>+</Text>
-        </LinearGradient>
-      </View>
+      android_ripple={{ color: theme.tintSoft }}
+      style={({ pressed }) => [
+        styles.fab,
+        { borderColor: theme.tint, backgroundColor: pressed ? theme.tintFaint : 'transparent' },
+      ]}>
+      <Text style={styles.fabText}>+</Text>
     </Pressable>
   );
 }
@@ -471,7 +626,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   pageHeader: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 22,
     paddingTop: 8,
     paddingBottom: 8,
     flexDirection: 'row',
@@ -503,21 +658,21 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   brandBadgeImg: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     backgroundColor: 'transparent',
   },
   brandCatHero: {
-    width: 112,
-    height: 112,
+    width: 104,
+    height: 104,
     alignSelf: 'center',
     marginBottom: 12,
     backgroundColor: 'transparent',
   },
   brandProduct: {
     color: theme.text,
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '500',
     letterSpacing: -0.4,
     textAlign: 'center',
     fontFamily: FontFamily.display,
@@ -525,15 +680,15 @@ const styles = StyleSheet.create({
   brandName: {
     color: theme.text,
     fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1.6,
+    fontWeight: '600',
+    letterSpacing: 1.1,
     textTransform: 'uppercase',
     fontFamily: FontFamily.display,
   },
   brandTag: {
     color: theme.accent,
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '600',
     letterSpacing: 1.2,
     marginTop: 2,
     textAlign: 'center',
@@ -549,136 +704,141 @@ const styles = StyleSheet.create({
   brandSubLeft: { textAlign: 'left' },
   card: {
     borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
-    paddingLeft: 20,
+    borderRadius: 8,
+    padding: 14,
     marginBottom: 12,
     overflow: 'hidden',
   },
-  cardSheen: {
-    ...StyleSheet.absoluteFill,
-  },
-  cardFret: {
-    position: 'absolute',
-    left: 0,
-    top: 12,
-    bottom: 12,
-    width: 3,
-    borderRadius: 2,
-    backgroundColor: theme.tint,
-    opacity: 0.85,
-  },
   title: {
     color: theme.text,
-    fontSize: 30,
-    fontWeight: '800',
-    letterSpacing: -0.8,
+    fontSize: 27,
+    fontWeight: '500',
+    letterSpacing: -0.02 * 27,
     flexShrink: 1,
     width: '100%',
     fontFamily: FontFamily.display,
   },
   subtitle: {
     color: theme.textMuted,
-    fontSize: 15,
+    fontSize: 13,
     marginTop: 6,
     marginBottom: 18,
-    lineHeight: 21,
+    lineHeight: 19,
     flexShrink: 1,
     width: '100%',
   },
-  body: { fontSize: 15, lineHeight: 21, width: '100%' },
+  body: { fontSize: 13, lineHeight: 21, width: '100%' },
+  kicker: {
+    color: theme.textFaint,
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  divider: { height: 1, width: '100%' },
   field: { marginBottom: 12 },
   label: {
     color: theme.textMuted,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '500',
     marginBottom: 7,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     fontFamily: FontFamily.display,
   },
   input: {
+    minHeight: 36,
     borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    fontSize: 16,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 15,
     color: theme.text,
-    borderColor: theme.border,
-    backgroundColor: theme.surfaceElevated,
-  },
-  primaryBtnWrap: {
-    borderRadius: 14,
-    overflow: 'hidden',
+    backgroundColor: theme.surface,
   },
   primaryBtn: {
-    borderRadius: 14,
-    paddingVertical: 14,
+    minHeight: 46,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   primaryBtnText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 16,
-    letterSpacing: 0.2,
+    color: theme.tint,
+    fontWeight: '500',
+    fontSize: 15,
+    letterSpacing: 0.1,
     fontFamily: FontFamily.display,
   },
   ghostBtn: {
-    borderWidth: 1,
-    borderRadius: 14,
+    minHeight: 44,
+    borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 14,
     overflow: 'hidden',
   },
   chip: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 13,
-    paddingVertical: 8,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     marginRight: 8,
     marginBottom: 8,
     flexShrink: 1,
     overflow: 'hidden',
   },
   meta: {
-    borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 3,
     marginRight: 6,
     marginTop: 6,
   },
-  fabHit: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  segmented: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: 'transparent',
-    marginLeft: 4,
   },
-  fabWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  segment: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+  },
+  listGroup: {
+    borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: 'transparent',
+    gap: 0,
   },
+  listRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    minHeight: 44,
+  },
+  listRowLabel: { fontSize: 13, flex: 1 },
+  listRowValue: { color: theme.text, fontSize: 13, fontWeight: '500' },
   fab: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    overflow: 'hidden',
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   fabText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: '600',
-    lineHeight: 30,
+    color: theme.tint,
+    fontSize: 22,
+    fontWeight: '500',
+    lineHeight: 24,
     includeFontPadding: false,
     textAlign: 'center',
-    marginTop: -1,
   },
 });

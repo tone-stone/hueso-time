@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import type { AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
@@ -9,13 +9,13 @@ import { useTranslation } from 'react-i18next';
 import {
   Body,
   BrandMark,
+  Divider,
   GhostButton,
   PrimaryButton,
   Screen,
-  Subtitle,
-  Title,
   useThemeColors,
 } from '@/components/ui';
+import { FontFamily } from '@/constants/Fonts';
 import { useAuth } from '@/context/AuthContext';
 import { getGoogleClientConfig, isAuthSkipped } from '@/lib/googleAuth';
 import { getGoogleBrowserRedirectUri } from '@/lib/googleRedirect';
@@ -172,16 +172,23 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
   }
 
   if (ready && canAccessApp) {
-    return <Redirect href="/(tabs)/setlists" />;
+    return <Redirect href="/(tabs)/generate" />;
   }
 
   return (
     <Screen>
       <View style={styles.stage}>
         <View style={[styles.panel, Platform.OS === 'web' && styles.panelWeb]}>
-          <BrandMark subtitle={t('auth.tagline')} size="hero" showWave={false} />
-          <Title align="center">{t('auth.title')}</Title>
-          <Subtitle align="center">{t('auth.subtitle')}</Subtitle>
+          <View style={styles.glowWrap} pointerEvents="none">
+            <View style={[styles.glowRing, styles.glowOuter, { backgroundColor: c.tintFaint }]} />
+            <View style={[styles.glowRing, styles.glowMid, { backgroundColor: c.tintGlow }]} />
+            <View style={[styles.glowRing, styles.glowInner, { backgroundColor: c.tintSoft }]} />
+          </View>
+
+          <BrandMark size="hero" showWave={false} />
+
+          <Text style={[styles.headline, { color: c.text }]}>{t('auth.heroTitle')}</Text>
+          <Text style={[styles.heroBody, { color: c.textMuted }]}>{t('auth.subtitle')}</Text>
 
           {!platformConfigured ? (
             <View style={[styles.banner, { borderColor: c.border, backgroundColor: c.surface }]}>
@@ -209,11 +216,18 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
               )}
             </View>
           )}
+
+          <View style={styles.footer}>
+            <Divider />
+            <Text style={[styles.footerText, { color: c.textFaint }]}>{t('auth.footerLinks')}</Text>
+          </View>
         </View>
       </View>
     </Screen>
   );
 }
+
+const GLOW_SIZE = 420;
 
 const styles = StyleSheet.create({
   stage: {
@@ -237,6 +251,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 36,
   },
+  glowWrap: {
+    position: 'absolute',
+    top: -140,
+    left: '50%',
+    marginLeft: -GLOW_SIZE / 2,
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glowRing: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  glowOuter: {
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
+  },
+  glowMid: {
+    width: GLOW_SIZE * 0.62,
+    height: GLOW_SIZE * 0.62,
+  },
+  glowInner: {
+    width: GLOW_SIZE * 0.33,
+    height: GLOW_SIZE * 0.33,
+  },
+  headline: {
+    marginTop: 14,
+    fontSize: 31,
+    fontWeight: '500',
+    letterSpacing: -0.81,
+    lineHeight: 36,
+    textAlign: 'center',
+    fontFamily: FontFamily.display,
+  },
+  heroBody: {
+    marginTop: 10,
+    maxWidth: 280,
+    fontSize: 14,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
   banner: {
     marginTop: 16,
     borderWidth: 1,
@@ -249,5 +305,14 @@ const styles = StyleSheet.create({
     gap: 12,
     width: '100%',
     alignItems: 'stretch',
+  },
+  footer: {
+    marginTop: 26,
+    width: '100%',
+    alignItems: 'center',
+    gap: 10,
+  },
+  footerText: {
+    fontSize: 11.5,
   },
 });

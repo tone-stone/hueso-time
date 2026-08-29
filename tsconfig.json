@@ -19,6 +19,7 @@
     "node_modules",
     "ios",
     "android",
+    "design_handoff_hueso_time_redesign",
     "**/*.test.ts",
     "vitest.config.mts"
   ]

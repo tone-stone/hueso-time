@@ -1,7 +1,6 @@
 import { Image, Platform, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { usePathname, useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import Colors from '@/constants/Colors';
 import { FontFamily } from '@/constants/Fonts';
@@ -10,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const c = Colors.dark;
 const cat = require('../assets/images/brand/techplace-cat.png');
+const lightenStyle = Platform.OS === 'web' ? ({ mixBlendMode: 'lighten' } as any) : undefined;
 
 /** Floating-bar total footprint (outer margin + card) — RootLayoutNav pads content by this so it isn't hidden underneath. */
 export const WEB_NAV_HEIGHT = 100;
@@ -18,7 +18,8 @@ const NAV_OUTER_PAD = 16;
 /** react-native-web-only CSS passthrough; RN's ViewStyle type doesn't list it. */
 const fixedPosition = { position: 'fixed' } as unknown as ViewStyle;
 
-const LINKS: { href: Href; key: 'setlists' | 'repertoire' | 'settings' }[] = [
+const LINKS: { href: Href; key: 'generate' | 'setlists' | 'repertoire' | 'settings' }[] = [
+  { href: '/generate', key: 'generate' },
   { href: '/setlists', key: 'setlists' },
   { href: '/', key: 'repertoire' },
   { href: '/settings', key: 'settings' },
@@ -35,9 +36,11 @@ function isPrimaryTab(pathname: string) {
   return (
     pathname === '/' ||
     pathname === '/index' ||
+    pathname === '/generate' ||
     pathname === '/setlists' ||
     pathname === '/settings' ||
     pathname === '/(tabs)' ||
+    pathname === '/(tabs)/generate' ||
     pathname === '/(tabs)/setlists' ||
     pathname === '/(tabs)/settings' ||
     pathname === '/(tabs)/index'
@@ -59,7 +62,7 @@ export function WebTopNav() {
       router.back();
       return;
     }
-    router.replace('/setlists');
+    router.replace('/generate');
   }
 
   async function onSignOut() {
@@ -73,7 +76,7 @@ export function WebTopNav() {
 
   return (
     <View style={[styles.floatOuter, fixedPosition]} pointerEvents="box-none">
-      <GlassSurface radius={24} intensity={90} style={styles.shell}>
+      <GlassSurface radius={12} intensity={90} style={styles.shell}>
         <View style={styles.inner}>
           <View style={styles.left}>
             {showBack ? (
@@ -88,13 +91,18 @@ export function WebTopNav() {
             ) : null}
 
             <Pressable
-              onPress={() => router.push('/setlists')}
+              onPress={() => router.push('/generate')}
               style={styles.brand}
               accessibilityRole="link">
-              <Image source={cat} style={styles.mark} resizeMode="contain" accessibilityLabel="Hueso Time" />
+              <Image
+                source={cat}
+                style={[styles.mark, lightenStyle]}
+                resizeMode="contain"
+                accessibilityLabel="Hueso Time"
+              />
               <View>
                 <Text style={styles.brandName}>Hueso Time</Text>
-                <Text style={styles.brandTag}>SETLIST · STAGE · COVERS</Text>
+                <Text style={styles.brandTag}>HUESO TIME</Text>
               </View>
             </Pressable>
           </View>
@@ -115,26 +123,17 @@ export function WebTopNav() {
                     pressed && !focused && styles.linkHover,
                   ]}>
                   <Text style={[styles.linkText, focused && styles.linkTextActive]}>{label}</Text>
-                  {focused ? (
-                    <LinearGradient
-                      colors={[c.tint, c.accent]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.underline}
-                    />
-                  ) : null}
+                  {focused ? <View style={styles.underline} /> : null}
                 </Pressable>
               );
             })}
 
+            <View style={styles.separator} />
+
             <Pressable
               onPress={() => void onSignOut()}
               accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.link,
-                styles.signOutLink,
-                pressed && styles.linkHover,
-              ]}>
+              style={({ pressed }) => [styles.link, pressed && styles.linkHover]}>
               <Text style={styles.signOutText}>{t('auth.signOut')}</Text>
             </Pressable>
           </View>
@@ -199,8 +198,8 @@ const styles = StyleSheet.create({
     maxWidth: 1100,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -219,19 +218,19 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: c.border,
   },
   backArrow: {
     color: c.tint,
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '500',
   },
   backText: {
     color: c.text,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
     fontFamily: FontFamily.display,
   },
   brand: {
@@ -241,50 +240,49 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   mark: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     backgroundColor: 'transparent',
   },
   brandName: {
     color: c.text,
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 1.4,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 1.1,
     textTransform: 'uppercase',
     fontFamily: FontFamily.display,
   },
   brandTag: {
     color: c.accent,
     fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.1,
+    fontWeight: '600',
+    letterSpacing: 1.2,
     marginTop: 2,
     fontFamily: FontFamily.display,
   },
   links: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
   },
   link: {
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 8,
     position: 'relative',
   },
   linkHover: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(233, 233, 237, 0.05)',
   },
   linkActive: {
-    backgroundColor: 'rgba(255,45,123,0.12)',
+    backgroundColor: 'rgba(145, 132, 217, 0.18)',
   },
   linkText: {
     color: c.tabIconDefault,
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontSize: 13.5,
+    fontWeight: '500',
     fontFamily: FontFamily.display,
   },
   linkTextActive: {
@@ -297,16 +295,18 @@ const styles = StyleSheet.create({
     bottom: 4,
     height: 2,
     borderRadius: 1,
+    backgroundColor: c.tint,
   },
-  signOutLink: {
-    marginLeft: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,45,123,0.35)',
+  separator: {
+    width: 1,
+    height: 20,
+    backgroundColor: c.border,
+    marginHorizontal: 6,
   },
   signOutText: {
     color: c.tint,
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '500',
     fontFamily: FontFamily.display,
   },
   pageBack: {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   },
   pageBackText: {
     color: c.tint,
-    fontWeight: '800',
+    fontWeight: '500',
     fontSize: 14,
   },
 });
@@ -332,15 +332,15 @@ export function WebFooter() {
 const footerStyles = StyleSheet.create({
   shell: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,45,123,0.22)',
+    borderTopColor: c.border,
     paddingVertical: 14,
     paddingHorizontal: 28,
-    backgroundColor: 'rgba(10,10,20,0.92)',
+    backgroundColor: c.backgroundSheet,
   },
   text: {
     color: c.tabIconDefault,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.6,
     textAlign: 'center',
     textTransform: 'uppercase',

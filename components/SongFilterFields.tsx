@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Body, Chip, Field, useThemeColors } from '@/components/ui';
 import { GENRES, MUSICAL_KEYS } from '@/constants/Colors';
+import { FontFamily } from '@/constants/Fonts';
 import { searchArtists } from '@/lib/musicSearch';
 import { emptyFilters, uniqueArtists } from '@/lib/randomSets';
 import type { Genre, MusicalKey, Song, SongFilters } from '@/types/models';
@@ -214,7 +215,7 @@ export function SongFilterFields({
           <Chip
             key={p.id}
             label={t(p.labelKey)}
-            selected={bpmPreset === p.id}
+            outlined={bpmPreset === p.id}
             onPress={() => {
               setBpmPreset(p.id);
               applyBpm(p.id, customMin, customMax);
@@ -223,7 +224,7 @@ export function SongFilterFields({
         ))}
         <Chip
           label={t('generate.bpmCustom')}
-          selected={bpmPreset === 'custom'}
+          outlined={bpmPreset === 'custom'}
           onPress={() => {
             setBpmPreset('custom');
             applyBpm('custom', customMin, customMax);
@@ -286,11 +287,12 @@ export function isEmptyFilters(filters: SongFilters): boolean {
 
 const styles = StyleSheet.create({
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: FontFamily.display,
     marginBottom: 8,
     marginTop: 10,
-    letterSpacing: 0.8,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },

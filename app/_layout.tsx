@@ -104,7 +104,7 @@ function RootLayoutNav() {
       return;
     }
     if (canAccessApp && onLogin) {
-      router.replace('/(tabs)/setlists');
+      router.replace('/(tabs)/generate');
     }
   }, [ready, canAccessApp, onLogin, onOAuth, router]);
 

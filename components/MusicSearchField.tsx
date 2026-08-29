@@ -9,7 +9,10 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { SymbolView } from 'expo-symbols';
+
 import { Body, Field, useThemeColors } from '@/components/ui';
+import { FontFamily } from '@/constants/Fonts';
 import { formatDuration } from '@/lib/id';
 import {
   mapGenreHint,
@@ -17,6 +20,8 @@ import {
   type MusicSearchHit,
 } from '@/lib/musicSearch';
 import type { Genre } from '@/types/models';
+
+const MUSIC_NOTE_ICON = { ios: 'music.note', android: 'music_note', web: 'music_note' } as const;
 
 export type MusicSearchSelection = {
   title: string;
@@ -97,13 +102,13 @@ export function MusicSearchField({
       />
       {busy ? <ActivityIndicator color={c.tint} style={{ marginVertical: 8 }} /> : null}
       {source !== 'none' && results.length > 0 ? (
-        <Text style={{ color: c.textMuted, fontSize: 12, marginBottom: 6 }}>
+        <Text style={[styles.sourceLabel, { color: c.textFaint }]}>
           {t('musicSearch.source', { source: source === 'spotify' ? 'Spotify' : 'iTunes' })}
         </Text>
       ) : null}
       {error ? <Body muted>{error}</Body> : null}
 
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: 6 }}>
         {results.map((hit) => (
           <Pressable
             key={hit.id}
@@ -121,20 +126,24 @@ export function MusicSearchField({
               setResults([]);
               setError(null);
             }}
-            style={[
+            style={({ pressed, hovered }: any) => [
               styles.hit,
               { borderColor: c.border, backgroundColor: c.surfaceElevated },
+              hovered && { backgroundColor: 'rgba(233, 233, 237, 0.05)' },
+              pressed && { backgroundColor: c.surface },
             ]}>
-            {hit.imageUrl ? (
-              <Image source={{ uri: hit.imageUrl }} style={styles.art} />
-            ) : (
-              <View style={[styles.art, { backgroundColor: c.tintSoft }]} />
-            )}
+            <View style={[styles.art, { backgroundColor: c.surfaceElevated }]}>
+              {hit.imageUrl ? (
+                <Image source={{ uri: hit.imageUrl }} style={styles.artImg} />
+              ) : (
+                <SymbolView name={MUSIC_NOTE_ICON} size={15} tintColor={c.textFaint} />
+              )}
+            </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={{ color: c.text, fontWeight: '700' }} numberOfLines={1}>
+              <Text style={[styles.hitTitle, { color: c.text }]} numberOfLines={1}>
                 {hit.title}
               </Text>
-              <Text style={{ color: c.textMuted, marginTop: 2 }} numberOfLines={1}>
+              <Text style={[styles.hitMeta, { color: c.textMuted }]} numberOfLines={1}>
                 {hit.artist} · {formatDuration(hit.durationSec)}
               </Text>
             </View>
@@ -148,17 +157,24 @@ export function MusicSearchField({
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 8, gap: 4 },
+  sourceLabel: { fontSize: 11, marginBottom: 6, fontFamily: FontFamily.display },
   hit: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 8,
   },
   art: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
+    width: 42,
+    height: 42,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
+  artImg: { width: 42, height: 42 },
+  hitTitle: { fontSize: 14, fontWeight: '500' },
+  hitMeta: { fontSize: 11.5, marginTop: 2, fontFamily: FontFamily.display },
 });

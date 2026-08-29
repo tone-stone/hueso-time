@@ -7,7 +7,8 @@ import DraggableFlatList, {
   type RenderItemParams,
 } from 'react-native-draggable-flatlist';
 
-import { Body, Card, MetaPill, useThemeColors } from '@/components/ui';
+import { Body, Card, Kicker, MetaPill, useThemeColors } from '@/components/ui';
+import { FontFamily } from '@/constants/Fonts';
 import { formatDuration } from '@/lib/id';
 import { setDurationSec } from '@/lib/setMath';
 import type { SetBlock, SetSongRef, Song } from '@/types/models';
@@ -61,6 +62,8 @@ export function SetsTables({
   const c = useThemeColors();
   const canEdit = !showMode && !!(onRemoveSong || onChangeSong || onReorderSongs);
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  /** Which set block currently has a row lifted for reorder — dims its siblings. */
+  const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
 
   useEffect(() => {
     setOpen((prev) => {
@@ -85,8 +88,10 @@ export function SetsTables({
         const dur = setDurationSec(block, songsById);
         const targetSec = block.targetMinutes * 60;
         const over = dur > targetSec;
+        const progress = targetSec > 0 ? Math.min(1, dur / targetSec) : 0;
         const expanded = open[block.id] ?? defaultExpanded;
         const rows = toRows(block.songs, songsById);
+        const isDraggingHere = draggingBlockId === block.id;
 
         return (
           <Card key={block.id} index={index} style={{ marginBottom: 0 }}>
@@ -97,24 +102,44 @@ export function SetsTables({
               }}
               style={styles.headPress}>
               <View style={styles.headTop}>
-                <Text style={[styles.setTitle, { color: c.text }]}>
+                <Kicker style={{ color: c.accent }}>
                   {block.name || t('setlists.setLabel', { n: index + 1 })}
-                </Text>
-                {!showMode ? (
-                  <Text style={[styles.chevron, { color: c.accent }]}>
-                    {expanded ? '▾' : '▸'}
+                </Kicker>
+                <View style={styles.headRight}>
+                  <Text
+                    style={[
+                      styles.headMeta,
+                      { color: c.textMuted, fontFamily: FontFamily.display },
+                    ]}>
+                    {formatDuration(dur)} / {block.targetMinutes} {t('common.minutes')}
                   </Text>
-                ) : null}
+                  {!showMode ? (
+                    <Text style={[styles.chevron, { color: c.accent }]}>
+                      {expanded ? '▾' : '▸'}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
-              <View style={styles.pills}>
-                {!showMode ? (
-                  <MetaPill accent label={t('setlists.target', { min: block.targetMinutes })} />
-                ) : null}
-                <MetaPill label={formatDuration(dur)} />
-                <MetaPill
-                  label={`${block.songs.length} ${t('common.songs')}${!showMode && over ? ` · ${t('setlists.overTarget')}` : ''}`}
+
+              <View style={[styles.progressTrack, { backgroundColor: c.divider }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${progress * 100}%`,
+                      backgroundColor: c.tint,
+                    },
+                  ]}
                 />
               </View>
+
+              {!showMode ? (
+                <View style={styles.pills}>
+                  <MetaPill
+                    label={`${block.songs.length} ${t('common.songs')}${over ? ` · ${t('setlists.overTarget')}` : ''}`}
+                  />
+                </View>
+              ) : null}
               {!expanded && !showMode ? (
                 <Text style={{ color: c.textMuted, marginTop: 8, fontSize: 12 }}>
                   {t('setlists.tapToExpand')}
@@ -141,7 +166,9 @@ export function SetsTables({
                       scrollEnabled={false}
                       activationDistance={8}
                       containerStyle={{ width: '100%' }}
+                      onDragBegin={() => setDraggingBlockId(block.id)}
                       onDragEnd={({ data }) => {
+                        setDraggingBlockId(null);
                         if (!allowReorder) return;
                         onReorderSongs?.(
                           block.id,
@@ -150,6 +177,7 @@ export function SetsTables({
                       }}
                       renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<SongRow>) => {
                         const i = getIndex() ?? 0;
+                        const dimmed = isDraggingHere && !isActive;
                         return (
                           <ScaleDecorator>
                             <Pressable
@@ -159,13 +187,15 @@ export function SetsTables({
                               style={[
                                 styles.songRow,
                                 {
-                                  borderColor: c.border,
+                                  borderColor: isActive ? c.tint : c.border,
+                                  borderWidth: isActive ? 1 : StyleSheet.hairlineWidth,
                                   backgroundColor: isActive
-                                    ? c.tintSoft
+                                    ? c.surfaceAccent
                                     : i % 2 === 1
                                       ? c.backgroundAlt
                                       : 'transparent',
-                                  opacity: isActive ? 0.95 : 1,
+                                  opacity: dimmed ? 0.55 : 1,
+                                  transform: isActive ? [{ rotate: '-0.4deg' }] : undefined,
                                 },
                               ]}>
                               <View style={styles.songTop}>
@@ -174,8 +204,12 @@ export function SetsTables({
                                     <Text style={{ color: c.textMuted, fontSize: 16 }}>⠿</Text>
                                   </Pressable>
                                 ) : null}
-                                <Text style={[styles.songIndex, { color: c.textMuted }]}>
-                                  {i + 1}.
+                                <Text
+                                  style={[
+                                    styles.songIndex,
+                                    { color: c.textMuted, fontFamily: FontFamily.display },
+                                  ]}>
+                                  {String(i + 1).padStart(2, '0')}
                                 </Text>
                                 <View style={{ flex: 1, minWidth: 0 }}>
                                   <Text
@@ -184,63 +218,41 @@ export function SetsTables({
                                     {item.song.title}
                                   </Text>
                                   <Text
-                                    style={{ color: c.textMuted, marginTop: 2 }}
+                                    style={[styles.songSub, { color: c.textMuted }]}
                                     numberOfLines={1}>
-                                    {item.song.artist}
+                                    {item.song.artist} · {item.song.bpm} BPM · {item.song.key}
+                                    {item.song.keyMode === 'minor' ? 'm' : ''}
                                   </Text>
                                 </View>
-                              </View>
-                              <View style={styles.metaActions}>
-                                <View style={[styles.pills, { flex: 1 }]}>
-                                  <MetaPill accent label={`${item.song.bpm} BPM`} />
-                                  <MetaPill
-                                    label={`${item.song.key}${item.song.keyMode === 'minor' ? 'm' : ''}`}
-                                  />
-                                  {!showMode ? (
-                                    <MetaPill label={formatDuration(item.song.durationSec)} />
-                                  ) : null}
-                                </View>
-                                {canEdit && (onChangeSong || onRemoveSong) ? (
-                                  <View style={styles.actions}>
-                                    {onChangeSong ? (
-                                      <Pressable
-                                        onPress={() =>
-                                          onChangeSong({
-                                            setId: block.id,
-                                            songId: item.songId,
-                                          })
-                                        }
-                                        style={[styles.actionBtn, { borderColor: c.border }]}>
-                                        <Text
-                                          style={{
-                                            color: c.text,
-                                            fontWeight: '700',
-                                            fontSize: 12,
-                                          }}>
-                                          {t('setlists.changeSong')}
-                                        </Text>
-                                      </Pressable>
-                                    ) : null}
-                                    {onRemoveSong ? (
-                                      <Pressable
-                                        onPress={() =>
-                                          onRemoveSong({
-                                            setId: block.id,
-                                            songId: item.songId,
-                                          })
-                                        }
-                                        style={[styles.actionBtn, { borderColor: c.tint }]}>
-                                        <Text
-                                          style={{
-                                            color: c.tint,
-                                            fontWeight: '700',
-                                            fontSize: 12,
-                                          }}>
-                                          {t('setlists.removeFromSet')}
-                                        </Text>
-                                      </Pressable>
-                                    ) : null}
-                                  </View>
+                                {canEdit && onChangeSong ? (
+                                  <Pressable
+                                    onPress={() =>
+                                      onChangeSong({
+                                        setId: block.id,
+                                        songId: item.songId,
+                                      })
+                                    }
+                                    style={({ hovered }: any) => [
+                                      styles.iconBtn,
+                                      { borderColor: hovered ? c.tint : c.border },
+                                    ]}>
+                                    <Text style={{ color: c.tint, fontSize: 14 }}>⇄</Text>
+                                  </Pressable>
+                                ) : null}
+                                {canEdit && onRemoveSong ? (
+                                  <Pressable
+                                    onPress={() =>
+                                      onRemoveSong({
+                                        setId: block.id,
+                                        songId: item.songId,
+                                      })
+                                    }
+                                    style={({ hovered }: any) => [
+                                      styles.iconBtn,
+                                      { borderColor: hovered ? c.tint : c.border },
+                                    ]}>
+                                    <Text style={{ color: c.accentText, fontSize: 15 }}>×</Text>
+                                  </Pressable>
                                 ) : null}
                               </View>
                             </Pressable>
@@ -256,9 +268,9 @@ export function SetsTables({
                     onPress={() => onAddSong(block.id)}
                     style={[
                       styles.addBtn,
-                      { borderColor: c.tint, backgroundColor: c.tintSoft },
+                      { borderColor: c.tint, backgroundColor: c.tintFaint },
                     ]}>
-                    <Text style={{ color: c.tint, fontWeight: '800' }}>
+                    <Text style={{ color: c.tint, fontWeight: '500', fontFamily: FontFamily.display }}>
                       + {t('setlists.addSongToSet')}
                     </Text>
                   </Pressable>
@@ -278,46 +290,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  setTitle: { fontSize: 18, fontWeight: '800', flex: 1 },
-  chevron: { fontSize: 22, fontWeight: '700', marginLeft: 8 },
-  pills: { flexDirection: 'row', flexWrap: 'wrap' },
+  headRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headMeta: { fontSize: 11.5 },
+  chevron: { fontSize: 16, fontWeight: '500', marginLeft: 4 },
+  progressTrack: {
+    height: 3,
+    borderRadius: 2,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  progressFill: { height: 3, borderRadius: 2 },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   body: { marginTop: 8 },
   emptyRow: { paddingVertical: 10 },
   dragHint: { fontSize: 12, marginBottom: 8 },
   songRow: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingVertical: 10,
-    borderRadius: 10,
-    paddingHorizontal: 4,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    marginBottom: 2,
   },
   songTop: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 8,
-    marginBottom: 4,
   },
-  handle: { paddingHorizontal: 4, paddingTop: 2 },
-  songIndex: { fontSize: 13, fontWeight: '700', width: 22, marginTop: 2 },
-  songTitle: { fontSize: 15, fontWeight: '700' },
-  metaActions: { gap: 8 },
-  actions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 4,
-  },
-  actionBtn: {
+  handle: { paddingHorizontal: 4, paddingVertical: 2 },
+  songIndex: { fontSize: 12, width: 20 },
+  songTitle: { fontSize: 13.5, fontWeight: '500' },
+  songSub: { fontSize: 11.5, marginTop: 2 },
+  iconBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addBtn: {
     marginTop: 12,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
   },

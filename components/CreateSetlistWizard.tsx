@@ -16,6 +16,7 @@ import {
   useThemeColors,
 } from '@/components/ui';
 import { GENRES, MUSICAL_KEYS } from '@/constants/Colors';
+import { FontFamily } from '@/constants/Fonts';
 import {
   emptyFilters,
   filterSongs,
@@ -235,7 +236,7 @@ export function CreateSetlistWizard({
           <Chip
             key={n}
             label={`${n}`}
-            selected={setCount === n}
+            outlined={setCount === n}
             onPress={() => setSetCount(n)}
           />
         ))}
@@ -258,7 +259,7 @@ export function CreateSetlistWizard({
           <Chip
             key={n}
             label={`${n} ${t('common.minutes')}`}
-            selected={targetMinutes === n}
+            outlined={targetMinutes === n}
             onPress={() => setTargetMinutes(n)}
           />
         ))}
@@ -279,17 +280,24 @@ export function CreateSetlistWizard({
       <View style={styles.wrap}>
         <Chip
           label={t('generate.noReuse')}
-          selected={!allowReuse}
+          outlined={!allowReuse}
           onPress={() => setAllowReuse(false)}
         />
         <Chip
           label={t('generate.allowReuse')}
-          selected={allowReuse}
+          outlined={allowReuse}
           onPress={() => setAllowReuse(true)}
         />
       </View>
 
-      <Text style={{ color: c.accent, fontWeight: '700', marginTop: 10, marginBottom: 16 }}>
+      <Text
+        style={{
+          color: c.accent,
+          fontWeight: '500',
+          fontFamily: FontFamily.display,
+          marginTop: 10,
+          marginBottom: 16,
+        }}>
         {t('generate.planSummary', {
           count: setCount,
           min: targetMinutes,
@@ -384,13 +392,13 @@ export function CreateSetlistWizard({
           <Chip
             key={p.id}
             label={t(p.labelKey)}
-            selected={bpmPreset === p.id}
+            outlined={bpmPreset === p.id}
             onPress={() => setBpmPreset(p.id)}
           />
         ))}
         <Chip
           label={t('generate.bpmCustom')}
-          selected={bpmPreset === 'custom'}
+          outlined={bpmPreset === 'custom'}
           onPress={() => setBpmPreset('custom')}
         />
       </View>
@@ -500,21 +508,23 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 320,
     borderWidth: 1,
-    borderRadius: 18,
+    borderRadius: 12,
     padding: 18,
   },
   panelTitle: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '500',
+    fontFamily: FontFamily.display,
     letterSpacing: -0.3,
     marginBottom: 6,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: FontFamily.display,
     marginBottom: 8,
     marginTop: 10,
-    letterSpacing: 0.8,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },

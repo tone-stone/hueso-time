@@ -3,6 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Body, Chip, GhostButton, PrimaryButton, useThemeColors } from '@/components/ui';
+import { FontFamily } from '@/constants/Fonts';
 import { SongFilterFields } from '@/components/SongFilterFields';
 import { emptyFilters, filterSongs, generateRandomSets } from '@/lib/randomSets';
 import type { SetBlock, Song, SongFilters } from '@/types/models';
@@ -64,17 +65,24 @@ export function GenerateSetsForm({
       <View style={styles.wrap}>
         <Chip
           label={t('generate.noReuse')}
-          selected={!allowReuse}
+          outlined={!allowReuse}
           onPress={() => setAllowReuse(false)}
         />
         <Chip
           label={t('generate.allowReuse')}
-          selected={allowReuse}
+          outlined={allowReuse}
           onPress={() => setAllowReuse(true)}
         />
       </View>
 
-      <Text style={{ color: c.accent, fontWeight: '700', marginTop: 8, marginBottom: 16 }}>
+      <Text
+        style={{
+          color: c.accent,
+          fontWeight: '500',
+          fontFamily: FontFamily.display,
+          marginTop: 8,
+          marginBottom: 16,
+        }}>
         {t('generate.matched', { count: matchedCount })}
       </Text>
 
@@ -88,11 +96,12 @@ export function GenerateSetsForm({
 
 const styles = StyleSheet.create({
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: FontFamily.display,
     marginBottom: 8,
     marginTop: 10,
-    letterSpacing: 0.8,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },

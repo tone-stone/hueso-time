@@ -32,6 +32,7 @@ import {
   useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
+import { FontFamily } from '@/constants/Fonts';
 import { confirmDestructive } from '@/lib/confirm';
 import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
 import { useApp } from '@/context/AppContext';
@@ -41,6 +42,12 @@ import { setlistDurationSec } from '@/lib/setMath';
 import type { Genre, SetBlock, SongFilters } from '@/types/models';
 
 type CreateMode = 'choose' | 'manual' | null;
+
+/** Card date, right-aligned in monospace: the setlist's own date if set, else its creation date. */
+function cardDateLabel(item: { date?: string; createdAt: string }): string {
+  const raw = item.date || item.createdAt;
+  return raw.length >= 10 ? raw.slice(0, 10) : raw;
+}
 
 export default function SetlistsScreen() {
   const { t } = useTranslation();
@@ -312,9 +319,16 @@ export default function SetlistsScreen() {
                 <Card index={index} style={desktop ? styles.gridCard : undefined}>
                   <Link href={`/setlist/${item.id}`} asChild>
                     <Pressable>
-                      <Text style={[styles.name, { color: c.text }]}>{item.name}</Text>
+                      <View style={styles.nameRow}>
+                        <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <Text style={[styles.cardDate, { color: c.textMuted }]}>
+                          {cardDateLabel(item)}
+                        </Text>
+                      </View>
                       {item.venue ? (
-                        <Text style={{ color: c.textMuted, marginTop: 2 }}>{item.venue}</Text>
+                        <Text style={[styles.venue, { color: c.textMuted }]}>{item.venue}</Text>
                       ) : null}
                       <View style={styles.metaRow}>
                         <MetaPill accent label={`${item.sets.length} ${t('common.sets')}`} />
@@ -354,9 +368,16 @@ export default function SetlistsScreen() {
                   <Card key={item.id} index={index} style={styles.gridCardFixed}>
                     <Link href={`/setlist/${item.id}`} asChild>
                       <Pressable>
-                        <Text style={[styles.name, { color: c.text }]}>{item.name}</Text>
+                        <View style={styles.nameRow}>
+                          <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
+                            {item.name}
+                          </Text>
+                          <Text style={[styles.cardDate, { color: c.textMuted }]}>
+                            {cardDateLabel(item)}
+                          </Text>
+                        </View>
                         {item.venue ? (
-                          <Text style={{ color: c.textMuted, marginTop: 2 }}>{item.venue}</Text>
+                          <Text style={[styles.venue, { color: c.textMuted }]}>{item.venue}</Text>
                         ) : null}
                         <View style={styles.metaRow}>
                           <MetaPill accent label={`${item.sets.length} ${t('common.sets')}`} />
@@ -477,7 +498,8 @@ const styles = StyleSheet.create({
   },
   panelTitle: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '500',
+    fontFamily: FontFamily.display,
     letterSpacing: -0.3,
     marginBottom: 6,
   },
@@ -502,7 +524,8 @@ const styles = StyleSheet.create({
   },
   listHeading: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '500',
+    fontFamily: FontFamily.display,
     marginBottom: 12,
     letterSpacing: -0.2,
   },
@@ -525,6 +548,22 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  name: { fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '500',
+    fontFamily: FontFamily.display,
+    flexShrink: 1,
+  },
+  cardDate: {
+    fontSize: 11,
+    fontFamily: FontFamily.display,
+  },
+  venue: { fontSize: 12, marginTop: 3 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
 });

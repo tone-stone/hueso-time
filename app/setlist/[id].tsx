@@ -23,17 +23,22 @@ import {
   Body,
   Card,
   Chip,
+  Divider,
   Field,
   GhostButton,
+  ListGroup,
+  ListRow,
   PageColumn,
   PrimaryButton,
   Screen,
+  Segmented,
   Subtitle,
   Title,
   useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
 import { WebBackButton } from '@/components/WebTopNav';
+import { FontFamily } from '@/constants/Fonts';
 import { useApp } from '@/context/AppContext';
 import { confirmDestructive } from '@/lib/confirm';
 import { formatSetlistShareText } from '@/lib/exportSetlist';
@@ -47,6 +52,8 @@ type PickerMode =
   | { type: 'replace'; setId: string; songId: string }
   | null;
 
+const SHOW_MODE_OPTIONS = ['edit', 'show'] as const;
+
 export default function SetlistDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
@@ -54,7 +61,7 @@ export default function SetlistDetailScreen() {
   const desktop = useDesktopWeb();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { setlists, songs, songsById, updateSetlistSets, upsertSetlist } = useApp();
+  const { setlists, songs, songsById, updateSetlistSets, upsertSetlist, deleteSetlist } = useApp();
   const setlist = setlists.find((s) => s.id === id);
   const [picker, setPicker] = useState<PickerMode>(null);
   const [pickerQuery, setPickerQuery] = useState('');
@@ -71,7 +78,7 @@ export default function SetlistDetailScreen() {
       router.back();
       return;
     }
-    router.replace('/(tabs)/setlists');
+    router.replace('/(tabs)/generate');
   }
 
   const total = useMemo(
@@ -106,13 +113,17 @@ export default function SetlistDetailScreen() {
       <Screen>
         <View style={{ padding: 16, paddingTop: 24 }}>
           <Pressable onPress={goBack} hitSlop={12} style={{ marginBottom: 12 }}>
-            <Text style={{ color: c.tint, fontWeight: '800' }}>← {t('common.back')}</Text>
+            <Text style={{ color: c.tint, fontWeight: '500', fontFamily: FontFamily.display }}>
+              ← {t('common.back')}
+            </Text>
           </Pressable>
           <Title>{t('common.empty')}</Title>
         </View>
       </Screen>
     );
   }
+
+  const songCountTotal = setlist.sets.reduce((n, s) => n + s.songs.length, 0);
 
   async function persist(sets: SetBlock[]) {
     await updateSetlistSets(setlist!.id, sets);
@@ -231,6 +242,21 @@ export default function SetlistDetailScreen() {
     });
   }
 
+  function confirmDeleteSetlist() {
+    confirmDestructive({
+      title: t('common.confirmDelete'),
+      message: setlist!.name,
+      cancelLabel: t('common.no'),
+      confirmLabel: t('common.yes'),
+      onConfirm: () => {
+        void deleteSetlist(setlist!.id);
+        setEditOpen(false);
+        showToast(t('toast.setlistDeleted'));
+        goBack();
+      },
+    });
+  }
+
   async function applyGenerated(
     sets: SetBlock[],
     summary: { matched: number; placed: number },
@@ -273,68 +299,90 @@ export default function SetlistDetailScreen() {
       />
       <PageColumn>
         <NestableScrollContainer
+          style={{ flex: 1 }}
           contentContainerStyle={{
             padding: desktop ? 0 : 16,
             paddingTop: 12,
-            paddingBottom: 48 + insets.bottom,
+            paddingBottom: 20,
           }}>
           <WebBackButton onPress={goBack} />
-          {Platform.OS !== 'web' ? (
-            <Pressable onPress={goBack} hitSlop={12} style={styles.backRow}>
-              <Text style={{ color: c.tint, fontWeight: '800' }}>← {t('common.back')}</Text>
+          <View style={styles.headerRow}>
+            {Platform.OS !== 'web' ? (
+              <Pressable
+                onPress={goBack}
+                hitSlop={10}
+                style={[styles.iconSquare, { borderColor: c.border }]}>
+                <Text style={{ color: c.tint, fontSize: 17 }}>‹</Text>
+              </Pressable>
+            ) : null}
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                style={[styles.setlistName, { color: c.text }]}
+                numberOfLines={1}>
+                {setlist.name}
+              </Text>
+              <Text style={[styles.setlistMeta, { color: c.textMuted }]} numberOfLines={1}>
+                {songCountTotal} {t('common.songs')} · {formatMinutes(total)}
+                {setlist.venue ? ` · ${setlist.venue}` : ''}
+                {setlist.date ? ` · ${setlist.date}` : ''}
+                {setlist.genreFocus ? ` · ${t(`genres.${setlist.genreFocus}`)}` : ''}
+              </Text>
+            </View>
+            <Pressable
+              onPress={openEdit}
+              hitSlop={10}
+              style={[styles.iconSquare, { borderColor: c.border }]}>
+              <Text style={{ color: c.tint, fontSize: 15 }}>✎</Text>
             </Pressable>
-          ) : null}
-          <Title>{setlist.name}</Title>
-        <Subtitle>
-          {t('setlists.totalShow')}: {formatMinutes(total)}
-          {setlist.venue ? ` · ${setlist.venue}` : ''}
-          {setlist.date ? ` · ${setlist.date}` : ''}
-          {setlist.genreFocus ? ` · ${t(`genres.${setlist.genreFocus}`)}` : ''}
-        </Subtitle>
+            <Pressable
+              onPress={() => void shareSetlist()}
+              hitSlop={10}
+              style={[styles.iconSquare, { borderColor: c.border }]}>
+              <Text style={{ color: c.tint, fontSize: 15 }}>↗</Text>
+            </Pressable>
+          </View>
 
-        <View style={styles.modeRow}>
-          <Pressable
-            onPress={() => setShowMode(false)}
-            style={[
-              styles.modeChip,
-              {
-                borderColor: c.tint,
-                backgroundColor: c.tintSoft,
-              },
-            ]}>
-            <Text style={{ color: c.tint, fontWeight: '700' }}>{t('setlists.editMode')}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setShowMode(true)}
-            style={[styles.modeChip, { borderColor: c.border }]}>
-            <Text style={{ color: c.textMuted, fontWeight: '700' }}>{t('setlists.showMode')}</Text>
-          </Pressable>
-        </View>
+          <View style={{ marginTop: 14, marginBottom: 16, alignItems: 'flex-start' }}>
+            <Segmented
+              options={SHOW_MODE_OPTIONS}
+              labels={{ edit: t('setlists.editMode'), show: t('setlists.showMode') }}
+              value={showMode ? 'show' : 'edit'}
+              onChange={(next) => setShowMode(next === 'show')}
+            />
+          </View>
 
-        <View style={styles.actionRow}>
-          <GhostButton label={t('common.edit')} onPress={openEdit} />
-          <GhostButton label={t('setlists.share')} onPress={() => void shareSetlist()} />
-        </View>
-
-        <SetsTables
-          sets={setlist.sets}
-          songsById={songsById}
-          nestable
-          defaultExpanded={false}
-          showMode={false}
-          onRemoveSong={({ setId, songId }) => confirmRemove(setId, songId)}
-          onChangeSong={({ setId, songId }) => setPicker({ type: 'replace', setId, songId })}
-          onAddSong={(setId) => setPicker({ type: 'add', setId })}
-          onReorderSongs={(setId, songIds) => void reorderSongs(setId, songIds)}
-        />
-
-        <View style={{ marginTop: 22, gap: 10 }}>
-          <GhostButton
-            label={t('setlists.generateRandom')}
-            onPress={() => setGenerateOpen(true)}
+          <SetsTables
+            sets={setlist.sets}
+            songsById={songsById}
+            nestable
+            defaultExpanded={false}
+            showMode={false}
+            onRemoveSong={({ setId, songId }) => confirmRemove(setId, songId)}
+            onChangeSong={({ setId, songId }) => setPicker({ type: 'replace', setId, songId })}
+            onAddSong={(setId) => setPicker({ type: 'add', setId })}
+            onReorderSongs={(setId, songIds) => void reorderSongs(setId, songIds)}
           />
+        </NestableScrollContainer>
+
+        <View
+          style={[
+            styles.bottomBar,
+            {
+              borderTopColor: c.divider,
+              backgroundColor: c.background,
+              paddingBottom: 26 + insets.bottom,
+            },
+          ]}>
+          <View style={{ flex: 1 }}>
+            <GhostButton label={t('setlists.rollAgain')} onPress={() => setGenerateOpen(true)} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PrimaryButton
+              label={t('common.save')}
+              onPress={() => showToast(t('toast.setlistUpdated'))}
+            />
+          </View>
         </View>
-      </NestableScrollContainer>
       </PageColumn>
 
       <Modal visible={editOpen} animationType="slide" presentationStyle="pageSheet">
@@ -364,6 +412,18 @@ export default function SetlistDetailScreen() {
               <PrimaryButton label={t('common.save')} onPress={() => void saveMeta()} />
               <GhostButton label={t('common.cancel')} onPress={() => setEditOpen(false)} />
             </View>
+
+            <Divider style={{ marginTop: 24, marginBottom: 18 }} />
+
+            <ListGroup>
+              <ListRow
+                icon={<Text style={{ color: c.accentText, fontSize: 15 }}>🗑</Text>}
+                label={t('setlists.deleteThisSetlist')}
+                danger
+                last
+                onPress={confirmDeleteSetlist}
+              />
+            </ListGroup>
           </ScrollView>
         </Screen>
       </Modal>
@@ -413,7 +473,9 @@ export default function SetlistDetailScreen() {
                       }
                       void replaceSongInSet(picker.setId, picker.songId, song.id);
                     }}>
-                    <Text style={{ color: c.text, fontWeight: '700' }}>{song.title}</Text>
+                    <Text style={{ color: c.text, fontWeight: '500', fontFamily: FontFamily.display }}>
+                      {song.title}
+                    </Text>
                     <Text style={{ color: c.textMuted, marginTop: 2 }}>
                       {song.artist} · {song.bpm} BPM · {song.key} ·{' '}
                       {t(`genres.${song.genre}`)}
@@ -446,8 +508,7 @@ export default function SetlistDetailScreen() {
       <Modal visible={generateOpen} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
-            <Title>{t('generate.title')}</Title>
-            <Subtitle>{t('setlists.generateRandom')}</Subtitle>
+            <Title>{t('setlists.generateRandom')}</Title>
             <GenerateSetsForm
               songs={songs}
               setCount={setlist.sets.length}
@@ -464,28 +525,34 @@ export default function SetlistDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  backRow: {
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-    paddingVertical: 4,
-  },
-  modeRow: {
+  headerRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
-    marginTop: 10,
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  modeChip: {
+  iconSquare: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionRow: {
+  setlistName: {
+    fontSize: 15,
+    fontWeight: '500',
+    fontFamily: FontFamily.display,
+  },
+  setlistMeta: {
+    fontSize: 11.5,
+    marginTop: 2,
+  },
+  bottomBar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
+    gap: 10,
+    borderTopWidth: 1,
+    paddingTop: 12,
+    paddingHorizontal: 16,
   },
 });
