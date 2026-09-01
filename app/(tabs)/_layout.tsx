@@ -1,20 +1,20 @@
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Tabs } from 'expo-router';
-import { type ColorValue, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { type ColorValue, StyleSheet, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '@/components/Glass';
 import { useDesktopWeb } from '@/components/ui';
 import Colors from '@/constants/Colors';
-import { FontFamily } from '@/constants/Fonts';
 import {
   TABLET_MIN_WIDTH,
   TAB_BAR_BOTTOM_GAP,
   TAB_BAR_HEIGHT,
+  TAB_BAR_MAX_WIDTH,
   TAB_BAR_PAD,
   TAB_BAR_RADIUS,
-  tabBarPillWidth,
+  TAB_BAR_SIDE_GAP,
 } from '@/lib/tabBarLayout';
 
 const c = Colors.dark;
@@ -30,10 +30,11 @@ export const unstable_settings = {
 /**
  * Nocturne redesign — a centred floating glass pill.
  *
- * The four tabs are equal-width slots (React Navigation distributes them evenly), each an
- * icon over its label. Focus is shown by tint alone — accent icon + label vs. muted — so
- * nothing changes width and the icons stay evenly spaced. The pill's width is responsive:
- * near full-bleed on phones, capped to a pill on tablets and in landscape.
+ * React Navigation owns the icon-over-label layout and the equal-width distribution of
+ * the four tabs. The pill is positioned with `left`/`right` insets (never an explicit
+ * pixel width): on phones it is near-full-bleed, on tablets it is inset to sit centred
+ * at ~TAB_BAR_MAX_WIDTH. Letting flexbox derive the real width from those insets is what
+ * keeps the labels from truncating when `useWindowDimensions()` reports 0 on first frame.
  */
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -42,18 +43,18 @@ export default function TabLayout() {
   const { width } = useWindowDimensions();
 
   const isTablet = width >= TABLET_MIN_WIDTH;
-  const pillWidth = tabBarPillWidth(width);
-  // Centre the pill by hand: `alignSelf` does not centre a position:absolute bar.
-  const pillLeft = Math.max(0, Math.round((width - pillWidth) / 2));
-  const iconSize = isTablet ? 24 : 22;
+  // On tablets, inset each side so the pill lands centred at roughly TAB_BAR_MAX_WIDTH;
+  // Math.max keeps it sane if `width` is momentarily 0 on first render.
+  const sideInset = isTablet
+    ? Math.max(TAB_BAR_SIDE_GAP, Math.round((width - TAB_BAR_MAX_WIDTH) / 2))
+    : 10;
+  const iconSize = isTablet ? 24 : 21;
 
-  /** SF Symbol on iOS, Material Symbol on Android/web — kept centred in a fixed box. */
+  /** SF Symbol on iOS, Material Symbol on Android/web. */
   const icon =
     (name: SymbolViewProps['name']) =>
     ({ color }: { color: ColorValue }) => (
-      <View style={styles.iconBox}>
-        <SymbolView name={name} tintColor={color as string} size={iconSize} />
-      </View>
+      <SymbolView name={name} tintColor={color as string} size={iconSize} />
     );
 
   return (
@@ -66,20 +67,17 @@ export default function TabLayout() {
         tabBarActiveTintColor: c.tabIconSelected,
         tabBarInactiveTintColor: c.tabIconDefault,
         tabBarLabelStyle: [styles.label, isTablet && styles.labelTablet],
-        tabBarIconStyle: styles.iconStyle,
-        tabBarAllowFontScaling: false,
         tabBarStyle: desktopWeb
           ? { height: 0, overflow: 'hidden', borderTopWidth: 0 }
           : [
               styles.tabBar,
               {
-                width: pillWidth,
-                left: pillLeft,
+                left: sideInset,
+                right: sideInset,
                 bottom: insets.bottom + TAB_BAR_BOTTOM_GAP,
                 height: TAB_BAR_HEIGHT,
               },
             ],
-        tabBarItemStyle: styles.tabBarItem,
         tabBarBackground: desktopWeb ? undefined : () => <TabBarBg />,
       }}>
       <Tabs.Screen
@@ -117,9 +115,8 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    // Width-capped pill; `width` and `left` are set inline (responsive + hand-centred).
-    paddingTop: 8,
-    paddingBottom: 6,
+    // Positioned by `left`/`right` (set inline) — no explicit width.
+    paddingVertical: 6,
     paddingHorizontal: TAB_BAR_PAD,
     backgroundColor: 'transparent',
     borderTopWidth: 0,
@@ -132,33 +129,15 @@ const styles = StyleSheet.create({
     shadowRadius: 34,
     shadowOffset: { width: 0, height: 14 },
   },
-  tabBarItem: {
-    // Four equal slots — this is what keeps the icons evenly distributed.
-    flex: 1,
-    paddingHorizontal: 0,
-  },
-  iconStyle: {
-    // Give the icon its own row above the label; keep it from eating label space.
-    flex: 0,
-    height: 26,
-    marginTop: Platform.OS === 'ios' ? 2 : 0,
-  },
-  iconBox: {
-    width: 26,
-    height: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   label: {
-    // SpaceMono is wide; 10 keeps "Repertorio" on one line in a phone-width slot.
-    fontSize: 10,
-    fontWeight: '500',
-    letterSpacing: -0.3,
-    fontFamily: FontFamily.display,
-    marginTop: 1,
+    // System font on purpose: the display font (SpaceMono) loads async and isn't gated
+    // on, so using it here makes the first-paint labels measure narrow then reflow wide
+    // and truncate. The system font is also more legible than mono at 10px.
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0,
   },
   labelTablet: {
     fontSize: 12.5,
-    letterSpacing: -0.1,
   },
 });
