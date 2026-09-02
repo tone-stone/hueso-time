@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from '@/components/Glass';
 import { useDesktopWeb } from '@/components/ui';
 import Colors from '@/constants/Colors';
+import { FontFamily } from '@/constants/Fonts';
 import {
   TABLET_MIN_WIDTH,
   TAB_BAR_BOTTOM_GAP,
@@ -130,11 +131,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 14 },
   },
   label: {
-    // System font on purpose: the display font (SpaceMono) loads async and isn't gated
-    // on, so using it here makes the first-paint labels measure narrow then reflow wide
-    // and truncate. The system font is also more legible than mono at 10px.
+    // Poppins is proportional and ~system width, so the async font swap doesn't reflow
+    // wide enough to truncate (the old mono display font did).
+    fontFamily: FontFamily.medium,
     fontSize: 11,
-    fontWeight: '600',
     letterSpacing: 0,
   },
   labelTablet: {

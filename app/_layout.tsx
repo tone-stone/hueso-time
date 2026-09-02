@@ -5,12 +5,33 @@ import { DarkTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-ro
 import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect } from 'react';
-import { Platform, View } from 'react-native';
+import { cloneElement, isValidElement, useEffect } from 'react';
+import { Platform, Text as RNText, TextInput as RNTextInput, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '@/i18n';
+
+import { BASE_FONT } from '@/constants/Fonts';
+
+/**
+ * Give every <Text> / <TextInput> a base fontFamily so body copy and stray <Text> use
+ * the app typeface without touching every file. An explicit `fontFamily` in a component's
+ * own style still wins (it comes later in the flattened array).
+ */
+function installBaseFont(Component: { render?: (...args: unknown[]) => unknown; __baseFont?: boolean }) {
+  const orig = Component.render;
+  if (typeof orig !== 'function' || Component.__baseFont) return;
+  Component.render = function baseFontRender(...args: unknown[]) {
+    const el = orig.apply(this, args);
+    if (!isValidElement(el)) return el;
+    const style = (el.props as { style?: unknown }).style;
+    return cloneElement(el, { style: [{ fontFamily: BASE_FONT }, style] } as never);
+  };
+  Component.__baseFont = true;
+}
+installBaseFont(RNText as never);
+installBaseFont(RNTextInput as never);
 
 import { ToastHost } from '@/components/Toast';
 import { WEB_NAV_HEIGHT, WebFooter, WebTopNav } from '@/components/WebTopNav';
@@ -45,7 +66,10 @@ const navTheme = {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
+    'Poppins-Medium': require('../assets/fonts/Poppins-Medium.ttf'),
+    'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
+    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
   });
 
   useEffect(() => {
