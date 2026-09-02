@@ -12,14 +12,31 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '@/i18n';
 
+import { ToastHost } from '@/components/Toast';
+import { WEB_NAV_HEIGHT, WebFooter, WebTopNav } from '@/components/WebTopNav';
+import { useDesktopWeb } from '@/components/ui';
+import { AppProvider } from '@/context/AppContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import Colors from '@/constants/Colors';
 import { BASE_FONT } from '@/constants/Fonts';
+import { isAuthSkipped } from '@/lib/googleAuth';
+import { isOAuthRedirectRoute } from '@/lib/oauthRoute';
+
+export { ErrorBoundary } from 'expo-router';
+
+// Must run as early as possible so web OAuth popups can close themselves.
+WebBrowser.maybeCompleteAuthSession();
 
 /**
  * Give every <Text> / <TextInput> a base fontFamily so body copy and stray <Text> use
- * the app typeface without touching every file. An explicit `fontFamily` in a component's
- * own style still wins (it comes later in the flattened array).
+ * the app typeface without editing every file. An explicit `fontFamily` in a component's
+ * own style still wins (it comes after this in the flattened array). Native only — web
+ * font is handled by CSS and static rendering shouldn't be touched.
  */
-function installBaseFont(Component: { render?: (...args: unknown[]) => unknown; __baseFont?: boolean }) {
+function installBaseFont(Component: {
+  render?: (...args: unknown[]) => unknown;
+  __baseFont?: boolean;
+}) {
   const orig = Component.render;
   if (typeof orig !== 'function' || Component.__baseFont) return;
   Component.render = function baseFontRender(...args: unknown[]) {
@@ -30,22 +47,10 @@ function installBaseFont(Component: { render?: (...args: unknown[]) => unknown; 
   };
   Component.__baseFont = true;
 }
-installBaseFont(RNText as never);
-installBaseFont(RNTextInput as never);
-
-import { ToastHost } from '@/components/Toast';
-import { WEB_NAV_HEIGHT, WebFooter, WebTopNav } from '@/components/WebTopNav';
-import { useDesktopWeb } from '@/components/ui';
-import { AppProvider } from '@/context/AppContext';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
-import Colors from '@/constants/Colors';
-import { isAuthSkipped } from '@/lib/googleAuth';
-import { isOAuthRedirectRoute } from '@/lib/oauthRoute';
-
-export { ErrorBoundary } from 'expo-router';
-
-// Must run as early as possible so web OAuth popups can close themselves.
-WebBrowser.maybeCompleteAuthSession();
+if (Platform.OS !== 'web') {
+  installBaseFont(RNText as never);
+  installBaseFont(RNTextInput as never);
+}
 
 export const unstable_settings = {
   initialRouteName: isAuthSkipped() ? '(tabs)' : 'login',
