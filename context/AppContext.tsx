@@ -5,12 +5,15 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useAuth } from '@/context/AuthContext';
 import { DEFAULT_SET_COUNT, DEFAULT_SET_MINUTES } from '@/constants/defaults';
-import { apiRepository, isApiEnabled } from '@/data/apiRepository';
-import { localRepository } from '@/data/localRepository';
+import { apiRepository, isApiEnabled, ApiError } from '@/data/apiRepository';
+import { localRepository, readLocalBackup } from '@/data/localRepository';
+import { isPreloadedRepertoire } from '@/data/preloadedRepertoire';
 import type { DataRepository } from '@/data/repository';
 import { buildBarraLibreSeedSongs } from '@/data/seedBarraLibre';
 import { createId } from '@/lib/id';
@@ -28,10 +31,16 @@ import type {
   Song,
   SongFilters,
   SongInput,
+  AppData,
 } from '@/types/models';
 
 interface AppContextValue {
   ready: boolean;
+  loadError: string | null;
+  retryLoad: () => void;
+  localRecovery: { songs: number; setlists: number } | null;
+  recoverLocalData: () => Promise<void>;
+  recoverBackupText: (text: string) => Promise<void>;
   songs: Song[];
   setlists: Setlist[];
   settings: AppSettings;
@@ -62,11 +71,32 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 /** Swap this for an API repository when backend is ready. */
-const repo: DataRepository = isApiEnabled() ? apiRepository : localRepository;
+const repository: DataRepository = isApiEnabled() ? apiRepository : localRepository;
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { i18n } = useTranslation();
+  const auth = useAuth();
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retryLoad = useCallback(() => setAttempt(n => n + 1), []);
+  const loaded = useRef(false);
+  const repo = useMemo(() => new Proxy(repository, {
+    get(target, key: keyof DataRepository) {
+      return (...args: unknown[]) => {
+        if (key !== 'load' && !loaded.current) return Promise.reject(new Error('Espera a que se carguen los datos.'));
+        return (target[key] as (...args: unknown[]) => Promise<unknown>)(...args).catch(error => {
+          if (error instanceof ApiError && [401, 409, 428, 500, 503].includes(error.status)) {
+            loaded.current = false;
+            setReady(false);
+            setLoadError(error.message);
+          }
+          throw error;
+        });
+      };
+    },
+  }), []);
   const [ready, setReady] = useState(false);
+  const [localRecovery, setLocalRecovery] = useState<{ songs: number; setlists: number } | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [setlists, setSetlists] = useState<Setlist[]>([]);
   const [settings, setSettings] = useState<AppSettings>({
@@ -77,21 +107,76 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    loaded.current = false;
+    setReady(false);
+    setLoadError(null);
+    setLocalRecovery(null);
+    if (!auth.ready) return;
+    if (isApiEnabled() && !auth.user) {
+      if (auth.canAccessApp) setLoadError('Inicia sesión con Google para usar la API.');
+      return;
+    }
     (async () => {
-      const data = await repo.load();
-      if (cancelled) return;
-      setSongs(data.songs);
-      setSetlists(data.setlists);
-      setSettings(data.settings);
-      await i18n.changeLanguage(data.settings.language);
-      setReady(true);
+      try {
+        const data = await repo.load();
+        if (cancelled) return;
+        if (isApiEnabled() && ((data.songs.length === 0 && data.setlists.length === 0) || isPreloadedRepertoire(data))) {
+          try {
+            const saved = await readLocalBackup();
+            if (!cancelled && saved && (saved.songs.length > 0 || saved.setlists.length > 0)) {
+              setLocalRecovery({ songs: saved.songs.length, setlists: saved.setlists.length });
+            }
+          } catch {
+            // A corrupt device copy must not prevent access to the server's data.
+          }
+        }
+        await i18n.changeLanguage(data.settings.language);
+        if (cancelled) return;
+        setSongs(data.songs);
+        setSetlists(data.setlists);
+        setSettings(data.settings);
+        loaded.current = true;
+        setReady(true);
+      } catch (error) {
+        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'No se pudieron cargar los datos.');
+      }
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, [i18n]);
+    return () => { cancelled = true; loaded.current = false; };
+  }, [i18n, repo, auth.ready, auth.user?.id, auth.canAccessApp, attempt]);
 
   const songsById = useMemo(() => new Map(songs.map((s) => [s.id, s])), [songs]);
+
+  const restoreEmptyAccount = useCallback(async (saved: AppData) => {
+    if (!isApiEnabled() || !loaded.current) throw new Error(i18n.t('generate.recoveryUnavailable'));
+    const current = await repo.load();
+    if ((current.songs.length > 0 || current.setlists.length > 0) && !isPreloadedRepertoire(current)) {
+      throw new Error(i18n.t('generate.recoveryHasData'));
+    }
+    await repo.restoreData(saved);
+    const restored = await repo.load();
+    await i18n.changeLanguage(restored.settings.language);
+    setSongs(restored.songs);
+    setSetlists(restored.setlists);
+    setSettings(restored.settings);
+    setLocalRecovery(null);
+  }, [i18n, repo]);
+
+  const recoverLocalData = useCallback(async () => {
+    const saved = await readLocalBackup();
+    if (!saved || (saved.songs.length === 0 && saved.setlists.length === 0)) {
+      throw new Error(i18n.t('generate.recoveryUnavailable'));
+    }
+    await restoreEmptyAccount(saved);
+  }, [i18n, restoreEmptyAccount]);
+
+  const recoverBackupText = useCallback(async (text: string) => {
+    let saved: AppData;
+    try {
+      saved = JSON.parse(text);
+      if (!saved || !Array.isArray(saved.songs) || !Array.isArray(saved.setlists) || !saved.settings) throw new Error();
+    } catch { throw new Error(i18n.t('generate.invalidBackup')); }
+    await restoreEmptyAccount(saved);
+  }, [i18n, restoreEmptyAccount]);
 
   const upsertSong = useCallback(async (input: SongInput, id?: string) => {
     const song = await repo.upsertSong(input, id);
@@ -179,6 +264,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           date: current.date,
           genreFocus: current.genreFocus,
           songFilters: current.songFilters,
+          favorite: current.favorite,
           sets,
         },
         setlistId,
@@ -189,20 +275,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateSettings = useCallback(
     async (partial: Partial<AppSettings>) => {
-      const next = { ...settings, ...partial };
-      await repo.saveSettings(next);
-      setSettings(next);
+      await repo.saveSettings(partial);
+      setSettings(previous => ({ ...previous, ...partial }));
       if (partial.language) {
         await i18n.changeLanguage(partial.language);
       }
     },
-    [i18n, settings],
+    [i18n, repo],
   );
 
   const importBarraLibreSeed = useCallback(async () => {
+    const currentSongs = (await repo.load()).songs;
     const seed = buildBarraLibreSeedSongs();
     const byKey = new Map<string, Song>(
-      songs.map((s) => [
+      currentSongs.map((s) => [
         `${s.artist.trim().toLowerCase()}::${s.title.trim().toLowerCase()}`,
         s,
       ]),
@@ -210,7 +296,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     let added = 0;
     let updated = 0;
-    const next = [...songs];
+    const next = [...currentSongs];
 
     for (const seedSong of seed) {
       const key = `${seedSong.artist.trim().toLowerCase()}::${seedSong.title.trim().toLowerCase()}`;
@@ -267,7 +353,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         name?.trim() || 'Setlist importado',
       );
       const inputs = plan.songs.map(({ setLabel: _setLabel, ...song }) => song);
-      const merged = mergeImportedSongs(songs, inputs);
+      const currentSongs = (await repo.load()).songs;
+      const merged = mergeImportedSongs(currentSongs, inputs);
       if (merged.added > 0) {
         await repo.saveSongs(merged.songs);
         setSongs(merged.songs);
@@ -286,6 +373,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       ready,
+      loadError,
+      retryLoad,
+      localRecovery,
+      recoverLocalData,
+      recoverBackupText,
       songs,
       setlists,
       settings,
@@ -302,6 +394,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       ready,
+      loadError,
+      retryLoad,
+      localRecovery,
+      recoverLocalData,
+      recoverBackupText,
       songs,
       setlists,
       settings,

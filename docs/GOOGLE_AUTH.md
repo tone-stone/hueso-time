@@ -2,7 +2,7 @@
 
 La app usa:
 - **Build nativo (EAS / APK / AAB / iOS):** `@react-native-google-signin/google-signin`
-- **Web / Expo Go:** `expo-auth-session` (fallback)
+- **Web:** `expo-auth-session`. Expo Go no admite el login Google de esta app.
 
 Package Android/iOS: `com.tonestone.huesotime`  
 Scheme: `huesotime`  
@@ -122,7 +122,7 @@ npx eas build -p ios --profile production
 | Popup se queda en “Completando…” | La ruta `/oauth` debe existir (sí en esta app) y no ser redirigida al login |
 | No idToken | Falta `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en el build |
 | Solo Gmail | Esperado: la app rechaza no-gmail |
-| Expo Go | Usá build EAS; en Go solo funciona el flujo web limitado |
+| Expo Go / invalid_request | Exportá primero el respaldo guardado desde la pantalla de ingreso y abrí el APK de Hueso Time; Google no admite el redirect exp:// de Expo Go. |
 
 ---
 
@@ -132,3 +132,13 @@ npx eas build -p ios --profile production
 - `app/login.tsx` — elige nativo vs browser
 - `lib/googleAuth.ts` — decode JWT + solo `@gmail.com`
 - `context/AuthContext.tsx` — sesión + rechazo de token vencido
+
+## Recuperar el repertorio al activar la API
+
+Cada cuenta API nueva recibe la lista original del Excel con 254 canciones. La conexión Spotify permite buscar canciones adicionales; el repertorio precargado funciona sin esa conexión. El almacenamiento anterior del dispositivo se conserva.
+
+En **Generar**, una cuenta vacía o con el catálogo inicial sin modificar ofrece **Recuperar datos de este dispositivo** si encuentra canciones o setlists locales. La copia se valida y se restaura con control de versión en la cuenta autenticada; un repertorio editado no se reemplaza.
+
+Expo Go y el APK pueden tener almacenamientos separados. En la pantalla de ingreso de Expo Go, **Exportar respaldo guardado** comparte el texto original del respaldo. Conservá ese texto. Después de entrar en el APK, usá **Generar → Recuperar desde un respaldo** y pegalo. El respaldo contiene canciones, setlists y ajustes; no contiene el token de Google.
+
+Si vaciaste el repertorio y querés volver a cargar esa lista, **Importar catálogo musical** la agrega de forma explícita. Reiniciar la app no repuebla un repertorio guardado vacío.

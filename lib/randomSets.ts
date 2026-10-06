@@ -157,7 +157,7 @@ export function generateRandomSets(
       opts.preferVariety ?? true,
       opts.smartEnergy ?? true,
     );
-    pool = remaining;
+    pool = opts.allowReuse ? [...matched] : remaining;
     sets.push({
       id: existing?.id ?? createId('set'),
       name: existing?.name ?? `Set ${i + 1}`,

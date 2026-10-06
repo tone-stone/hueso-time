@@ -1,61 +1,13 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { z } from 'zod';
+import { ZodError } from 'zod';
+import { songSchema, setlistSchema, settingsSchema, dataSchema } from './schemas.js';
+import { authenticate } from './auth.js';
+import { isInitialCatalog } from './catalog.js';
 
 import * as store from './store.js';
 import { isSpotifyConfigured, searchSpotifyArtists, searchSpotifyTracks } from './spotify.js';
 import type { Genre, KeyMode, MusicalKey, SongInput, SetlistInput } from './types.js';
-
-const songSchema = z.object({
-  title: z.string().min(1),
-  artist: z.string().min(1),
-  bpm: z.number().int().min(0).max(400),
-  key: z.string().min(1),
-  keyMode: z.enum(['major', 'minor']),
-  genre: z.string().min(1),
-  durationSec: z.number().int().min(1).max(3600),
-  notes: z.string().optional(),
-  favorite: z.boolean().optional(),
-  imageUrl: z.string().optional(),
-  spotifyId: z.string().optional(),
-  externalUrl: z.string().optional(),
-});
-
-const songFiltersSchema = z.object({
-  artists: z.array(z.string()),
-  genres: z.array(z.string()),
-  bpmMin: z.number().optional(),
-  bpmMax: z.number().optional(),
-  keys: z.array(z.string()),
-});
-
-const setlistSchema = z.object({
-  name: z.string().min(1),
-  venue: z.string().optional(),
-  date: z.string().optional(),
-  genreFocus: z.string().optional(),
-  songFilters: songFiltersSchema.optional(),
-  favorite: z.boolean().optional(),
-  sets: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      targetMinutes: z.number().int().min(1).max(180),
-      songs: z.array(
-        z.object({
-          songId: z.string(),
-          order: z.number().int().min(0),
-        }),
-      ),
-    }),
-  ),
-});
-
-const settingsSchema = z.object({
-  language: z.enum(['es', 'en']).optional(),
-  defaultSetMinutes: z.number().int().min(1).max(180).optional(),
-  defaultSetCount: z.number().int().min(1).max(10).optional(),
-});
 
 export const app = new Hono();
 
@@ -64,9 +16,31 @@ app.use(
   cors({
     origin: '*',
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'If-Match'],
+    exposeHeaders: ['ETag'],
   }),
 );
+
+app.onError((err, c) => {
+  if (err instanceof ZodError || err instanceof SyntaxError) return c.json({ error: 'invalid_data' }, 400);
+  if (err instanceof store.ConflictError) return c.json({ error: 'data_changed_reload_required' }, 409);
+  if (err instanceof store.PreconditionError) return c.json({ error: 'if_match_required' }, 428);
+  console.error('API request failed', err.message);
+  return c.json({ error: 'storage_or_server_error' }, 500);
+});
+
+// Only the user's data routes require a session. Public search/proxy routes remain usable in local mode.
+app.use('/v1/*', async (c, next) => {
+  if (!/^\/v1\/(data|songs|setlists|settings)(\/|$)/.test(c.req.path)) return next();
+  const identity = await authenticate(c.req.header('Authorization'));
+  if (identity === 'unconfigured') return c.json({ error: 'google_auth_not_configured' }, 503);
+  if (!identity) return c.json({ error: 'unauthorized' }, 401);
+  return store.withAccount(identity, c.req.header('If-Match'), async () => {
+    const initial = store.revision();
+    await next();
+    if (c.res.status < 400) c.header('ETag', store.committedRevision() || initial);
+  });
+});
 
 app.get('/health', (c) => c.json({ ok: true, service: 'hueso-time-api' }));
 
@@ -145,8 +119,30 @@ app.get('/v1/data', (c) => c.json(store.readDb()));
 
 app.put('/v1/data', async (c) => {
   const body = await c.req.json();
-  const saved = store.replaceAll(body);
+  const saved = store.replaceAll(dataSchema.parse(body) as import('./types.js').AppData);
   return c.json(saved);
+});
+
+/** Recovery only replaces an empty account or its untouched public starter catalog. */
+app.post('/v1/data/recover', async (c) => {
+  const data = dataSchema.parse(await c.req.json());
+  const current = store.readDb();
+  if ((current.songs.length > 0 || current.setlists.length > 0) && !isInitialCatalog(current)) {
+    return c.json({ error: 'account_has_data' }, 409);
+  }
+  return c.json(store.replaceAll(data as import('./types.js').AppData));
+});
+
+// Collection replacement used by imports, without a client-side GET/PUT dump cycle.
+app.put('/v1/songs', async (c) => {
+  const db = store.readDb();
+  const next = dataSchema.parse({ ...db, songs: await c.req.json() });
+  return c.json(store.replaceAll(next as import('./types.js').AppData).songs);
+});
+app.put('/v1/setlists', async (c) => {
+  const db = store.readDb();
+  const next = dataSchema.parse({ ...db, setlists: await c.req.json() });
+  return c.json(store.replaceAll(next as import('./types.js').AppData).setlists);
 });
 
 // —— Songs CRUD ——

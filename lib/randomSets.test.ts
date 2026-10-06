@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { emptyFilters, filterSongs, uniqueArtists } from '../lib/randomSets';
+import { emptyFilters, filterSongs, uniqueArtists, generateRandomSets } from '../lib/randomSets';
 import type { Song } from '../types/models';
 
 function song(partial: Partial<Song> & Pick<Song, 'id' | 'title' | 'artist' | 'bpm' | 'genre'>): Song {
@@ -41,4 +41,12 @@ describe('randomSets filters', () => {
     const result = filterSongs(songs, filters);
     expect(result.map((s) => s.id)).toEqual(['1']);
   });
+});
+
+it('reuses a song between sets only when enabled', () => {
+  const songs = [song({ id: 'solo', title: 'A', artist: 'Band', bpm: 120, genre: 'rock', durationSec: 180 })];
+  for (const allowReuse of [true, false]) {
+    const result = generateRandomSets({ songs, setCount: 2, targetMinutes: 3, allowReuse });
+    expect(result.sets.map(s => s.songs.length)).toEqual(allowReuse ? [1, 1] : [1, 0]);
+  }
 });

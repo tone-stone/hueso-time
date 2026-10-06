@@ -25,6 +25,21 @@ export function getGoogleClientConfig() {
   };
 }
 
+/** Google browser OAuth is only used on web; native installs need the native SDK. */
+export function getGoogleSignInIssue(
+  platform: string,
+  nativeAvailable: boolean,
+  browserOrigin?: string,
+): 'nativeRequired' | 'secureWebRequired' | null {
+  if (platform !== 'web') return nativeAvailable ? null : 'nativeRequired';
+  if (!browserOrigin) return null;
+  try {
+    const url = new URL(browserOrigin);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    return url.protocol === 'https:' || (local && url.protocol === 'http:') ? null : 'secureWebRequired';
+  } catch { return 'secureWebRequired'; }
+}
+
 function base64UrlToUtf8(input: string): string {
   const padded = input.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (input.length % 4)) % 4);
   const globalAtob = (globalThis as { atob?: (s: string) => string }).atob;
@@ -48,7 +63,7 @@ function base64UrlToUtf8(input: string): string {
   return str;
 }
 
-/** Decode JWT payload without verifying signature (Google already issued it). */
+/** Decode JWT payload for display only. The server must verify identity before authorizing data access. */
 export function decodeJwtPayload(token: string): Record<string, unknown> {
   const part = token.split('.')[1];
   if (!part) throw new Error('invalid_token');

@@ -1,4 +1,8 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, copyFileSync, openSync, fsyncSync, closeSync, unlinkSync } from 'node:fs';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { createHash, randomUUID } from 'node:crypto';
+import { dataSchema } from './schemas.js';
+import { initialCatalog } from './catalog.js';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,38 +19,61 @@ import {
 } from './types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, '..', 'data');
-const DATA_FILE = join(DATA_DIR, 'db.json');
-
+const DATA_DIR = process.env.DATA_DIR || join(__dirname, '..', 'data');
+const scope = new AsyncLocalStorage<{ account: string; expected?: string; committed?: string }>();
+export class ConflictError extends Error {}
+export class PreconditionError extends Error {}
+export function withAccount<T>(account: string, expected: string | undefined, fn: () => T): T {
+  return scope.run({ account, expected }, fn);
+}
+function dataFile(): string {
+  const account = scope.getStore()?.account;
+  // Legacy file is reserved for offline maintenance; HTTP requests always have an account.
+  return account ? join(DATA_DIR, 'accounts', createHash('sha256').update(account).digest('hex') + '.json') : join(DATA_DIR, 'db.json');
+}
 function emptyData(): AppData {
   return { songs: [], setlists: [], settings: { ...defaultSettings } };
 }
-
-function ensureStore(): void {
-  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-  if (!existsSync(DATA_FILE)) {
-    writeFileSync(DATA_FILE, JSON.stringify(emptyData(), null, 2), 'utf8');
-  }
-}
-
 export function readDb(): AppData {
-  ensureStore();
-  try {
-    const raw = readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw) as AppData;
-    return {
-      songs: parsed.songs ?? [],
-      setlists: parsed.setlists ?? [],
-      settings: { ...defaultSettings, ...parsed.settings },
-    };
-  } catch {
-    return emptyData();
+  const file = dataFile();
+  let raw: string;
+  try { raw = readFileSync(file, 'utf8'); }
+  catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return scope.getStore()?.account ? initialCatalog() : emptyData();
+    }
+    throw err;
   }
+  try { return dataSchema.parse(JSON.parse(raw)) as AppData; }
+  catch (err) { throw new Error('Stored data is corrupt; restore the backup before writing.', { cause: err }); }
 }
-
+export function revision(): string {
+  return '"' + createHash('sha256').update(JSON.stringify(readDb())).digest('hex') + '"';
+}
+export function committedRevision(): string | undefined { return scope.getStore()?.committed; }
 export function writeDb(data: AppData): void {
-  ensureStore();
-  writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  const next = dataSchema.parse(data);
+  // Synchronous check + write is indivisible within the single server process.
+  const request = scope.getStore();
+  if (request) {
+    if (!request.expected) throw new PreconditionError();
+    if (request.expected !== revision()) throw new ConflictError();
+  } else {
+    readDb(); // Do not replace corrupted files, including from maintenance scripts.
+  }
+  const file = dataFile();
+  mkdirSync(dirname(file), { recursive: true });
+  const temp = file + '.' + randomUUID() + '.tmp';
+  try {
+    writeFileSync(temp, JSON.stringify(next, null, 2), { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+    const fd = openSync(temp, 'r');
+    try { fsyncSync(fd); } finally { closeSync(fd); }
+    if (existsSync(file)) copyFileSync(file, file + '.bak');
+    renameSync(temp, file);
+    if (request) request.committed = revision();
+  } finally {
+    if (existsSync(temp)) unlinkSync(temp);
+  }
 }
 
 export function listSongs(filters?: {

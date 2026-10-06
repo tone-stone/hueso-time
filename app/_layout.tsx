@@ -6,7 +6,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
 import { cloneElement, isValidElement, useEffect } from 'react';
-import { Platform, Text as RNText, TextInput as RNTextInput, View } from 'react-native';
+import { Platform, Text as RNText, TextInput as RNTextInput, View, ActivityIndicator, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
@@ -15,7 +15,7 @@ import '@/i18n';
 import { ToastHost } from '@/components/Toast';
 import { WEB_NAV_HEIGHT, WebFooter, WebTopNav } from '@/components/WebTopNav';
 import { useDesktopWeb } from '@/components/ui';
-import { AppProvider } from '@/context/AppContext';
+import { AppProvider, useApp } from '@/context/AppContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import Colors from '@/constants/Colors';
 import { BASE_FONT } from '@/constants/Fonts';
@@ -105,16 +105,20 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <AppProvider>
-          <RootLayoutNav />
-        </AppProvider>
+        <AppSession />
       </AuthProvider>
     </SafeAreaProvider>
   );
 }
 
+function AppSession() {
+  const { user } = useAuth();
+  return <AppProvider key={user?.id || 'local'}><RootLayoutNav /></AppProvider>;
+}
+
 function RootLayoutNav() {
-  const { ready, canAccessApp } = useAuth();
+  const { ready, canAccessApp, exitToLogin } = useAuth();
+  const data = useApp();
   const segments = useSegments();
   const router = useRouter();
   const desktopWeb = useDesktopWeb();
@@ -136,6 +140,22 @@ function RootLayoutNav() {
       router.replace('/(tabs)/generate');
     }
   }, [ready, canAccessApp, onLogin, onOAuth, router]);
+
+  if (ready && canAccessApp && !onLogin && !onOAuth && !data.ready) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.dark.background, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 16 }}>
+        {data.loadError ? <>
+          <RNText style={{ color: Colors.dark.text }}>{data.loadError}</RNText>
+          <Pressable accessibilityRole="button" onPress={data.retryLoad}>
+            <RNText style={{ color: Colors.dark.tint }}>Reintentar / Retry</RNText>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => { void exitToLogin(); }}>
+            <RNText style={{ color: Colors.dark.text }}>Volver al inicio de sesión / Sign in</RNText>
+          </Pressable>
+        </> : <ActivityIndicator accessibilityLabel="Cargando datos" color={Colors.dark.tint} />}
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

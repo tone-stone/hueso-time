@@ -13,7 +13,7 @@ export type MusicSearchHit = {
 };
 
 function apiBase() {
-  return (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/$/, '');
+  return (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8081').replace(/\/$/, '');
 }
 
 export function mapGenreHint(hint?: string): Genre | undefined {

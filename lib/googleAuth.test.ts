@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   getGoogleClientConfig,
+  getGoogleSignInIssue,
   isAuthSkipped,
   isGmailAddress,
   isIdTokenFresh,
@@ -19,6 +20,16 @@ function fakeJwt(payload: Record<string, unknown>) {
 }
 
 describe('googleAuth', () => {
+  it('requires a native build for Google login on phones and tablets', () => {
+    expect(getGoogleSignInIssue('android', false)).toBe('nativeRequired');
+    expect(getGoogleSignInIssue('ios', false)).toBe('nativeRequired');
+    expect(getGoogleSignInIssue('android', true)).toBeNull();
+  });
+  it('only enables browser OAuth on secure or loopback web origins', () => {
+    expect(getGoogleSignInIssue('web', false, 'http://192.168.100.16:8081')).toBe('secureWebRequired');
+    expect(getGoogleSignInIssue('web', false, 'http://localhost:8081')).toBeNull();
+    expect(getGoogleSignInIssue('web', false, 'https://huesotime.example')).toBeNull();
+  });
   const prev = { ...process.env };
 
   afterEach(() => {

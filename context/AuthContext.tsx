@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { resetApiSession } from '@/data/apiRepository';
 import { clearAuthUser, loadAuthUser, saveAuthUser } from '@/lib/authStorage';
 import {
   getGoogleClientConfig,
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const completeGoogleSignIn = useCallback(async (idToken: string) => {
     const next = userFromIdToken(idToken);
+    resetApiSession();
     await saveAuthUser(next);
     setUser(next);
     setGuestIn(false);
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const exitToLogin = useCallback(async () => {
+    resetApiSession();
     await clearAuthUser();
     setUser(null);
     setGuestIn(false);

@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -18,10 +18,15 @@ import {
   PageColumn,
   PageHeader,
   Screen,
+  PrimaryButton,
+  GhostButton,
   useDesktopWeb,
   useThemeColors,
 } from '@/components/ui';
 import { useApp } from '@/context/AppContext';
+import { isApiEnabled } from '@/data/apiRepository';
+import { BARRA_LIBRE_COUNT } from '@/data/seedBarraLibre';
+import { isPreloadedRepertoire } from '@/data/preloadedRepertoire';
 import { createId } from '@/lib/id';
 import { emptyFilters, filterSongs, generateRandomSets } from '@/lib/randomSets';
 import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
@@ -79,7 +84,8 @@ export default function GenerateScreen() {
   const desktop = useDesktopWeb();
   const tabBarInset = useFloatingTabBarInset();
   const router = useRouter();
-  const { songs, setlists, upsertSetlist } = useApp();
+  const { ready, songs, setlists, settings, upsertSetlist, importBarraLibreSeed,
+    localRecovery, recoverLocalData, recoverBackupText } = useApp();
 
   const [pool, setPool] = useState<PoolId>('all');
   const [energy, setEnergy] = useState<EnergyId>('rising');
@@ -87,6 +93,10 @@ export default function GenerateScreen() {
   const [rolling, setRolling] = useState(false);
   const [tick, setTick] = useState(0);
   const tickTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mounted = useRef(true);
+  const [recovering, setRecovering] = useState(false);
+  const [backupOpen, setBackupOpen] = useState(false);
+  const [backupText, setBackupText] = useState('');
 
   const [setCount, targetMinutes] = SHAPES[shape];
   const available = useMemo(() => poolSongs(songs, pool), [songs, pool]);
@@ -101,18 +111,29 @@ export default function GenerateScreen() {
         .slice(0, 2),
     [setlists],
   );
+  const starterCatalog = useMemo(() => isPreloadedRepertoire({ songs, setlists, settings }),
+    [songs, setlists, settings]);
 
   // The pulsing halo, and the spinner it becomes while generating. Reanimated so the
   // animation stays on the UI thread while generateRandomSets runs on the JS one.
   const pulse = useSharedValue(0);
   const spin = useSharedValue(0);
-  if (pulse.value === 0) {
+  useEffect(() => {
     pulse.value = withRepeat(
       withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
       -1,
       true,
     );
-  }
+    return () => cancelAnimation(pulse);
+  }, [pulse]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (tickTimer.current) clearInterval(tickTimer.current);
+      cancelAnimation(spin);
+    };
+  }, [spin]);
 
   const haloStyle = useAnimatedStyle(() => ({
     opacity: rolling ? 0 : 0.35 + pulse.value * 0.55,
@@ -124,11 +145,29 @@ export default function GenerateScreen() {
   }));
 
   function warn(titleKey: string, bodyKey: string) {
+    warnMessage(titleKey, t(bodyKey));
+  }
+  function warnMessage(titleKey: string, body: string) {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.alert(`${t(titleKey)}\n\n${t(bodyKey)}`);
+      window.alert(`${t(titleKey)}\n\n${body}`);
       return;
     }
-    Alert.alert(t(titleKey), t(bodyKey));
+    Alert.alert(t(titleKey), body);
+  }
+
+  async function recover(action: () => Promise<unknown>) {
+    if (recovering || rolling || !ready) return;
+    setRecovering(true);
+    try {
+      await action();
+      if (!mounted.current) return;
+      setBackupOpen(false);
+      setBackupText('');
+      setPool('all');
+      showToast(t('generate.recoveryDone'));
+    } catch (error) {
+      if (mounted.current) warnMessage('generate.errorTitle', error instanceof Error ? error.message : t('generate.errorBody'));
+    } finally { if (mounted.current) setRecovering(false); }
   }
 
   function stopTicker() {
@@ -140,7 +179,11 @@ export default function GenerateScreen() {
   }
 
   async function onRoll() {
-    if (rolling) return;
+    if (rolling || recovering || !ready) return;
+    if (songs.length === 0) {
+      warn('generate.emptyTitle', 'generate.emptyBody');
+      return;
+    }
 
     const filters: SongFilters = emptyFilters();
     const matched = filterSongs(available, filters);
@@ -154,35 +197,35 @@ export default function GenerateScreen() {
     spin.value = withRepeat(withTiming(1, { duration: 750, easing: Easing.linear }), -1);
     tickTimer.current = setInterval(() => setTick((n) => n + 1), TICKER_MS);
 
-    // Let the animation own its full beat, then place the sets.
-    await new Promise((r) => setTimeout(r, ROLL_MS));
-
-    const result = generateRandomSets({
-      songs: available,
-      setCount,
-      targetMinutes,
-      filters,
-      allowReuse: false,
-      ...energyOptions(energy),
-    });
-    stopTicker();
-
-    if (result.placedCount === 0) {
-      warn('generate.noPlaceTitle', 'generate.noPlaceBody');
-      return;
-    }
-
-    const sets: SetBlock[] = result.sets.map((set, i) => ({
-      ...set,
-      id: set.id.startsWith('tmp_') ? createId('set') : set.id,
-      name: set.name || `Set ${i + 1}`,
-    }));
-    const created = await upsertSetlist({
-      name: t('setlists.variedShowName', { count: setCount, min: targetMinutes }),
-      sets,
-    });
-    showToast(t('toast.setlistCreated'));
-    router.push(`/setlist/${created.id}`);
+    try {
+      await new Promise((r) => setTimeout(r, ROLL_MS));
+      if (!mounted.current) return;
+      const result = generateRandomSets({
+        songs: available,
+        setCount,
+        targetMinutes,
+        filters,
+        allowReuse: false,
+        ...energyOptions(energy),
+      });
+      if (result.placedCount === 0) {
+        warn('generate.noPlaceTitle', 'generate.noPlaceBody');
+        return;
+      }
+      const sets: SetBlock[] = result.sets.map((set, i) => ({
+        ...set,
+        id: set.id.startsWith('tmp_') ? createId('set') : set.id,
+        name: set.name || `Set ${i + 1}`,
+      }));
+      const created = await upsertSetlist({
+        name: t('setlists.variedShowName', { count: setCount, min: targetMinutes }),
+        sets,
+      });
+      showToast(t('toast.setlistCreated'));
+      router.push(`/setlist/${created.id}`);
+    } catch (error) {
+      if (mounted.current) warnMessage('generate.errorTitle', error instanceof Error ? error.message : t('generate.errorBody'));
+    } finally { if (mounted.current) stopTicker(); }
   }
 
   const tickerLabel = rolling
@@ -233,10 +276,44 @@ export default function GenerateScreen() {
           />
 
           <View style={[styles.pad, desktop && styles.padDesktop]}>
+            {starterCatalog ? (
+              <View style={[styles.recoveryPanel, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <Body muted>{t('generate.preloadedCatalog', { count: songs.length })}</Body>
+                {localRecovery ? <>
+                  <Body>{t('generate.localBackupFound', localRecovery)}</Body>
+                  <PrimaryButton label={t('generate.recoverLocal')} disabled={recovering}
+                    onPress={() => void recover(recoverLocalData)} />
+                </> : null}
+                <PrimaryButton label={t('generate.recoverBackup')} disabled={recovering}
+                  onPress={() => setBackupOpen(true)} />
+              </View>
+            ) : null}
+            {songs.length === 0 ? (
+              <View style={[styles.recoveryPanel, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <Text style={[styles.recentTitle, { color: c.text }]}>{t('generate.emptyTitle')}</Text>
+                <Body muted>{t('generate.emptyBody')}</Body>
+                {localRecovery ? <>
+                  <Body>{t('generate.localBackupFound', localRecovery)}</Body>
+                  <PrimaryButton label={t('generate.recoverLocal')} disabled={recovering}
+                    onPress={() => void recover(recoverLocalData)} />
+                </> : null}
+                {isApiEnabled() ? <PrimaryButton label={t('generate.recoverBackup')}
+                  disabled={recovering} onPress={() => setBackupOpen(true)} /> : null}
+                <PrimaryButton label={t('generate.importCatalog', { count: BARRA_LIBRE_COUNT })}
+                  disabled={recovering} onPress={() => void recover(importBarraLibreSeed)} />
+                <GhostButton label={t('generate.openRepertoire')}
+                  onPress={() => router.push('/(tabs)')} />
+              </View>
+            ) : available.length === 0 ? (
+              <View style={[styles.recoveryPanel, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <Body muted>{t('generate.emptyPool', { pool: t(`generate.pool_${pool}`) })}</Body>
+                <PrimaryButton label={t('generate.useAll')} onPress={() => setPool('all')} />
+              </View>
+            ) : null}
             <View style={styles.triggerWrap}>
               <Pressable
                 onPress={() => void onRoll()}
-                disabled={rolling}
+                disabled={rolling || recovering || !ready || songs.length === 0}
                 accessibilityRole="button"
                 accessibilityLabel={t('generate.cta')}
                 style={({ pressed }) => [
@@ -296,6 +373,7 @@ export default function GenerateScreen() {
                 true,
               )}
             </View>
+            <Body muted>{t('generate.available', { count: available.length })}</Body>
 
             {recent.length > 0 ? (
               <>
@@ -344,11 +422,30 @@ export default function GenerateScreen() {
           </View>
         </ScrollView>
       </PageColumn>
+      <Modal visible={backupOpen} transparent animationType="fade" onRequestClose={() => setBackupOpen(false)}>
+        <View style={styles.backupOverlay}>
+          <View style={[styles.backupDialog, { backgroundColor: c.surface }]}>
+            <Text style={[styles.recentTitle, { color: c.text }]}>{t('generate.recoverBackup')}</Text>
+            <Body muted>{t('generate.backupHint')}</Body>
+            <TextInput multiline value={backupText} onChangeText={setBackupText}
+              accessibilityLabel={t('generate.backupText')} placeholder={t('generate.backupText')}
+              placeholderTextColor={c.textMuted} autoCapitalize="none" autoCorrect={false}
+              style={[styles.backupInput, { color: c.text, borderColor: c.border }]} />
+            <PrimaryButton label={t('generate.restoreBackup')} disabled={recovering || !backupText.trim()}
+              onPress={() => void recover(() => recoverBackupText(backupText))} />
+            <GhostButton label={t('generate.closeBackup')} onPress={() => setBackupOpen(false)} />
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  recoveryPanel: { padding: 16, borderRadius: 8, borderWidth: 1, gap: 12 },
+  backupOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  backupDialog: { width: '100%', maxWidth: 480, padding: 20, borderRadius: 12, gap: 14 },
+  backupInput: { minHeight: 100, maxHeight: 180, borderWidth: 1, borderRadius: 8, padding: 12, textAlignVertical: 'top' },
   pad: { paddingHorizontal: 22, gap: 20 },
   padDesktop: { paddingHorizontal: 0 },
 

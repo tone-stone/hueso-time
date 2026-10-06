@@ -15,11 +15,17 @@ App web y móvil para bandas de covers: repertorio, BPM, tonalidad, género y se
 npm start
 ```
 
+Este comando inicia la API y Expo juntos. El teléfono usa un único puerto: **8081**, tanto para cargar la app como para `/v1/*` y `/health`. El servidor API interno escucha solo en `127.0.0.1:8787`. `Ctrl+C` detiene ambos servicios.
+
+El comando calcula la IP de la computadora y la pasa a Expo como `EXPO_PUBLIC_API_URL`. Usá la app de desarrollo Hueso Time instalada en el teléfono y conectá ambos al mismo Wi-Fi; escaneá el QR nuevo. No hace falta recompilar el APK para este cambio.
+
+Para abrir web con la misma API: `npm run web`. Para iniciar solamente Expo: `npm run start:expo` (la API debe iniciarse por separado). Instalá primero las dependencias del backend con `npm --prefix backend install` y configurá `backend/.env` siguiendo su README.
+
 ## Tests
 
 ```bash
 npm test          # unit tests (vitest)
-npm run ci        # typecheck + tests
+npm run ci        # typecheck cliente + backend + tests
 ```
 
 ## App Store (iOS)
@@ -34,24 +40,24 @@ npx eas submit --platform ios --profile production --latest
 ## Backend CRUD
 
 ```bash
-cd backend
-npm install
-npm run seed
-npm run dev
+npm --prefix backend install
+npm start
 ```
 
-API en `http://localhost:8787` — ver `backend/README.md`.
+Con `npm start`, la API es accesible en `http://localhost:8081` — configurá `GOOGLE_CLIENT_IDS` en `backend/.env`; ver `backend/README.md` para autenticación, cuentas, respaldos y control de versiones.
 
 Para que la app use el API, creá `.env`:
 
 ```
 EXPO_PUBLIC_USE_API=1
-EXPO_PUBLIC_API_URL=http://localhost:8787
+EXPO_PUBLIC_API_URL=http://localhost:8081
 ```
 
 ## Login con Gmail (Google)
 
 Guía completa de producción: [`docs/GOOGLE_AUTH.md`](docs/GOOGLE_AUTH.md).
+
+La lista original del Excel de **254 canciones** se precarga tanto en instalaciones locales nuevas como en cuentas API nuevas. Las canciones que ya guardaste tienen prioridad. Spotify se consulta desde el backend para buscar canciones adicionales y no es necesario para generar sets con la lista precargada.
 
 1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) creá clientes OAuth **Web**, **Android** (`com.tonestone.huesotime` + SHA-1) e **iOS**.
 2. Completá `.env` (ver `.env.example`).
@@ -77,7 +83,7 @@ BPM y tonalidad siguen siendo manuales (Spotify ya no expone eso de forma confia
 2. Compartir como **Cualquiera con el enlace**.
 3. En la app: **Setlists → Importar Google Sheets** y pegá la URL.
 
-En web, si falla por CORS, levantá el backend (`cd backend && npm run dev`).
+En web, si falla por CORS, ejecutá `npm start`, que inicia el backend junto con Expo.
 
 ## Estructura útil
 

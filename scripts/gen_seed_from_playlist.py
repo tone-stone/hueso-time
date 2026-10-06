@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import subprocess
 from pathlib import Path
 
 try:
@@ -212,6 +213,7 @@ def main() -> None:
         raise SystemExit(f"File not found: {xlsx}")
     rows = load_rows(xlsx)
     write_ts(rows)
+    subprocess.run(["node", str(ROOT / "scripts" / "syncRepertoireCatalog.cjs")], check=True)
     print(f"wrote {OUT} ({len(rows)} songs) from {xlsx}")
 
 

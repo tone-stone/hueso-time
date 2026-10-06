@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Share, StyleSheet, Text, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import type { AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -17,7 +16,8 @@ import {
 } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
 import { useAuth } from '@/context/AuthContext';
-import { getGoogleClientConfig, isAuthSkipped } from '@/lib/googleAuth';
+import { readLocalBackupText } from '@/data/localRepository';
+import { getGoogleClientConfig, getGoogleSignInIssue, isAuthSkipped } from '@/lib/googleAuth';
 import { getGoogleBrowserRedirectUri } from '@/lib/googleRedirect';
 import {
   canUseNativeGoogleSignIn,
@@ -25,13 +25,6 @@ import {
 } from '@/lib/googleNativeSignIn';
 
 type Clients = ReturnType<typeof getGoogleClientConfig>;
-
-/** Browser OAuth (Expo Go / web) needs the platform-specific client id. */
-function hasBrowserClientIds(clients: Clients) {
-  if (Platform.OS === 'ios') return !!clients.iosClientId;
-  if (Platform.OS === 'android') return !!clients.androidClientId;
-  return !!clients.webClientId;
-}
 
 function showAuthAlert(title: string, message: string) {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -44,7 +37,9 @@ function showAuthAlert(title: string, message: string) {
 export default function LoginScreen() {
   const clients = getGoogleClientConfig();
   const useNative = canUseNativeGoogleSignIn();
-  const browserReady = !useNative && hasBrowserClientIds(clients);
+  const issue = getGoogleSignInIssue(Platform.OS, useNative,
+    Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : undefined);
+  const browserReady = !issue && Platform.OS === 'web' && !!clients.webClientId;
 
   // Native path never mounts the Google auth-session hook.
   if (useNative) {
@@ -52,7 +47,7 @@ export default function LoginScreen() {
   }
 
   if (!browserReady) {
-    return <LoginUI useNative={false} promptAsync={null} requestReady={false} />;
+    return <LoginUI useNative={false} promptAsync={null} requestReady={false} issue={issue} />;
   }
 
   return <LoginWithBrowserAuth clients={clients} />;
@@ -60,7 +55,7 @@ export default function LoginScreen() {
 
 function LoginWithBrowserAuth({ clients }: { clients: Clients }) {
   // Must match Authorized redirect URIs on the Google Cloud *Web* OAuth client.
-  // Web local → http://localhost:8081/oauth  |  native fallback → huesotime://oauth
+  // Web local → http://localhost:8081/oauth. Native installs use the Google SDK.
   const redirectUri = getGoogleBrowserRedirectUri();
 
   const [request, , promptAsync] = Google.useIdTokenAuthRequest(
@@ -80,14 +75,6 @@ function LoginWithBrowserAuth({ clients }: { clients: Clients }) {
     }
   }, [redirectUri]);
 
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-    void WebBrowser.warmUpAsync();
-    return () => {
-      void WebBrowser.coolDownAsync();
-    };
-  }, []);
-
   return (
     <LoginUI
       useNative={false}
@@ -101,9 +88,10 @@ type LoginUIProps = {
   useNative: boolean;
   promptAsync: null | (() => Promise<AuthSessionResult>);
   requestReady: boolean;
+  issue?: ReturnType<typeof getGoogleSignInIssue>;
 };
 
-function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
+function LoginUI({ useNative, promptAsync, requestReady, issue }: LoginUIProps) {
   const { t } = useTranslation();
   const c = useThemeColors();
   const {
@@ -114,11 +102,29 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
     enterAsGuest,
   } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [backup, setBackup] = useState<string | null>(null);
+  const [sharingBackup, setSharingBackup] = useState(false);
   const clients = getGoogleClientConfig();
   const skipAuth = isAuthSkipped();
-  const platformConfigured = useNative
+  const platformConfigured = !issue && (useNative
     ? googleConfigured
-    : hasBrowserClientIds(clients);
+    : !!clients.webClientId);
+
+  useEffect(() => {
+    let alive = true;
+    if (issue === 'nativeRequired') {
+      void readLocalBackupText().then(raw => { if (alive) setBackup(raw); }).catch(() => undefined);
+    }
+    return () => { alive = false; };
+  }, [issue]);
+
+  async function exportBackup() {
+    if (!backup || sharingBackup) return;
+    setSharingBackup(true);
+    try { await Share.share({ title: t('auth.backupTitle'), message: backup }); }
+    catch { showAuthAlert(t('auth.errorTitle'), t('auth.backupError')); }
+    finally { setSharingBackup(false); }
+  }
 
   async function onGooglePress() {
     if (!platformConfigured) {
@@ -193,8 +199,16 @@ function LoginUI({ useNative, promptAsync, requestReady }: LoginUIProps) {
           {!platformConfigured ? (
             <View style={[styles.banner, { borderColor: c.border, backgroundColor: c.surface }]}>
               <Body muted align="center">
-                {t('auth.missingConfig')}
+                {issue ? t(`auth.${issue}`) : t('auth.missingConfig')}
               </Body>
+            </View>
+          ) : null}
+
+          {issue === 'nativeRequired' && backup ? (
+            <View style={[styles.banner, { borderColor: c.border, backgroundColor: c.surface }]}>
+              <Body muted align="center">{t('auth.localBackupHint')}</Body>
+              <PrimaryButton label={t('auth.exportBackup')} disabled={sharingBackup}
+                onPress={() => void exportBackup()} />
             </View>
           ) : null}
 

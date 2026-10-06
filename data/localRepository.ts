@@ -15,29 +15,30 @@ import type {
 
 const STORAGE_KEY = '@hueso_time/app_data_v1';
 
-async function read(): Promise<AppData> {
+async function readSaved(): Promise<AppData | null> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (!raw) return emptyAppData();
-  try {
-    const parsed = JSON.parse(raw) as AppData;
-    return {
-      songs: parsed.songs ?? [],
-      setlists: parsed.setlists ?? [],
-      settings: { ...emptyAppData().settings, ...parsed.settings },
-    };
-  } catch {
-    return emptyAppData();
-  }
+  if (raw === null) return null;
+  const parsed = JSON.parse(raw) as AppData;
+  if (!Array.isArray(parsed.songs) || !Array.isArray(parsed.setlists) || !parsed.settings)
+    throw new Error('Los datos locales están dañados. No se sobrescribieron.');
+  return parsed;
+}
+
+async function read(): Promise<AppData> {
+  return (await readSaved()) ?? emptyAppData();
 }
 
 async function write(data: AppData): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-export const localRepository: DataRepository = {
+const implementation: DataRepository = {
+  async restoreData(data) {
+    await write(data);
+  },
   async load() {
     const data = await read();
-    if (data.songs.length === 0) {
+    if (await AsyncStorage.getItem(STORAGE_KEY) === null) {
       const seeded = { ...data, songs: buildBarraLibreSeedSongs() };
       await write(seeded);
       return seeded;
@@ -57,7 +58,7 @@ export const localRepository: DataRepository = {
 
   async saveSettings(settings) {
     const data = await read();
-    await write({ ...data, settings });
+    await write({ ...data, settings: { ...data.settings, ...settings } });
   },
 
   async upsertSong(input, id) {
@@ -142,3 +143,28 @@ export const apiRepositoryStub: Partial<DataRepository> = {
     throw new Error('API repository not configured yet. Use localRepository.');
   },
 };
+
+// Serialize every read-modify-write operation, including first-time initialization.
+let pending: Promise<unknown> = Promise.resolve();
+function queued<A extends unknown[], T>(operation: (...args: A) => Promise<T>) {
+  return (...args: A): Promise<T> => {
+    const result = pending.then(() => operation(...args));
+    pending = result.catch(() => undefined);
+    return result;
+  };
+}
+export const localRepository: DataRepository = {
+  restoreData: queued(implementation.restoreData),
+  load: queued(implementation.load),
+  saveSongs: queued(implementation.saveSongs),
+  saveSetlists: queued(implementation.saveSetlists),
+  saveSettings: queued(implementation.saveSettings),
+  upsertSong: queued(implementation.upsertSong),
+  deleteSong: queued(implementation.deleteSong),
+  upsertSetlist: queued(implementation.upsertSetlist),
+  deleteSetlist: queued(implementation.deleteSetlist),
+};
+
+/** Inspect the original device storage without seeding, clearing or updating it. */
+export const readLocalBackup = queued(readSaved);
+export const readLocalBackupText = queued(() => AsyncStorage.getItem(STORAGE_KEY));

@@ -15,7 +15,8 @@ export interface DataRepository {
   load(): Promise<AppData>;
   saveSongs(songs: Song[]): Promise<void>;
   saveSetlists(setlists: Setlist[]): Promise<void>;
-  saveSettings(settings: AppSettings): Promise<void>;
+  saveSettings(settings: Partial<AppSettings>): Promise<void>;
+  restoreData(data: AppData): Promise<void>;
   upsertSong(input: SongInput, id?: string): Promise<Song>;
   deleteSong(id: string): Promise<void>;
   upsertSetlist(input: SetlistInput, id?: string): Promise<Setlist>;

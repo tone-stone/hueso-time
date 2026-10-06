@@ -1,6 +1,6 @@
 import { makeRedirectUri } from 'expo-auth-session';
 
-/** Shared redirect used by browser OAuth (web / Expo Go fallback). */
+/** Redirect used by browser OAuth on web. Native installs use Google Sign-In. */
 export function getGoogleBrowserRedirectUri(): string {
   return makeRedirectUri({
     scheme: 'huesotime',
