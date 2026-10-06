@@ -39,15 +39,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (account !== user.id) { account = user.id; etag = null; }
   const mutation = !!init?.method && init.method !== 'GET';
   if (mutation && !etag) throw new Error('Recarga los datos antes de guardar.');
-  const res = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${user.idToken}`,
-      ...(mutation && etag ? { 'If-Match': etag } : {}),
-      ...(init?.headers ?? {}),
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${user.idToken}`,
+        ...(mutation && etag ? { 'If-Match': etag } : {}),
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch {
+    throw new Error('No se pudo conectar con la API. Revisa la conexión y la dirección del servidor y vuelve a intentar.');
+  } finally {
+    clearTimeout(timeout);
+  }
   if (started !== session) throw new Error('La sesión cambió.');
   if (!res.ok) {
     throw new ApiError(res.status);

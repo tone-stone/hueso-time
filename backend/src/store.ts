@@ -66,7 +66,8 @@ export function writeDb(data: AppData): void {
   const temp = file + '.' + randomUUID() + '.tmp';
   try {
     writeFileSync(temp, JSON.stringify(next, null, 2), { encoding: 'utf8', flag: 'wx', mode: 0o600 });
-    const fd = openSync(temp, 'r');
+    // Windows FlushFileBuffers requires a handle opened with write access.
+    const fd = openSync(temp, 'r+');
     try { fsyncSync(fd); } finally { closeSync(fd); }
     if (existsSync(file)) copyFileSync(file, file + '.bak');
     renameSync(temp, file);

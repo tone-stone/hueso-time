@@ -65,6 +65,8 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
+        tabBarLabelPosition: 'below-icon',
+        tabBarItemStyle: { paddingHorizontal: 0 },
         tabBarActiveTintColor: c.tabIconSelected,
         tabBarInactiveTintColor: c.tabIconDefault,
         tabBarLabelStyle: [styles.label, isTablet && styles.labelTablet],
@@ -135,6 +137,7 @@ const styles = StyleSheet.create({
     // wide enough to truncate (the old mono display font did).
     fontFamily: FontFamily.medium,
     fontSize: 11,
+    marginHorizontal: 0,
     letterSpacing: 0,
   },
   labelTablet: {

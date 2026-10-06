@@ -1,8 +1,9 @@
-import { beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 const auth = vi.hoisted(() => ({ user: { id: 'alice', idToken: 'signed-token' } as { id: string; idToken: string } | null }));
 vi.mock('@/lib/authStorage', () => ({ loadAuthUser: async () => auth.user }));
 import { apiRepository as repo, resetApiSession } from './apiRepository';
 const fetchMock = vi.fn();
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 const data = { songs: [], setlists: [], settings: { language: 'es', defaultSetMinutes: 45, defaultSetCount: 3 } };
 beforeEach(() => {
   resetApiSession(); auth.user = { id: 'alice', idToken: 'signed-token' };
@@ -55,4 +56,18 @@ it('never retries recovery after another writer changes the account', async () =
   fetchMock.mockResolvedValueOnce(new Response('{}', { status: 409 }));
   await expect(repo.restoreData(data)).rejects.toThrow('Los datos cambiaron');
   expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+it('ends a stalled load and allows retrying without blocking the queue', async () => {
+  vi.useFakeTimers();
+  fetchMock.mockImplementationOnce((_url, init) => new Promise((_resolve, reject) => {
+    init.signal.addEventListener('abort', () => reject(new Error('aborted')));
+  })).mockResolvedValueOnce(new Response(JSON.stringify(data), {
+    headers: { ETag: '"revision"' },
+  }));
+  const failed = expect(repo.load()).rejects.toThrow('No se pudo conectar con la API');
+  await vi.advanceTimersByTimeAsync(15_000);
+  await failed;
+  expect(await repo.load()).toEqual(data);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(vi.getTimerCount()).toBe(0);
 });

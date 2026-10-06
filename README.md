@@ -11,6 +11,25 @@ App web y móvil para bandas de covers: repertorio, BPM, tonalidad, género y se
 
 ## Correr app
 
+Para probar en Android con **Expo Go**:
+
+```bash
+npm start -- --go
+```
+
+Este modo abre como invitado y usa datos locales para probar repertorio y setlists.
+Google Sign-In requiere el APK nativo; preview y production siguen exigiendo login.
+
+Para compilar e instalar el APK de desarrollo con Android Studio instalado:
+
+```bash
+npm run android
+```
+
+En Windows, el comando detecta el Java y SDK de Android Studio y habilita el
+acceso nativo necesario con Java 24 o posterior. El login de Google necesita
+registrar el SHA-1 de la firma de este APK, como indica `docs/GOOGLE_AUTH.md`.
+
 ```bash
 npm start
 ```
@@ -22,6 +41,18 @@ El comando calcula la IP de la computadora y la pasa a Expo como `EXPO_PUBLIC_AP
 Para abrir web con la misma API: `npm run web`. Para iniciar solamente Expo: `npm run start:expo` (la API debe iniciarse por separado). Instalá primero las dependencias del backend con `npm --prefix backend install` y configurá `backend/.env` siguiendo su README.
 
 ## Tests
+
+Para generar el APK autónomo de tablet con login Google obligatorio:
+`npm run build:apk`. El archivo queda en `artifacts/Hueso-Time-1.0.0-tablet.apk`.
+Consulta [Instalación en tablet y firma Google](docs/APK_TABLET.md).
+
+`npm start` reutiliza los clientes públicos de Google del perfil `development-device`
+de `eas.json` cuando no están definidos en `.env`. Esto permite que el APK de
+desarrollo reciba la configuración de login al cargar el JavaScript local.
+El backend local también usa ese cliente Web si no hay `backend/.env` ni
+`GOOGLE_CLIENT_IDS` en el entorno. Las configuraciones explícitas tienen prioridad.
+El login requiere un APK nativo y el SHA-1 de su firma registrado en Google Cloud;
+Expo Go no incluye el módulo de Google Sign-In.
 
 ```bash
 npm test          # unit tests (vitest)

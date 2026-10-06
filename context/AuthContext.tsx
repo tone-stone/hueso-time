@@ -45,22 +45,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const stored = await loadAuthUser();
-      if (!alive) return;
-      if (stored?.idToken && !isIdTokenFresh(stored.idToken)) {
-        await clearAuthUser();
-        setUser(null);
-        if (isAuthSkipped()) setGuestIn(true);
-      } else {
-        setUser(stored);
-        if (isAuthSkipped() && !stored) setGuestIn(true);
+      try {
+        const stored = await loadAuthUser();
+        if (!alive) return;
+        if (stored?.idToken && !isIdTokenFresh(stored.idToken)) {
+          await clearAuthUser();
+          if (!alive) return;
+          setUser(null);
+          if (skipAuth) setGuestIn(true);
+        } else {
+          setUser(stored);
+          if (skipAuth && !stored) setGuestIn(true);
+        }
+      } catch (error) {
+        // A failure clearing an expired SecureStore entry must not freeze startup.
+        console.warn('[auth] Could not restore session', error);
+        if (alive) {
+          setUser(null);
+          if (skipAuth) setGuestIn(true);
+        }
+      } finally {
+        if (alive) setReady(true);
       }
-      setReady(true);
     })();
     return () => {
       alive = false;
     };
-  }, []);
+  }, [skipAuth]);
 
   const completeGoogleSignIn = useCallback(async (idToken: string) => {
     const next = userFromIdToken(idToken);
@@ -78,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const exitToLogin = useCallback(async () => {
     resetApiSession();
     await clearAuthUser();
+    await signOutNativeGoogle();
     setUser(null);
     setGuestIn(false);
   }, []);

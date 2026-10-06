@@ -37,5 +37,8 @@ module.exports = ({ config }) => {
     // Keep product scheme first so Expo CLI / Metro deep links don't pick the Google iOS URL scheme.
     scheme: iosUrlScheme ? ['huesotime', iosUrlScheme] : 'huesotime',
     plugins,
+    ...(process.env.HUESO_LOCAL_APK === '1'
+      ? { updates: { ...config.updates, enabled: false } }
+      : {}),
   };
 };

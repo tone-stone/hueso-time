@@ -7,6 +7,10 @@ node_modules/
 .expo/
 dist/
 web-build/
+.android-export/
+.gradle-android.log
+.tablet-apk-build.log
+/artifacts/
 expo-env.d.ts
 
 # Native
