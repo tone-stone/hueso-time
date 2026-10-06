@@ -7,7 +7,7 @@ import DraggableFlatList, {
   type RenderItemParams,
 } from 'react-native-draggable-flatlist';
 
-import { Body, Card, Kicker, MetaPill, useThemeColors } from '@/components/ui';
+import { Body, Card, GhostButton, Kicker, MetaPill, useThemeColors } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
 import { formatDuration } from '@/lib/id';
 import { setDurationSec } from '@/lib/setMath';
@@ -48,6 +48,7 @@ export function SetsTables({
   nestable = false,
   defaultExpanded = true,
   showMode = false,
+  disabled = false,
 }: {
   sets: SetBlock[];
   songsById: Map<string, Song>;
@@ -63,10 +64,11 @@ export function SetsTables({
   defaultExpanded?: boolean;
   /** Stage view: no edit actions, all sets expanded. */
   showMode?: boolean;
+  disabled?: boolean;
 }) {
   const { t } = useTranslation();
   const c = useThemeColors();
-  const canEdit = !showMode && !!(onRemoveSong || onChangeSong || onReorderSongs);
+  const canEdit = !showMode && !disabled && !!(onRemoveSong || onChangeSong || onReorderSongs);
   const [open, setOpen] = useState<Record<string, boolean>>({});
   /** Which set block currently has a row lifted for reorder — dims its siblings. */
   const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
@@ -86,10 +88,14 @@ export function SetsTables({
   }, [sets, defaultExpanded, showMode]);
 
   const List = nestable ? NestableDraggableFlatList : DraggableFlatList;
-  const allowReorder = !showMode && !!onReorderSongs;
+  const allowReorder = !showMode && !disabled && !!onReorderSongs;
 
   return (
     <View style={{ gap: 14, width: '100%' }}>
+      {!showMode ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        <GhostButton label={t('ux.expandAll')} onPress={() => setOpen(Object.fromEntries(sets.map(s => [s.id, true])))} />
+        <GhostButton label={t('ux.collapseAll')} onPress={() => setOpen(Object.fromEntries(sets.map(s => [s.id, false])))} />
+      </View> : null}
       {sets.map((block, index) => {
         const dur = setDurationSec(block, songsById);
         const targetSec = block.targetMinutes * 60;
@@ -102,6 +108,9 @@ export function SetsTables({
         return (
           <Card key={block.id} index={index} style={{ marginBottom: 0 }}>
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={block.name || t('setlists.setLabel', { n: index + 1 })}
+              accessibilityState={{ expanded }}
               onPress={() => {
                 if (showMode) return;
                 setOpen((prev) => ({ ...prev, [block.id]: !expanded }));
@@ -201,12 +210,20 @@ export function SetsTables({
                                       ? c.backgroundAlt
                                       : 'transparent',
                                   opacity: dimmed ? 0.55 : 1,
-                                  transform: isActive ? [{ rotate: '-0.4deg' }] : undefined,
+                                  transform: isActive ? [{ rotate: '-0.4deg' }] : [],
                                 },
                               ]}>
                               <View style={styles.songTop}>
                                 {allowReorder ? (
-                                  <Pressable onPressIn={drag} hitSlop={8} style={styles.handle}>
+                                  <Pressable onPressIn={drag} accessibilityRole="button" accessibilityLabel={`${item.song.title}. ${t('setlists.dragHint')}`}
+                                    accessibilityActions={[{ name: 'increment', label: t('ux.moveDown') }, { name: 'decrement', label: t('ux.moveUp') }]}
+                                    onAccessibilityAction={({ nativeEvent }) => {
+                                      const nextIndex = nativeEvent.actionName === 'increment' ? i + 1 : i - 1;
+                                      if (nextIndex < 0 || nextIndex >= rows.length) return;
+                                      const reordered = [...rows];
+                                      [reordered[i], reordered[nextIndex]] = [reordered[nextIndex], reordered[i]];
+                                      onReorderSongs?.(block.id, reordered.map(row => row.songId));
+                                    }} hitSlop={8} style={styles.handle}>
                                     <Text style={{ color: c.textMuted, fontSize: 16 }}>⠿</Text>
                                   </Pressable>
                                 ) : null}
@@ -217,7 +234,7 @@ export function SetsTables({
                                   ]}>
                                   {String(i + 1).padStart(2, '0')}
                                 </Text>
-                                <View style={{ flex: 1, minWidth: 0 }}>
+                                <View style={{ flex: 1, minWidth: 140 }}>
                                   <Text
                                     style={[styles.songTitle, { color: c.text }]}
                                     numberOfLines={2}>
@@ -230,8 +247,11 @@ export function SetsTables({
                                     {item.song.keyMode === 'minor' ? 'm' : ''}
                                   </Text>
                                 </View>
+                                <View style={{ flexDirection: 'row', gap: 8 }}>
                                 {canEdit && onChangeSong ? (
                                   <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('ux.replaceSong', { song: item.song.title })}
                                     onPress={() =>
                                       onChangeSong({
                                         setId: block.id,
@@ -247,6 +267,8 @@ export function SetsTables({
                                 ) : null}
                                 {canEdit && onRemoveSong ? (
                                   <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('ux.removeSong', { song: item.song.title })}
                                     onPress={() =>
                                       onRemoveSong({
                                         setId: block.id,
@@ -260,6 +282,7 @@ export function SetsTables({
                                     <Text style={{ color: c.accentText, fontSize: 15 }}>×</Text>
                                   </Pressable>
                                 ) : null}
+                                </View>
                               </View>
                             </Pressable>
                           </ScaleDecorator>
@@ -269,7 +292,7 @@ export function SetsTables({
                   </>
                 )}
 
-                {!showMode && onAddSong ? (
+                {!showMode && !disabled && onAddSong ? (
                   <Pressable
                     onPress={() => onAddSong(block.id)}
                     style={[
@@ -285,7 +308,7 @@ export function SetsTables({
                 {!showMode && (onRenameSet || onDeleteSet) ? (
                   <View style={styles.setActionsRow}>
                     {onRenameSet ? (
-                      <Pressable onPress={() => onRenameSet(block.id)} hitSlop={6}>
+                      <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={t('setlists.renameSet')} onPress={() => onRenameSet(block.id)} style={{ minHeight: 48, justifyContent: 'center' }}>
                         <Text
                           style={[
                             styles.setActionText,
@@ -296,7 +319,7 @@ export function SetsTables({
                       </Pressable>
                     ) : null}
                     {onDeleteSet ? (
-                      <Pressable onPress={() => onDeleteSet(block.id)} hitSlop={6}>
+                      <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={t('setlists.deleteSet')} onPress={() => onDeleteSet(block.id)} style={{ minHeight: 48, justifyContent: 'center' }}>
                         <Text
                           style={[
                             styles.setActionText,
@@ -314,7 +337,7 @@ export function SetsTables({
         );
       })}
 
-      {!showMode && onAddSet ? (
+      {!showMode && !disabled && onAddSet ? (
         <Pressable
           onPress={onAddSet}
           style={[
@@ -360,16 +383,17 @@ const styles = StyleSheet.create({
   },
   songTop: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
   },
-  handle: { paddingHorizontal: 4, paddingVertical: 2 },
+  handle: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   songIndex: { fontSize: 12, width: 20 },
-  songTitle: { fontSize: 13.5, fontWeight: '500' },
-  songSub: { fontSize: 11.5, marginTop: 2 },
+  songTitle: { fontSize: 16, fontWeight: '500' },
+  songSub: { fontSize: 13, marginTop: 2 },
   iconBtn: {
-    width: 28,
-    height: 28,
+    width: 48,
+    height: 48,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',

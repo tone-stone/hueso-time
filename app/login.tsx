@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Share, StyleSheet, Text, View, ScrollView } from 'react-native';
+import { AppModal } from '@/components/AppModal';
 import { Redirect } from 'expo-router';
 import type { AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
@@ -12,6 +13,7 @@ import {
   GhostButton,
   PrimaryButton,
   Screen,
+  Title,
   useThemeColors,
 } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
@@ -102,6 +104,7 @@ function LoginUI({ useNative, promptAsync, requestReady, issue }: LoginUIProps) 
     enterAsGuest,
   } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [legal, setLegal] = useState<'privacy' | 'terms' | null>(null);
   const [backup, setBackup] = useState<string | null>(null);
   const [sharingBackup, setSharingBackup] = useState(false);
   const clients = getGoogleClientConfig();
@@ -183,7 +186,7 @@ function LoginUI({ useNative, promptAsync, requestReady, issue }: LoginUIProps) 
 
   return (
     <Screen>
-      <View style={styles.stage}>
+      <ScrollView contentContainerStyle={styles.stage}>
         <View style={[styles.panel, Platform.OS === 'web' && styles.panelWeb]}>
           <View style={styles.glowWrap} pointerEvents="none">
             <View style={[styles.glowRing, styles.glowOuter, { backgroundColor: c.tintFaint }]} />
@@ -233,19 +236,29 @@ function LoginUI({ useNative, promptAsync, requestReady, issue }: LoginUIProps) 
 
           <View style={styles.footer}>
             <Divider />
-            <Text style={[styles.footerText, { color: c.textFaint }]}>{t('auth.footerLinks')}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              <GhostButton label={t('ux.privacy')} onPress={() => setLegal('privacy')} />
+              <GhostButton label={t('ux.terms')} onPress={() => setLegal('terms')} />
+            </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
+      <AppModal visible={!!legal} animationType="slide" onRequestClose={() => setLegal(null)}>
+        <Screen safeTop={false}><ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+          <Title>{t(legal === 'privacy' ? 'ux.privacy' : 'ux.terms')}</Title>
+          <Body>{t(legal === 'privacy' ? 'ux.privacyBody' : 'ux.termsBody')}</Body>
+          <GhostButton label={t('common.back')} onPress={() => setLegal(null)} />
+        </ScrollView></Screen>
+      </AppModal>
     </Screen>
   );
 }
 
-const GLOW_SIZE = 420;
+const GLOW_SIZE = 280;
 
 const styles = StyleSheet.create({
   stage: {
-    flex: 1,
+    flexGrow: 1,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',

@@ -37,16 +37,16 @@ export function useDesktopWeb() {
   return Platform.OS === 'web' && width >= DESKTOP_WEB_MIN_WIDTH;
 }
 
+export function useWideLayout() {
+  const { width } = useWindowDimensions();
+  return width >= 768;
+}
+
 /** Status bar / notch / punch-hole clearance (Android often reports insets.top = 0). */
-export function useTopSafePad(extra = 56) {
+export function useTopSafePad(extra = 12) {
   const insets = useSafeAreaInsets();
-  if (Platform.OS === 'web') return Math.max(extra, 8);
-  // Android: StatusBar.currentHeight covers classic bars; bump generously for punch-hole
-  // cameras, since safe-area-context can under-report insets.top on some OEM skins.
-  const fallback =
-    Platform.OS === 'android'
-      ? Math.max(RNStatusBar.currentHeight ?? 0, 64) + 20
-      : 70;
+  if (Platform.OS === 'web') return extra;
+  const fallback = Platform.OS === 'android' ? RNStatusBar.currentHeight ?? 0 : 0;
   return Math.max(insets.top, fallback) + extra;
 }
 
@@ -60,7 +60,7 @@ export function Screen({
   /** Apply notch / Dynamic Island / status-bar top inset (default true). */
   safeTop = true,
   /** Extra space under the system bar so content clears camera + wifi icons. */
-  topGap = 56,
+  topGap = 12,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
@@ -99,7 +99,8 @@ export function PageColumn({
     <View
       style={[
         styles.pageColumn,
-        desktop && { maxWidth, paddingHorizontal: 28 },
+        { maxWidth },
+        desktop && { paddingHorizontal: 28 },
         style,
       ]}>
       {children}
@@ -113,7 +114,7 @@ export function PageHeader({
   subtitle,
   brandSubtitle,
   right,
-  showBrand = true,
+  showBrand = false,
   onBack,
   backLabel,
 }: {
@@ -150,7 +151,7 @@ export function PageHeader({
             </Text>
           </Pressable>
         ) : null}
-        {showMark ? <BrandMark subtitle={brandSubtitle} showWave={false} /> : null}
+        {showMark ? <BrandMark showWave={false} /> : null}
         <Title>{title}</Title>
         {subtitle ? <Subtitle>{subtitle}</Subtitle> : null}
       </View>
@@ -236,6 +237,7 @@ export function Card({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
       android_ripple={{ color: 'rgba(233, 233, 237, 0.06)' }}
       style={({ pressed, hovered }: any) => [
         { opacity: pressed ? 0.92 : 1 },
@@ -319,6 +321,7 @@ export function Field({
     <View style={[styles.field, style]}>
       <Text style={[styles.label, { fontFamily: FontFamily.display }]}>{label}</Text>
       <TextInput
+        accessibilityLabel={label}
         placeholderTextColor={theme.textFaint}
         style={[styles.input, { borderColor: focused ? theme.tint : theme.border }]}
         onFocus={(e) => {
@@ -355,6 +358,9 @@ export function PrimaryButton({
   return (
     <Pressable
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
       android_ripple={disabled ? undefined : { color: theme.tintSoft }}
       style={({ pressed }) => [
@@ -384,17 +390,24 @@ export function GhostButton({
   label,
   onPress,
   danger,
+  disabled,
 }: {
   label: string;
   onPress: () => void;
   danger?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
       android_ripple={{ color: danger ? theme.tintSoft : 'rgba(233, 233, 237, 0.09)' }}
       style={({ pressed }) => [
         styles.ghostBtn,
+        disabled && { opacity: 0.45 },
         {
           backgroundColor: pressed
             ? danger
@@ -405,7 +418,8 @@ export function GhostButton({
       ]}>
       <Text
         style={{
-          color: danger ? theme.accentText : 'rgba(233, 233, 237, 0.7)',
+          color: danger ? theme.danger : theme.textMuted,
+          fontSize: 15,
           fontWeight: '500',
           fontFamily: FontFamily.display,
         }}>
@@ -430,9 +444,13 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityLabel={label}
+      accessibilityState={onPress ? { selected: !!selected } : undefined}
       android_ripple={{ color: theme.tintSoft }}
       style={[
         styles.chip,
+        onPress && { minHeight: 48, justifyContent: 'center' },
         outlined
           ? {
               borderWidth: 1,
@@ -448,7 +466,7 @@ export function Chip({
         style={{
           color: outlined ? theme.tint : selected ? theme.accent : 'rgba(233, 233, 237, 0.7)',
           fontWeight: '400',
-          fontSize: 11,
+          fontSize: 13,
           letterSpacing: 0.02,
           fontFamily: FontFamily.display,
         }}
@@ -502,6 +520,9 @@ export function Segmented<T extends string>({
         return (
           <Pressable
             key={opt}
+            accessibilityRole="radio"
+            accessibilityLabel={labels[opt]}
+            accessibilityState={{ checked: active }}
             onPress={() => onChange(opt)}
             style={[
               styles.segment,
@@ -561,7 +582,7 @@ export function ListRow({
           styles.listRowLabel,
           { color: danger ? theme.accentText : theme.textMuted },
         ]}
-        numberOfLines={1}>
+        numberOfLines={2}>
         {label}
       </Text>
       {typeof value === 'string' ? (
@@ -581,6 +602,8 @@ export function ListRow({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={typeof value === 'string' ? `${label}, ${value}` : label}
       style={({ pressed }) => [pressed && { backgroundColor: theme.surfaceElevated }]}>
       {content}
     </Pressable>
@@ -588,8 +611,11 @@ export function ListRow({
 }
 
 export function Fab({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('common.add')}
       onPress={onPress}
       hitSlop={8}
       android_ripple={{ color: theme.tintSoft }}
@@ -720,14 +746,14 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: theme.textMuted,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: 6,
     marginBottom: 18,
-    lineHeight: 19,
+    lineHeight: 23,
     flexShrink: 1,
     width: '100%',
   },
-  body: { fontSize: 13, lineHeight: 21, width: '100%' },
+  body: { fontSize: 15, lineHeight: 23, width: '100%' },
   kicker: {
     color: theme.textFaint,
     fontSize: 10,
@@ -739,7 +765,7 @@ const styles = StyleSheet.create({
   field: { marginBottom: 12 },
   label: {
     color: theme.textMuted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     marginBottom: 7,
     letterSpacing: 0.8,
@@ -747,7 +773,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.display,
   },
   input: {
-    minHeight: 36,
+    minHeight: 48,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -757,7 +783,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.surface,
   },
   primaryBtn: {
-    minHeight: 46,
+    minHeight: 50,
     borderWidth: 1,
     borderRadius: 8,
     paddingVertical: 12,
@@ -773,7 +799,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.display,
   },
   ghostBtn: {
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -804,6 +830,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   segment: {
+    minHeight: 48,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -821,13 +848,13 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 13,
     paddingHorizontal: 14,
-    minHeight: 44,
+    minHeight: 48,
   },
-  listRowLabel: { fontSize: 13, flex: 1 },
-  listRowValue: { color: theme.text, fontSize: 13, fontWeight: '500' },
+  listRowLabel: { fontSize: 15, flex: 1 },
+  listRowValue: { color: theme.text, fontSize: 15, fontWeight: '500', flexShrink: 1 },
   fab: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',

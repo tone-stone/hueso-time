@@ -2,8 +2,8 @@
   "expo": {
     "name": "Hueso Time",
     "slug": "hueso-time",
-    "version": "1.0.0",
-    "orientation": "portrait",
+    "version": "1.0.1",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "huesotime",
     "userInterfaceStyle": "dark",
@@ -95,6 +95,7 @@
       ],
       "expo-localization",
       "expo-system-ui",
+      "expo-sharing",
       "expo-secure-store",
       "@react-native-google-signin/google-signin",
       [

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Alert,
   FlatList,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -12,12 +11,13 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { AppModal as Modal } from '@/components/AppModal';
+import { useAsyncAction } from '@/lib/useAsyncAction';
 import { SymbolView } from 'expo-symbols';
 
 import { CreateManualSetlistForm } from '@/components/CreateManualSetlistForm';
 import { ImportSheetsForm } from '@/components/ImportSheetsForm';
 import { ShareSetlistMenu } from '@/components/ShareSetlistMenu';
-import { Waveform } from '@/components/AmbientBackground';
 import { showToast } from '@/components/Toast';
 import {
   Body,
@@ -32,6 +32,8 @@ import {
   Subtitle,
   Title,
   useDesktopWeb,
+  useWideLayout,
+  Field,
   useThemeColors,
 } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
@@ -62,6 +64,7 @@ export default function SetlistsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
   const desktop = useDesktopWeb();
+  const wide = useWideLayout();
   const tabBarInset = useFloatingTabBarInset();
   const router = useRouter();
   const {
@@ -79,7 +82,11 @@ export default function SetlistsScreen() {
   const [importBusy, setImportBusy] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [shareTarget, setShareTarget] = useState<Setlist | null>(null);
-  const visibleSetlists = favoritesOnly ? setlists.filter((s) => s.favorite) : setlists;
+  const [query, setQuery] = useState('');
+  const { busy, error, run } = useAsyncAction();
+  const visibleSetlists = [...setlists].filter(s => (!favoritesOnly || s.favorite) &&
+    `${s.name} ${s.venue ?? ''}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   async function saveWizard(payload: {
     name: string;
@@ -151,10 +158,10 @@ export default function SetlistsScreen() {
       message: label,
       cancelLabel: t('common.no'),
       confirmLabel: t('common.yes'),
-      onConfirm: () => {
-        void deleteSetlist(id);
+      onConfirm: () => void run(async () => {
+        await deleteSetlist(id);
         showToast(t('toast.setlistDeleted'));
-      },
+      }),
     });
   }
 
@@ -204,7 +211,7 @@ export default function SetlistsScreen() {
       <View style={styles.createActions}>
         <PrimaryButton
           label={t('setlists.createGenerate')}
-          onPress={() => void quickGenerate()}
+          onPress={() => void run(quickGenerate)} disabled={busy}
           icon="🎲"
         />
         <GhostButton
@@ -249,12 +256,12 @@ export default function SetlistsScreen() {
       }
       right={
         <>
-          {!desktop ? <Waveform /> : null}
+
           {showFlatList && setlists.length > 0 ? (
             <Pressable
               onPress={() => setFavoritesOnly((v) => !v)}
               hitSlop={8}
-              accessibilityLabel={t('setlists.favoritesOnly')}
+              accessibilityRole="checkbox" accessibilityState={{ checked: favoritesOnly }} accessibilityLabel={t('setlists.favoritesOnly')}
               style={[
                 styles.favoritesToggle,
                 {
@@ -281,6 +288,10 @@ export default function SetlistsScreen() {
     <Screen>
       <PageColumn maxWidth={1100}>
         {showFlatList ? pageHeader : null}
+        {error ? <View style={{ padding: 16 }}><Body>{error}</Body></View> : null}
+        {showFlatList && setlists.length > 0 ? <View style={{ paddingHorizontal: 16 }}>
+          <Field label={t('common.search')} value={query} onChangeText={setQuery} placeholder={t('ux.searchShows')} />
+        </View> : null}
 
         {!showFlatList ? (
           <ScrollView
@@ -296,7 +307,7 @@ export default function SetlistsScreen() {
                       songs={songs}
                       defaultSetCount={settings.defaultSetCount}
                       defaultMinutes={settings.defaultSetMinutes}
-                      onCreate={(payload) => void onCreateManual(payload)}
+                      onCreate={async (payload) => { await run(() => onCreateManual(payload)); }}
                       onCancel={() => setCreateMode(null)}
                     />
                   </View>
@@ -332,9 +343,9 @@ export default function SetlistsScreen() {
                     return (
                       <Card key={item.id} index={index} style={styles.gridCardFixed}>
                         <Pressable
-                          onPress={() => void toggleSetlistFavorite(item)}
+                          onPress={() => void run(() => toggleSetlistFavorite(item))}
                           hitSlop={8}
-                          accessibilityLabel={t('practice.favorite')}
+                          accessibilityRole="checkbox" accessibilityState={{ checked: !!item.favorite }} accessibilityLabel={t('practice.favorite')}
                           style={styles.setlistHeartBtn}>
                           <SymbolView
                             name={item.favorite ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
@@ -384,10 +395,10 @@ export default function SetlistsScreen() {
               desktop && styles.listContentDesktop,
               !desktop && { paddingBottom: 32 + tabBarInset },
             ]}
-            numColumns={desktop && visibleSetlists.length > 0 ? 2 : 1}
-            key={`${desktop ? 'desktop' : 'mobile'}-${visibleSetlists.length > 0 ? 'grid' : 'empty'}`}
+            numColumns={wide ? 2 : 1}
+            key={wide ? 'wide' : 'compact'}
             columnWrapperStyle={
-              desktop && visibleSetlists.length > 0 ? styles.columnWrap : undefined
+              wide ? styles.columnWrap : undefined
             }
             ListHeaderComponent={
               desktop && visibleSetlists.length > 0 ? (
@@ -397,7 +408,7 @@ export default function SetlistsScreen() {
               ) : null
             }
             ListEmptyComponent={
-              !desktop ? (
+              query.trim() ? <Card><Body muted>{t('ux.noShows')}</Body></Card> : !desktop ? (
                 favoritesOnly && setlists.length > 0 ? (
                   <Card>
                     <Body muted>{t('setlists.emptyFavorites')}</Body>
@@ -408,7 +419,7 @@ export default function SetlistsScreen() {
                     <View style={styles.emptyActions}>
                       <PrimaryButton
                         label={t('setlists.createGenerate')}
-                        onPress={() => void quickGenerate()}
+                        onPress={() => void run(quickGenerate)} disabled={busy}
                         icon="🎲"
                       />
                       <GhostButton
@@ -428,9 +439,9 @@ export default function SetlistsScreen() {
               const total = setlistDurationSec(item.sets, songsById);
               const songCount = item.sets.reduce((n, s) => n + s.songs.length, 0);
               return (
-                <Card index={index} style={desktop ? styles.gridCard : undefined}>
+                <Card index={index} style={wide ? styles.gridCard : undefined}>
                   <Pressable
-                    onPress={() => void toggleSetlistFavorite(item)}
+                    onPress={() => void run(() => toggleSetlistFavorite(item))}
                     hitSlop={8}
                     accessibilityLabel={t('practice.favorite')}
                     style={styles.setlistHeartBtn}>
@@ -441,7 +452,7 @@ export default function SetlistsScreen() {
                     />
                   </Pressable>
                   <Link href={`/setlist/${item.id}`} asChild>
-                    <Pressable>
+                    <Pressable accessibilityRole="button" accessibilityLabel={item.name}>
                       <View style={styles.nameRow}>
                         <Text
                           style={[styles.name, { color: c.text }]}
@@ -492,6 +503,7 @@ export default function SetlistsScreen() {
         <>
           <Modal
             visible={createMode === 'choose'}
+            onRequestClose={() => { if (!busy) setCreateMode(null); }}
             animationType="slide"
             presentationStyle="pageSheet">
             <Screen safeTop={false}>
@@ -500,7 +512,7 @@ export default function SetlistsScreen() {
                 <Subtitle>{t('setlists.chooseCreate')}</Subtitle>
                 <PrimaryButton
                   label={t('setlists.createGenerate')}
-                  onPress={() => void quickGenerate()}
+                  onPress={() => void run(quickGenerate)} disabled={busy}
                   icon="🎲"
                 />
                 <GhostButton
@@ -521,6 +533,8 @@ export default function SetlistsScreen() {
 
           <Modal
             visible={createMode === 'manual'}
+            error={error}
+            onRequestClose={() => { if (!busy) setCreateMode(null); }}
             animationType="slide"
             presentationStyle="pageSheet">
             <Screen safeTop={false}>
@@ -529,7 +543,7 @@ export default function SetlistsScreen() {
                   songs={songs}
                   defaultSetCount={settings.defaultSetCount}
                   defaultMinutes={settings.defaultSetMinutes}
-                  onCreate={(payload) => void onCreateManual(payload)}
+                  onCreate={async (payload) => { await run(() => onCreateManual(payload)); }}
                   onCancel={() => setCreateMode(null)}
                 />
               </ScrollView>
@@ -539,7 +553,7 @@ export default function SetlistsScreen() {
         </>
       ) : null}
 
-      <Modal visible={importOpen} animationType="slide" presentationStyle="pageSheet">
+          <Modal visible={importOpen} onRequestClose={() => { if (!importBusy) setImportOpen(false); }} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40, maxWidth: 520, alignSelf: 'center', width: '100%' }}>
             <ImportSheetsForm
@@ -634,6 +648,7 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     flex: 1,
+    maxWidth: '49%',
   },
   gridCardFixed: {
     width: '48%',
@@ -666,9 +681,13 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 8,
-    paddingRight: 22,
+    paddingRight: 48,
   },
   setlistHeartBtn: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'absolute',
     top: 6,
     right: 6,

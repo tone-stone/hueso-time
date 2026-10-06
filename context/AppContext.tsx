@@ -14,6 +14,7 @@ import { DEFAULT_SET_COUNT, DEFAULT_SET_MINUTES } from '@/constants/defaults';
 import { apiRepository, isApiEnabled, ApiError } from '@/data/apiRepository';
 import { localRepository, readLocalBackup } from '@/data/localRepository';
 import { isPreloadedRepertoire } from '@/data/preloadedRepertoire';
+import { parseBackup, serializeBackup } from '@/lib/backup';
 import type { DataRepository } from '@/data/repository';
 import { buildBarraLibreSeedSongs } from '@/data/seedBarraLibre';
 import { createId } from '@/lib/id';
@@ -41,6 +42,8 @@ interface AppContextValue {
   localRecovery: { songs: number; setlists: number } | null;
   recoverLocalData: () => Promise<void>;
   recoverBackupText: (text: string) => Promise<void>;
+  exportBackupText: () => Promise<string>;
+  restoreBackupText: (text: string) => Promise<void>;
   songs: Song[];
   setlists: Setlist[];
   settings: AppSettings;
@@ -172,11 +175,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const recoverBackupText = useCallback(async (text: string) => {
     let saved: AppData;
     try {
-      saved = JSON.parse(text);
-      if (!saved || !Array.isArray(saved.songs) || !Array.isArray(saved.setlists) || !saved.settings) throw new Error();
+      saved = parseBackup(text);
     } catch { throw new Error(i18n.t('generate.invalidBackup')); }
     await restoreEmptyAccount(saved);
   }, [i18n, restoreEmptyAccount]);
+
+  const exportBackupText = useCallback(async () => serializeBackup(await repo.load()), [repo]);
+  const restoreBackupText = useCallback(async (text: string) => {
+    let saved: AppData;
+    try { saved = parseBackup(text); }
+    catch { throw new Error(i18n.t('ux.invalidBackup')); }
+    if (isApiEnabled()) return restoreEmptyAccount(saved);
+    if (!loaded.current) throw new Error(i18n.t('generate.recoveryUnavailable'));
+    await repo.restoreData(saved);
+    setSongs(saved.songs); setSetlists(saved.setlists); setSettings(saved.settings);
+    await i18n.changeLanguage(saved.settings.language);
+  }, [i18n, repo, restoreEmptyAccount]);
 
   const upsertSong = useCallback(async (input: SongInput, id?: string) => {
     const song = await repo.upsertSong(input, id);
@@ -378,6 +392,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localRecovery,
       recoverLocalData,
       recoverBackupText,
+      exportBackupText,
+      restoreBackupText,
       songs,
       setlists,
       settings,
@@ -399,6 +415,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localRecovery,
       recoverLocalData,
       recoverBackupText,
+      exportBackupText,
+      restoreBackupText,
       songs,
       setlists,
       settings,

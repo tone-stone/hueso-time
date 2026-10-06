@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  AccessibilityInfo,
+  BackHandler,
   Easing,
   Platform,
   Pressable,
@@ -18,6 +20,7 @@ import { useThemeColors } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
 import { formatDuration, formatMinutes } from '@/lib/id';
 import { setDurationSec } from '@/lib/setMath';
+import { ActiveClock } from '@/lib/activeClock';
 import type { SetBlock, Song } from '@/types/models';
 
 type FlatItem = {
@@ -66,10 +69,17 @@ export function ShowModeView({
   const [elapsedSec, setElapsedSec] = useState(0);
   const [songElapsedSec, setSongElapsedSec] = useState(0);
   const [timerOn, setTimerOn] = useState(true);
-  const started = useRef(Date.now());
-  const songStarted = useRef(Date.now());
-  const songPausedAt = useRef<number | null>(null);
-  const songPausedAccum = useRef(0);
+  const showClock = useRef(new ActiveClock(Date.now()));
+  const songClock = useRef(new ActiveClock(Date.now()));
+  const paused = useRef(false);
+  const [finished, setFinished] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then(value => { if (alive) setReducedMotion(value); });
+    const listener = AccessibilityInfo.addEventListener("reduceMotionChanged", setReducedMotion);
+    return () => { alive = false; listener.remove(); };
+  }, []);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const progressWidth = Math.max(width - Math.max(insets.left, 16) * 2 - Math.max(insets.right, 16) * 2, 120);
@@ -81,15 +91,13 @@ export function ShowModeView({
   };
 
   useEffect(() => {
-    started.current = Date.now();
-    setElapsedSec(0);
-  }, []);
+    const listener = BackHandler.addEventListener('hardwareBackPress', () => { onExit(); return true; });
+    return () => listener.remove();
+  }, [onExit]);
 
   // Reset song progress when the current song changes
   useEffect(() => {
-    songStarted.current = Date.now();
-    songPausedAt.current = null;
-    songPausedAccum.current = 0;
+    songClock.current.reset(Date.now(), paused.current);
     setSongElapsedSec(0);
     progressAnim.stopAnimation();
     progressAnim.setValue(0);
@@ -97,19 +105,19 @@ export function ShowModeView({
 
   useEffect(() => {
     if (!timerOn) {
-      if (songPausedAt.current == null) songPausedAt.current = Date.now();
+      paused.current = true;
+      showClock.current.pause(Date.now());
+      songClock.current.pause(Date.now());
       progressAnim.stopAnimation();
       return;
     }
-    if (songPausedAt.current != null) {
-      songPausedAccum.current += Date.now() - songPausedAt.current;
-      songPausedAt.current = null;
-    }
+    paused.current = false;
+    showClock.current.resume(Date.now());
+    songClock.current.resume(Date.now());
 
     const id = setInterval(() => {
-      setElapsedSec(Math.floor((Date.now() - started.current) / 1000));
-      const songMs = Date.now() - songStarted.current - songPausedAccum.current;
-      setSongElapsedSec(Math.max(0, Math.floor(songMs / 1000)));
+      setElapsedSec(showClock.current.seconds(Date.now()));
+      setSongElapsedSec(songClock.current.seconds(Date.now()));
     }, 250);
     return () => clearInterval(id);
   }, [timerOn, progressAnim]);
@@ -121,7 +129,7 @@ export function ShowModeView({
   useEffect(() => {
     if (!current || !timerOn) return;
     const duration = Math.max(current.song.durationSec || 1, 1);
-    const elapsedMs = Date.now() - songStarted.current - songPausedAccum.current;
+    const elapsedMs = songClock.current.milliseconds(Date.now());
     const progress = Math.min(1, Math.max(0, elapsedMs / (duration * 1000)));
     const remainingMs = Math.max(0, duration * 1000 - elapsedMs);
     progressAnim.stopAnimation();
@@ -140,7 +148,7 @@ export function ShowModeView({
 
   // BPM pulse to keep stage attention
   useEffect(() => {
-    if (!current || !timerOn) {
+    if (!current || !timerOn || reducedMotion) {
       pulseAnim.stopAnimation();
       pulseAnim.setValue(1);
       return;
@@ -165,7 +173,7 @@ export function ShowModeView({
     );
     loop.start();
     return () => loop.stop();
-  }, [current?.key, current?.song.bpm, timerOn, pulseAnim]);
+  }, [current?.key, current?.song.bpm, timerOn, reducedMotion, pulseAnim]);
 
   const songDuration = Math.max(current?.song.durationSec ?? 1, 1);
   const songProgress = Math.min(1, songElapsedSec / songDuration);
@@ -189,13 +197,18 @@ export function ShowModeView({
   const overrunDelta = overrun ? formatDuration(Math.round(setPlayedSec - setTargetSec)) : null;
   const remainingAccent = !timerOn || nearEnd;
 
-  if (!current) {
+  function advance() {
+    if (index === items.length - 1) { setTimerOn(false); setFinished(true); }
+    else setIndex(i => i + 1);
+  }
+
+  if (finished || !current) {
     return (
       <View style={[styles.root, rootPad, { backgroundColor: c.backgroundAlt }]}>
-        <Text style={[styles.empty, { color: c.textMuted }]}>{t('show.empty')}</Text>
-        <Pressable onPress={onExit} style={styles.exitBtn} hitSlop={12}>
+        <Text style={[styles.empty, { color: c.textMuted }]}>{t(finished ? 'ux.finished' : 'show.empty')}</Text>
+        <Pressable onPress={onExit} accessibilityRole="button" accessibilityLabel={t('ux.returnToEditor')} style={styles.exitBtn} hitSlop={12}>
           <Text style={{ color: c.tint, fontWeight: '500', fontFamily: FontFamily.display }}>
-            {t('show.exit')}
+            {t('ux.returnToEditor')}
           </Text>
         </Pressable>
       </View>
@@ -219,13 +232,16 @@ export function ShowModeView({
         </Text>
         <Pressable
           onPress={() => setTimerOn((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={t(timerOn ? 'ux.pause' : 'ux.resume')}
+          accessibilityHint={t('ux.activeTime')}
           hitSlop={12}
           style={[
             styles.timerPill,
             { borderColor: overrun ? c.tint : c.border },
           ]}>
           <SymbolView
-            name={{ ios: 'timer', android: 'timer', web: 'timer' }}
+            name={timerOn ? { ios: 'pause', android: 'pause', web: 'pause' } : { ios: 'play', android: 'play_arrow', web: 'play_arrow' }}
             tintColor={overrun ? c.tint : c.textMuted}
             size={13}
           />
@@ -236,11 +252,11 @@ export function ShowModeView({
               fontSize: 13,
               fontFamily: FontFamily.display,
             }}>
-            {formatDuration(elapsedSec)}
+            {formatDuration(elapsedSec)} · {t(timerOn ? 'ux.pause' : 'ux.resume')}
             {overrunDelta ? ` · +${overrunDelta}` : ''}
           </Text>
         </Pressable>
-        <Pressable onPress={onExit} hitSlop={12} style={[styles.exitAction, { borderColor: c.border }]}>
+        <Pressable onPress={onExit} accessibilityRole="button" accessibilityLabel={t('show.exit')} style={[styles.exitAction, { borderColor: c.border }]}>
           <SymbolView
             name={{ ios: 'xmark', android: 'close', web: 'close' }}
             tintColor={c.tint}
@@ -251,7 +267,10 @@ export function ShowModeView({
 
       <Pressable
         style={styles.stage}
-        onPress={() => setIndex((i) => Math.min(items.length - 1, i + 1))}>
+        accessibilityRole="button"
+        accessibilityLabel={`${current.song.title}, ${current.song.artist}, ${current.song.bpm} BPM`}
+        accessibilityHint={t('ux.advanceHint')}
+        onPress={advance}>
         <Text style={[styles.title, { color: c.text }]} numberOfLines={3}>
           {current.song.title}
         </Text>
@@ -273,6 +292,7 @@ export function ShowModeView({
           {formatDuration(current.song.durationSec)} · {t(`genres.${current.song.genre}`)}
           {current.song.favorite ? ` · ♥` : ''}
         </Text>
+        <Text style={{ color: c.textMuted, marginTop: 16, fontSize: 13, textAlign: 'center' }}>{t('ux.advanceHint')}</Text>
       </Pressable>
 
       <View style={styles.progressBlock}>
@@ -356,6 +376,9 @@ export function ShowModeView({
       <View style={styles.nav}>
         <Pressable
           onPress={() => setIndex((i) => Math.max(0, i - 1))}
+          accessibilityRole="button"
+          accessibilityLabel={t('show.prev')}
+          accessibilityState={{ disabled: index === 0 }}
           style={[styles.prevBtn, { borderColor: c.border }]}
           disabled={index === 0}>
           <Text
@@ -368,16 +391,17 @@ export function ShowModeView({
           </Text>
         </Pressable>
         <Pressable
-          onPress={() => setIndex((i) => Math.min(items.length - 1, i + 1))}
-          style={[styles.nextBtn, { borderColor: c.border }]}
-          disabled={index >= items.length - 1}>
+          accessibilityRole="button"
+          accessibilityLabel={t(index === items.length - 1 ? 'ux.finish' : 'show.next')}
+          onPress={advance}
+          style={[styles.nextBtn, { borderColor: c.border }]}>
           <Text
             style={{
               color: index >= items.length - 1 ? c.textMuted : c.text,
               fontWeight: '500',
               fontFamily: FontFamily.display,
             }}>
-            {t('show.next')}
+            {t(index === items.length - 1 ? 'ux.finish' : 'show.next')}
           </Text>
         </Pressable>
       </View>
@@ -444,8 +468,8 @@ const styles = StyleSheet.create({
   },
   exitAction: {
     flexShrink: 0,
-    width: 32,
-    height: 30,
+    width: 48,
+    height: 48,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
@@ -536,8 +560,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   prevBtn: {
-    width: 52,
-    height: 48,
+    minWidth: 112,
+    paddingHorizontal: 14,
+    minHeight: 52,
     borderWidth: 1,
     borderRadius: 8,
     alignItems: 'center',
@@ -545,7 +570,7 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     flex: 1,
-    height: 48,
+    minHeight: 52,
     borderWidth: 1,
     borderRadius: 8,
     alignItems: 'center',
@@ -558,5 +583,5 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   empty: { textAlign: 'center', marginTop: 40 },
-  exitBtn: { alignItems: 'center', marginTop: 16 },
+  exitBtn: { alignItems: 'center', justifyContent: 'center', minHeight: 48, marginTop: 16 },
 });

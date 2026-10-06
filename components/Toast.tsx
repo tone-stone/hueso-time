@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, Animated, StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemeColors } from '@/components/ui';
 
@@ -14,6 +15,7 @@ export function showToast(message: string) {
 
 export function ToastHost() {
   const c = useThemeColors();
+  const insets = useSafeAreaInsets();
   const [toast, setToast] = useState<ToastState>(null);
   const opacity = useRef(new Animated.Value(0)).current;
   const idRef = useRef(0);
@@ -22,6 +24,7 @@ export function ToastHost() {
     pushToast = (message: string) => {
       const id = ++idRef.current;
       setToast({ message, id });
+      AccessibilityInfo.announceForAccessibility(message);
     };
     return () => {
       pushToast = null;
@@ -33,7 +36,7 @@ export function ToastHost() {
     opacity.setValue(0);
     Animated.sequence([
       Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver: true }),
-      Animated.delay(1600),
+      Animated.delay(3500),
       Animated.timing(opacity, { toValue: 0, duration: 220, useNativeDriver: true }),
     ]).start(({ finished }) => {
       if (finished) setToast((cur) => (cur?.id === toast.id ? null : cur));
@@ -48,12 +51,13 @@ export function ToastHost() {
         styles.wrap,
         {
           opacity,
+          bottom: 104 + insets.bottom,
           backgroundColor: c.surfaceElevated,
           borderColor: c.tint,
           pointerEvents: 'none',
         },
       ]}>
-      <Text style={{ color: c.text, fontWeight: '700', textAlign: 'center' }}>
+      <Text style={{ color: c.text, fontSize: 15, textAlign: 'center' }}>
         {toast.message}
       </Text>
     </Animated.View>

@@ -1,4 +1,7 @@
+import { uxEs, uxEn } from './ux';
+
 export const es = {
+  ux: uxEs,
   appName: 'Hueso Time',
   tabs: {
     generate: 'Generar',
@@ -352,6 +355,7 @@ export const es = {
 } as const;
 
 export const en = {
+  ux: uxEn,
   appName: 'Hueso Time',
   tabs: {
     generate: 'Generate',

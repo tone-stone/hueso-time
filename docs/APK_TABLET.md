@@ -1,5 +1,21 @@
 # Instalar Hueso Time en una tablet
 
+## Actualización de UI/UX: Hueso Time 1.0.1
+
+El APK actualizado se está compilando en Expo:
+[Ver compilación 1.0.1](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/c8f153a7-da71-40d5-afcc-45be162a24f1).
+
+Mantiene el paquete `com.tonestone.huesotime`, el inicio de sesión obligatorio
+con Google y el mismo keystore de Expo. Su `versionCode` es 4.
+Si tienes instalada la versión anterior de Expo, instala esta encima y elige
+**Actualizar**. No desinstales: la actualización con la misma firma conserva
+los datos locales. El APK local con firma de desarrollo tiene otra firma.
+
+Incluye navegación y formularios adaptados a tablet, controles más grandes,
+búsqueda de setlists, pausa corregida del show, PDF/CSV nativos y respaldo JSON
+completo desde **Ajustes > Respaldo y datos**. Guarda el respaldo fuera de la
+tablet antes de cualquier desinstalación o cambio de dispositivo.
+
 ## Generar el APK con Expo (EAS Build)
 
 El perfil `preview` de `eas.json` ya genera un APK instalable con Google obligatorio.
@@ -19,7 +35,7 @@ la sección siguiente corresponde solamente al APK compilado localmente.
 
 Guía oficial: https://docs.expo.dev/build-reference/apk/
 
-### APK generado y verificado en Expo
+### APK anterior: 1.0.0 generado y verificado en Expo
 
 - [Descargar APK de Expo](https://expo.dev/artifacts/eas/yssY26I7sOoH9SbXc1CspffNMPxnQE5ra2PEn2VpaVA.apk)
 - [Ver build terminado](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/4e5c3009-9af3-4c35-8dad-04a7e0bb11fe)

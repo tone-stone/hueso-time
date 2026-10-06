@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   SectionList,
@@ -12,6 +11,8 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { AppModal as Modal } from '@/components/AppModal';
+import { useAsyncAction } from '@/lib/useAsyncAction';
 import { SymbolView } from 'expo-symbols';
 
 import {
@@ -35,7 +36,6 @@ import {
 } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
 import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
-import { Waveform } from '@/components/AmbientBackground';
 import { MusicSearchField } from '@/components/MusicSearchField';
 import { showToast } from '@/components/Toast';
 import { GENRES, KEY_MODES, MUSICAL_KEYS } from '@/constants/Colors';
@@ -105,8 +105,10 @@ export default function RepertoireScreen() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Song | null>(null);
   const [form, setForm] = useState<SongInput>(emptyForm());
+  const initialForm = useRef('');
   const [externalResults, setExternalResults] = useState<MusicSearchHit[]>([]);
   const [externalBusy, setExternalBusy] = useState(false);
+  const { busy, error, run } = useAsyncAction();
 
   const artists = useMemo(() => {
     const set = new Set(songs.map((s) => s.artist.trim()).filter(Boolean));
@@ -184,13 +186,13 @@ export default function RepertoireScreen() {
 
   function openCreate() {
     setEditing(null);
-    setForm(emptyForm());
+    setEditorForm(emptyForm());
     setEditorOpen(true);
   }
 
   function openCreateFromHit(hit: MusicSearchHit) {
     setEditing(null);
-    setForm({
+    setEditorForm({
       ...emptyForm(),
       title: hit.title,
       artist: hit.artist,
@@ -205,7 +207,7 @@ export default function RepertoireScreen() {
 
   function openEdit(song: Song) {
     setEditing(song);
-    setForm({
+    setEditorForm({
       title: song.title,
       artist: song.artist,
       bpm: song.bpm,
@@ -223,6 +225,17 @@ export default function RepertoireScreen() {
     setEditorOpen(true);
   }
 
+  function setEditorForm(value: SongInput) {
+    initialForm.current = JSON.stringify(value); setForm(value);
+  }
+  function closeEditor() {
+    if (busy) return;
+    const close = () => setEditorOpen(false);
+    if (JSON.stringify(form) !== initialForm.current) {
+      confirmDestructive({ title: t('ux.discardTitle'), message: t('ux.discardBody'),
+        cancelLabel: t('common.cancel'), confirmLabel: t('ux.discard'), onConfirm: close });
+    } else close();
+  }
   async function save() {
     if (!form.title.trim() || !form.artist.trim()) return;
     await upsertSong(
@@ -250,10 +263,11 @@ export default function RepertoireScreen() {
       message: song.title,
       cancelLabel: t('common.no'),
       confirmLabel: t('common.yes'),
-      onConfirm: () => {
-        void deleteSong(song.id);
+      onConfirm: () => void run(async () => {
+        await deleteSong(song.id);
+        setEditorOpen(false);
         showToast(t('toast.songDeleted'));
-      },
+      }),
     });
   }
 
@@ -278,7 +292,7 @@ export default function RepertoireScreen() {
           brandSubtitle={t('repertoire.subtitle')}
           right={
             <>
-              {!desktop ? <Waveform /> : null}
+
               <Fab onPress={openCreate} />
             </>
           }
@@ -336,7 +350,7 @@ export default function RepertoireScreen() {
             </Pressable>
             <Pressable
               onPress={() => setFavoritesOnly((v) => !v)}
-              accessibilityLabel={t('repertoire.favoritesOnly')}
+              accessibilityRole="checkbox" accessibilityState={{ checked: favoritesOnly }} accessibilityLabel={t('repertoire.favoritesOnly')}
               style={[
                 styles.filterHeartBtn,
                 {
@@ -496,9 +510,9 @@ export default function RepertoireScreen() {
                 </View>
               </Pressable>
               <Pressable
-                onPress={() => void toggleFavorite(item)}
+                onPress={() => void run(() => toggleFavorite(item))}
                 hitSlop={8}
-                accessibilityLabel={t('practice.favorite')}
+                accessibilityRole="checkbox" accessibilityState={{ checked: !!item.favorite }} accessibilityLabel={t('practice.favorite')}
                 style={styles.heartBtn}>
                 <SymbolView
                   name={item.favorite ? HEART_FILL_ICON : HEART_OUTLINE_ICON}
@@ -521,9 +535,9 @@ export default function RepertoireScreen() {
       />
       </PageColumn>
 
-      <Modal visible={artistOpen} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={artistOpen} onRequestClose={() => setArtistOpen(false)} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
-          <ScrollView
+          <ScrollView keyboardShouldPersistTaps="handled"
             style={{ flex: 1, backgroundColor: c.surfaceSheet }}
             contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>{t('repertoire.filterArtist')}</Title>
@@ -573,9 +587,9 @@ export default function RepertoireScreen() {
         </Screen>
       </Modal>
 
-      <Modal visible={genreOpen} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={genreOpen} onRequestClose={() => setGenreOpen(false)} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
-          <ScrollView
+          <ScrollView keyboardShouldPersistTaps="handled"
             style={{ flex: 1, backgroundColor: c.surfaceSheet }}
             contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>{t('repertoire.filterGenre')}</Title>
@@ -608,9 +622,9 @@ export default function RepertoireScreen() {
         </Screen>
       </Modal>
 
-      <Modal visible={editorOpen} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={editorOpen} error={error} onRequestClose={closeEditor} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
-          <ScrollView
+          <ScrollView keyboardShouldPersistTaps="handled"
             style={{ flex: 1, backgroundColor: c.surfaceSheet }}
             contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <View style={[styles.grabHandle, { backgroundColor: c.border }]} />
@@ -620,11 +634,11 @@ export default function RepertoireScreen() {
               </Text>
               <View style={styles.sheetHeaderActions}>
                 {editing ? (
-                  <Pressable onPress={() => confirmDelete(editing)} hitSlop={8}>
+                  <Pressable onPress={() => confirmDelete(editing)} accessibilityRole="button" accessibilityLabel={t('common.delete')} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
                     <SymbolView name={TRASH_ICON} size={18} tintColor={c.accentText} />
                   </Pressable>
                 ) : null}
-                <Pressable onPress={() => setEditorOpen(false)} hitSlop={8}>
+                <Pressable onPress={closeEditor} accessibilityRole="button" accessibilityLabel={t('common.cancel')} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
                   <SymbolView name={CLOSE_ICON} size={18} tintColor={c.textMuted} />
                 </Pressable>
               </View>
@@ -741,6 +755,7 @@ export default function RepertoireScreen() {
 
             <Pressable
               onPress={() => setForm((f) => ({ ...f, favorite: !f.favorite }))}
+              accessibilityRole="checkbox" accessibilityState={{ checked: !!form.favorite }} accessibilityLabel={t('practice.favorite')}
               style={[
                 styles.favoriteRow,
                 {
@@ -768,10 +783,10 @@ export default function RepertoireScreen() {
 
             <View style={styles.footerRow}>
               <View style={{ flex: 1 }}>
-                <GhostButton label={t('common.cancel')} onPress={() => setEditorOpen(false)} />
+                <GhostButton label={t('common.cancel')} onPress={closeEditor} />
               </View>
               <View style={{ flex: 1 }}>
-                <PrimaryButton label={t('common.save')} onPress={() => void save()} />
+                <PrimaryButton label={t('common.save')} onPress={() => void run(save)} disabled={busy || !form.title.trim() || !form.artist.trim()} />
               </View>
             </View>
           </ScrollView>
@@ -833,7 +848,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 36,
+    minHeight: 48,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -846,8 +861,8 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.display,
   },
   filterHeartBtn: {
-    width: 36,
-    height: 36,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -881,13 +896,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   heartBtn: {
+    minWidth: 48, minHeight: 48,
     paddingHorizontal: 6,
     paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  songTitle: { fontSize: 14, fontWeight: '500', flexShrink: 1 },
-  songMeta: { fontSize: 11.5, marginTop: 2, fontFamily: FontFamily.display },
+  songTitle: { fontSize: 16, fontWeight: '500', flexShrink: 1 },
+  songMeta: { fontSize: 13, marginTop: 2, fontFamily: FontFamily.display },
   statusTagWrap: { marginVertical: -8, marginRight: -8 },
   thumb: {
     width: 42,

@@ -41,7 +41,7 @@ export default function TabLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const desktopWeb = useDesktopWeb();
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
 
   const isTablet = width >= TABLET_MIN_WIDTH;
   // On tablets, inset each side so the pill lands centred at roughly TAB_BAR_MAX_WIDTH;
@@ -50,6 +50,7 @@ export default function TabLayout() {
     ? Math.max(TAB_BAR_SIDE_GAP, Math.round((width - TAB_BAR_MAX_WIDTH) / 2))
     : 10;
   const iconSize = isTablet ? 24 : 21;
+  const pillWidth = Math.min(Math.max(width - 24, 280), TAB_BAR_MAX_WIDTH);
 
   /** SF Symbol on iOS, Material Symbol on Android/web. */
   const icon =
@@ -75,8 +76,11 @@ export default function TabLayout() {
           : [
               styles.tabBar,
               {
-                left: sideInset,
-                right: sideInset,
+                width: pillWidth,
+                start: (width - pillWidth) / 2,
+                end: undefined,
+                left: undefined,
+                right: undefined,
                 bottom: insets.bottom + TAB_BAR_BOTTOM_GAP,
                 height: TAB_BAR_HEIGHT,
               },
@@ -101,6 +105,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: t('tabs.repertoire'),
+          tabBarLabel: width < 400 && fontScale > 1.15 ? t('ux.musicShort') : t('tabs.repertoire'),
+          tabBarAccessibilityLabel: t('tabs.repertoire'),
           tabBarIcon: icon({ ios: 'music.note.list', android: 'queue_music', web: 'queue_music' }),
         }}
       />
@@ -136,7 +142,7 @@ const styles = StyleSheet.create({
     // Poppins is proportional and ~system width, so the async font swap doesn't reflow
     // wide enough to truncate (the old mono display font did).
     fontFamily: FontFamily.medium,
-    fontSize: 11,
+    fontSize: 12,
     marginHorizontal: 0,
     letterSpacing: 0,
   },

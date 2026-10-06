@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -9,6 +8,8 @@ import {
   View,
 } from 'react-native';
 import { NestableScrollContainer } from 'react-native-draggable-flatlist';
+import { AppModal as Modal } from '@/components/AppModal';
+import { useAsyncAction } from '@/lib/useAsyncAction';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,16 @@ export default function SetlistDetailScreen() {
   const [newSetMinutes, setNewSetMinutes] = useState(45);
   const [renameSetId, setRenameSetId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const { busy, error, run, retry } = useAsyncAction();
+
+  function closeMeta() {
+    if (busy) return;
+    const close = () => setEditOpen(false);
+    if (editName !== setlist?.name || editVenue !== (setlist?.venue ?? '') || editDate !== (setlist?.date ?? '')) {
+      confirmDestructive({ title: t('ux.discardTitle'), message: t('ux.discardBody'),
+        cancelLabel: t('common.cancel'), confirmLabel: t('ux.discard'), onConfirm: close });
+    } else close();
+  }
 
   function goBack() {
     if (router.canGoBack()) {
@@ -276,7 +287,7 @@ export default function SetlistDetailScreen() {
       message: block?.name || t('setlists.setLabel', { n: index + 1 }),
       cancelLabel: t('common.no'),
       confirmLabel: t('common.yes'),
-      onConfirm: () => void deleteSet(setId),
+      onConfirm: () => void run(() => deleteSet(setId)),
     });
   }
 
@@ -287,7 +298,7 @@ export default function SetlistDetailScreen() {
       message: song?.title ?? '',
       cancelLabel: t('common.no'),
       confirmLabel: t('common.yes'),
-      onConfirm: () => void removeSong(setId, songId),
+      onConfirm: () => void run(() => removeSong(setId, songId)),
     });
   }
 
@@ -297,12 +308,12 @@ export default function SetlistDetailScreen() {
       message: setlist!.name,
       cancelLabel: t('common.no'),
       confirmLabel: t('common.yes'),
-      onConfirm: () => {
-        void deleteSetlist(setlist!.id);
+      onConfirm: () => void run(async () => {
+        await deleteSetlist(setlist!.id);
         setEditOpen(false);
         showToast(t('toast.setlistDeleted'));
         goBack();
-      },
+      }),
     });
   }
 
@@ -338,11 +349,11 @@ export default function SetlistDetailScreen() {
   }
 
   return (
-    <Screen safeTop={false}>
+    <Screen>
       <Stack.Screen
         options={{
           title: setlist.name,
-          headerShown: !desktop,
+          headerShown: false,
           headerBackTitle: t('common.back'),
         }}
       />
@@ -359,6 +370,8 @@ export default function SetlistDetailScreen() {
             {Platform.OS !== 'web' ? (
               <Pressable
                 onPress={goBack}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.back')}
                 hitSlop={10}
                 style={[styles.iconSquare, { borderColor: c.border }]}>
                 <Text style={{ color: c.tint, fontSize: 17 }}>‹</Text>
@@ -379,12 +392,16 @@ export default function SetlistDetailScreen() {
             </View>
             <Pressable
               onPress={openEdit}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.edit')}
               hitSlop={10}
               style={[styles.iconSquare, { borderColor: c.border }]}>
               <Text style={{ color: c.tint, fontSize: 15 }}>✎</Text>
             </Pressable>
             <Pressable
               onPress={() => setShareOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('setlists.share')}
               hitSlop={10}
               style={[styles.iconSquare, { borderColor: c.border }]}>
               <Text style={{ color: c.tint, fontSize: 15 }}>↗</Text>
@@ -404,12 +421,13 @@ export default function SetlistDetailScreen() {
             sets={setlist.sets}
             songsById={songsById}
             nestable
-            defaultExpanded={false}
+            disabled={busy}
+            defaultExpanded={true}
             showMode={false}
             onRemoveSong={({ setId, songId }) => confirmRemove(setId, songId)}
             onChangeSong={({ setId, songId }) => setPicker({ type: 'replace', setId, songId })}
             onAddSong={(setId) => setPicker({ type: 'add', setId })}
-            onReorderSongs={(setId, songIds) => void reorderSongs(setId, songIds)}
+            onReorderSongs={(setId, songIds) => void run(() => reorderSongs(setId, songIds))}
             onAddSet={openAddSet}
             onRenameSet={openRenameSet}
             onDeleteSet={confirmDeleteSet}
@@ -429,17 +447,18 @@ export default function SetlistDetailScreen() {
             <GhostButton label={t('setlists.rollAgain')} onPress={() => setGenerateOpen(true)} />
           </View>
           <View style={{ flex: 1 }}>
-            <PrimaryButton
-              label={t('common.save')}
-              onPress={() => showToast(t('toast.setlistUpdated'))}
-            />
+            {error ? <View><Text accessibilityRole="alert" style={{ color: c.danger }}>{error}</Text>
+              <GhostButton label={t('ux.retry')} onPress={retry} disabled={busy} /></View> :
+              <Text accessibilityLiveRegion="polite" style={{ color: busy ? c.accent : c.textMuted, padding: 12 }}>
+                {t(busy ? 'ux.saving' : 'ux.saved')}
+              </Text>}
           </View>
         </View>
       </PageColumn>
 
-      <Modal visible={editOpen} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={editOpen} error={error} onRequestClose={closeMeta} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
-          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             <Title>{t('setlists.editMeta')}</Title>
             <Subtitle>{t('setlists.editMetaHint')}</Subtitle>
             <Field
@@ -461,8 +480,8 @@ export default function SetlistDetailScreen() {
               placeholder="2026-08-15"
             />
             <View style={{ gap: 10, marginTop: 12 }}>
-              <PrimaryButton label={t('common.save')} onPress={() => void saveMeta()} />
-              <GhostButton label={t('common.cancel')} onPress={() => setEditOpen(false)} />
+              <PrimaryButton label={busy ? t('ux.saving') : t('common.save')} disabled={busy || !editName.trim()} onPress={() => void run(saveMeta)} />
+              <GhostButton label={t('common.cancel')} disabled={busy} onPress={closeMeta} />
             </View>
 
             <Divider style={{ marginTop: 24, marginBottom: 18 }} />
@@ -480,7 +499,7 @@ export default function SetlistDetailScreen() {
         </Screen>
       </Modal>
 
-      <Modal visible={!!picker} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={!!picker} error={error} onRequestClose={() => { if (!busy) setPicker(null); }} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
             <Title>
@@ -508,7 +527,7 @@ export default function SetlistDetailScreen() {
                 />
               </View>
             ) : null}
-            <ScrollView>
+            <ScrollView keyboardShouldPersistTaps="handled">
               {pickerSongs.map((song) => {
                 const already = usedIds.has(song.id);
                 const isCurrent = replacingId === song.id;
@@ -520,10 +539,10 @@ export default function SetlistDetailScreen() {
                     onPress={() => {
                       if (!picker || blocked) return;
                       if (picker.type === 'add') {
-                        void addSongToSet(picker.setId, song.id);
+                        void run(() => addSongToSet(picker.setId, song.id));
                         return;
                       }
-                      void replaceSongInSet(picker.setId, picker.songId, song.id);
+                      void run(() => replaceSongInSet(picker.setId, picker.songId, song.id));
                     }}>
                     <Text style={{ color: c.text, fontWeight: '500', fontFamily: FontFamily.display }}>
                       {song.title}
@@ -557,7 +576,7 @@ export default function SetlistDetailScreen() {
         </Screen>
       </Modal>
 
-      <Modal visible={addSetOpen} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={addSetOpen} onRequestClose={() => { if (!busy) setAddSetOpen(false); }} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
             <Title>{t('setlists.addSet')}</Title>
@@ -582,14 +601,14 @@ export default function SetlistDetailScreen() {
               ))}
             </View>
             <View style={{ gap: 10, marginTop: 18 }}>
-              <PrimaryButton label={t('common.save')} onPress={() => void addSet()} />
+              <PrimaryButton label={t('common.save')} disabled={busy} onPress={() => void run(addSet)} />
               <GhostButton label={t('common.cancel')} onPress={() => setAddSetOpen(false)} />
             </View>
           </View>
         </Screen>
       </Modal>
 
-      <Modal visible={!!renameSetId} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={!!renameSetId} onRequestClose={() => { if (!busy) setRenameSetId(null); }} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
             <Title>{t('setlists.renameSetTitle')}</Title>
@@ -600,14 +619,14 @@ export default function SetlistDetailScreen() {
               placeholder={t('setlists.namePlaceholder')}
             />
             <View style={{ gap: 10, marginTop: 18 }}>
-              <PrimaryButton label={t('common.save')} onPress={() => void saveRenameSet()} />
+              <PrimaryButton label={t('common.save')} disabled={busy} onPress={() => void run(saveRenameSet)} />
               <GhostButton label={t('common.cancel')} onPress={() => setRenameSetId(null)} />
             </View>
           </View>
         </Screen>
       </Modal>
 
-      <Modal visible={generateOpen} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={generateOpen} onRequestClose={() => { if (!busy) setGenerateOpen(false); }} animationType="slide" presentationStyle="pageSheet">
         <Screen safeTop={false}>
           <View style={{ padding: 16, flex: 1 }}>
             <Title>{t('setlists.generateRandom')}</Title>
@@ -616,7 +635,7 @@ export default function SetlistDetailScreen() {
               setCount={setlist.sets.length}
               targetMinutes={targetMinutes}
               existingSets={setlist.sets}
-              onGenerated={(sets, summary) => void applyGenerated(sets, summary)}
+              onGenerated={(sets, summary) => void run(() => applyGenerated(sets, summary))}
               onCancel={() => setGenerateOpen(false)}
             />
           </View>
@@ -641,20 +660,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   iconSquare: {
-    width: 34,
-    height: 34,
+    width: 48,
+    height: 48,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   setlistName: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '500',
     fontFamily: FontFamily.display,
   },
   setlistMeta: {
-    fontSize: 11.5,
+    fontSize: 13,
     marginTop: 2,
   },
   bottomBar: {

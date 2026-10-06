@@ -10,10 +10,10 @@ import { useDesktopWeb } from '@/components/ui';
  * any screen. The pill is positioned by `left`/`right` insets in the layout (no explicit
  * pixel width), so a first-frame `useWindowDimensions()` of 0 can't collapse it.
  */
-export const TAB_BAR_HEIGHT = 62;
+export const TAB_BAR_HEIGHT = 72;
 /** Side inset used on tablets (phones use a smaller fixed inset). */
 export const TAB_BAR_SIDE_GAP = 16;
-export const TAB_BAR_BOTTOM_GAP = 28;
+export const TAB_BAR_BOTTOM_GAP = 12;
 export const TAB_BAR_RADIUS = 999;
 /** Inner padding of the pill, around the tab items. */
 export const TAB_BAR_PAD = 6;
