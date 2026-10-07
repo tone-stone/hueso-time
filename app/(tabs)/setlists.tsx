@@ -18,6 +18,7 @@ import { SymbolView } from 'expo-symbols';
 import { CreateManualSetlistForm } from '@/components/CreateManualSetlistForm';
 import { ImportSheetsForm } from '@/components/ImportSheetsForm';
 import { ShareSetlistMenu } from '@/components/ShareSetlistMenu';
+import { Waveform } from '@/components/AmbientBackground';
 import { showToast } from '@/components/Toast';
 import {
   Body,
@@ -32,8 +33,6 @@ import {
   Subtitle,
   Title,
   useDesktopWeb,
-  useWideLayout,
-  Field,
   useThemeColors,
 } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
@@ -64,7 +63,6 @@ export default function SetlistsScreen() {
   const { t } = useTranslation();
   const c = useThemeColors();
   const desktop = useDesktopWeb();
-  const wide = useWideLayout();
   const tabBarInset = useFloatingTabBarInset();
   const router = useRouter();
   const {
@@ -82,11 +80,8 @@ export default function SetlistsScreen() {
   const [importBusy, setImportBusy] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [shareTarget, setShareTarget] = useState<Setlist | null>(null);
-  const [query, setQuery] = useState('');
   const { busy, error, run } = useAsyncAction();
-  const visibleSetlists = [...setlists].filter(s => (!favoritesOnly || s.favorite) &&
-    `${s.name} ${s.venue ?? ''}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const visibleSetlists = favoritesOnly ? setlists.filter(s => s.favorite) : setlists;
 
   async function saveWizard(payload: {
     name: string;
@@ -256,7 +251,7 @@ export default function SetlistsScreen() {
       }
       right={
         <>
-
+          {!desktop ? <Waveform /> : null}
           {showFlatList && setlists.length > 0 ? (
             <Pressable
               onPress={() => setFavoritesOnly((v) => !v)}
@@ -289,9 +284,6 @@ export default function SetlistsScreen() {
       <PageColumn maxWidth={1100}>
         {showFlatList ? pageHeader : null}
         {error ? <View style={{ padding: 16 }}><Body>{error}</Body></View> : null}
-        {showFlatList && setlists.length > 0 ? <View style={{ paddingHorizontal: 16 }}>
-          <Field label={t('common.search')} value={query} onChangeText={setQuery} placeholder={t('ux.searchShows')} />
-        </View> : null}
 
         {!showFlatList ? (
           <ScrollView
@@ -395,10 +387,10 @@ export default function SetlistsScreen() {
               desktop && styles.listContentDesktop,
               !desktop && { paddingBottom: 32 + tabBarInset },
             ]}
-            numColumns={wide ? 2 : 1}
-            key={wide ? 'wide' : 'compact'}
+            numColumns={desktop ? 2 : 1}
+            key={desktop ? 'desktop' : 'compact'}
             columnWrapperStyle={
-              wide ? styles.columnWrap : undefined
+              desktop ? styles.columnWrap : undefined
             }
             ListHeaderComponent={
               desktop && visibleSetlists.length > 0 ? (
@@ -408,7 +400,7 @@ export default function SetlistsScreen() {
               ) : null
             }
             ListEmptyComponent={
-              query.trim() ? <Card><Body muted>{t('ux.noShows')}</Body></Card> : !desktop ? (
+              !desktop ? (
                 favoritesOnly && setlists.length > 0 ? (
                   <Card>
                     <Body muted>{t('setlists.emptyFavorites')}</Body>
@@ -439,7 +431,7 @@ export default function SetlistsScreen() {
               const total = setlistDurationSec(item.sets, songsById);
               const songCount = item.sets.reduce((n, s) => n + s.songs.length, 0);
               return (
-                <Card index={index} style={wide ? styles.gridCard : undefined}>
+                <Card index={index} style={desktop ? styles.gridCard : undefined}>
                   <Pressable
                     onPress={() => void run(() => toggleSetlistFavorite(item))}
                     hitSlop={8}
@@ -648,7 +640,6 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     flex: 1,
-    maxWidth: '49%',
   },
   gridCardFixed: {
     width: '48%',
@@ -681,13 +672,9 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 8,
-    paddingRight: 48,
+    paddingRight: 22,
   },
   setlistHeartBtn: {
-    minWidth: 48,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
     position: 'absolute',
     top: 6,
     right: 6,

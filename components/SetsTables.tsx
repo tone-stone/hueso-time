@@ -7,7 +7,7 @@ import DraggableFlatList, {
   type RenderItemParams,
 } from 'react-native-draggable-flatlist';
 
-import { Body, Card, GhostButton, Kicker, MetaPill, useThemeColors } from '@/components/ui';
+import { Body, Card, Kicker, MetaPill, useThemeColors } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
 import { formatDuration } from '@/lib/id';
 import { setDurationSec } from '@/lib/setMath';
@@ -92,10 +92,6 @@ export function SetsTables({
 
   return (
     <View style={{ gap: 14, width: '100%' }}>
-      {!showMode ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-        <GhostButton label={t('ux.expandAll')} onPress={() => setOpen(Object.fromEntries(sets.map(s => [s.id, true])))} />
-        <GhostButton label={t('ux.collapseAll')} onPress={() => setOpen(Object.fromEntries(sets.map(s => [s.id, false])))} />
-      </View> : null}
       {sets.map((block, index) => {
         const dur = setDurationSec(block, songsById);
         const targetSec = block.targetMinutes * 60;
@@ -234,7 +230,7 @@ export function SetsTables({
                                   ]}>
                                   {String(i + 1).padStart(2, '0')}
                                 </Text>
-                                <View style={{ flex: 1, minWidth: 140 }}>
+                                <View style={{ flex: 1, minWidth: 0 }}>
                                   <Text
                                     style={[styles.songTitle, { color: c.text }]}
                                     numberOfLines={2}>
@@ -252,6 +248,7 @@ export function SetsTables({
                                   <Pressable
                                     accessibilityRole="button"
                                     accessibilityLabel={t('ux.replaceSong', { song: item.song.title })}
+                                    hitSlop={10}
                                     onPress={() =>
                                       onChangeSong({
                                         setId: block.id,
@@ -269,6 +266,7 @@ export function SetsTables({
                                   <Pressable
                                     accessibilityRole="button"
                                     accessibilityLabel={t('ux.removeSong', { song: item.song.title })}
+                                    hitSlop={10}
                                     onPress={() =>
                                       onRemoveSong({
                                         setId: block.id,
@@ -308,7 +306,7 @@ export function SetsTables({
                 {!showMode && (onRenameSet || onDeleteSet) ? (
                   <View style={styles.setActionsRow}>
                     {onRenameSet ? (
-                      <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={t('setlists.renameSet')} onPress={() => onRenameSet(block.id)} style={{ minHeight: 48, justifyContent: 'center' }}>
+                      <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={t('setlists.renameSet')} onPress={() => onRenameSet(block.id)} hitSlop={12}>
                         <Text
                           style={[
                             styles.setActionText,
@@ -383,17 +381,16 @@ const styles = StyleSheet.create({
   },
   songTop: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
   },
-  handle: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  handle: { paddingHorizontal: 4, paddingVertical: 2 },
   songIndex: { fontSize: 12, width: 20 },
-  songTitle: { fontSize: 16, fontWeight: '500' },
-  songSub: { fontSize: 13, marginTop: 2 },
+  songTitle: { fontSize: 13.5, fontWeight: '500' },
+  songSub: { fontSize: 11.5, marginTop: 2 },
   iconBtn: {
-    width: 48,
-    height: 48,
+    width: 28,
+    height: 28,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',

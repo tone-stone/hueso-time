@@ -43,10 +43,15 @@ export function useWideLayout() {
 }
 
 /** Status bar / notch / punch-hole clearance (Android often reports insets.top = 0). */
-export function useTopSafePad(extra = 12) {
+export function useTopSafePad(extra = 56) {
   const insets = useSafeAreaInsets();
-  if (Platform.OS === 'web') return extra;
-  const fallback = Platform.OS === 'android' ? RNStatusBar.currentHeight ?? 0 : 0;
+  if (Platform.OS === 'web') return Math.max(extra, 8);
+  // Android: StatusBar.currentHeight covers classic bars; bump generously for punch-hole
+  // cameras, since safe-area-context can under-report insets.top on some OEM skins.
+  const fallback =
+    Platform.OS === 'android'
+      ? Math.max(RNStatusBar.currentHeight ?? 0, 64) + 20
+      : 70;
   return Math.max(insets.top, fallback) + extra;
 }
 
@@ -60,7 +65,7 @@ export function Screen({
   /** Apply notch / Dynamic Island / status-bar top inset (default true). */
   safeTop = true,
   /** Extra space under the system bar so content clears camera + wifi icons. */
-  topGap = 12,
+  topGap = 56,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
@@ -99,8 +104,7 @@ export function PageColumn({
     <View
       style={[
         styles.pageColumn,
-        { maxWidth },
-        desktop && { paddingHorizontal: 28 },
+        desktop && { maxWidth, paddingHorizontal: 28 },
         style,
       ]}>
       {children}
@@ -114,7 +118,7 @@ export function PageHeader({
   subtitle,
   brandSubtitle,
   right,
-  showBrand = false,
+  showBrand = true,
   onBack,
   backLabel,
 }: {
@@ -151,7 +155,7 @@ export function PageHeader({
             </Text>
           </Pressable>
         ) : null}
-        {showMark ? <BrandMark showWave={false} /> : null}
+        {showMark ? <BrandMark subtitle={brandSubtitle} showWave={false} /> : null}
         <Title>{title}</Title>
         {subtitle ? <Subtitle>{subtitle}</Subtitle> : null}
       </View>
@@ -418,8 +422,7 @@ export function GhostButton({
       ]}>
       <Text
         style={{
-          color: danger ? theme.danger : theme.textMuted,
-          fontSize: 15,
+          color: danger ? theme.accentText : 'rgba(233, 233, 237, 0.7)',
           fontWeight: '500',
           fontFamily: FontFamily.display,
         }}>
@@ -450,7 +453,6 @@ export function Chip({
       android_ripple={{ color: theme.tintSoft }}
       style={[
         styles.chip,
-        onPress && { minHeight: 48, justifyContent: 'center' },
         outlined
           ? {
               borderWidth: 1,
@@ -466,7 +468,7 @@ export function Chip({
         style={{
           color: outlined ? theme.tint : selected ? theme.accent : 'rgba(233, 233, 237, 0.7)',
           fontWeight: '400',
-          fontSize: 13,
+          fontSize: 11,
           letterSpacing: 0.02,
           fontFamily: FontFamily.display,
         }}
@@ -746,14 +748,14 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: theme.textMuted,
-    fontSize: 15,
+    fontSize: 13,
     marginTop: 6,
     marginBottom: 18,
-    lineHeight: 23,
+    lineHeight: 19,
     flexShrink: 1,
     width: '100%',
   },
-  body: { fontSize: 15, lineHeight: 23, width: '100%' },
+  body: { fontSize: 13, lineHeight: 21, width: '100%' },
   kicker: {
     color: theme.textFaint,
     fontSize: 10,
@@ -765,7 +767,7 @@ const styles = StyleSheet.create({
   field: { marginBottom: 12 },
   label: {
     color: theme.textMuted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     marginBottom: 7,
     letterSpacing: 0.8,
@@ -773,7 +775,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.display,
   },
   input: {
-    minHeight: 48,
+    minHeight: 36,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -783,7 +785,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.surface,
   },
   primaryBtn: {
-    minHeight: 50,
+    minHeight: 46,
     borderWidth: 1,
     borderRadius: 8,
     paddingVertical: 12,
@@ -799,7 +801,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.display,
   },
   ghostBtn: {
-    minHeight: 48,
+    minHeight: 44,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -830,7 +832,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   segment: {
-    minHeight: 48,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -848,13 +849,13 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 13,
     paddingHorizontal: 14,
-    minHeight: 48,
+    minHeight: 44,
   },
-  listRowLabel: { fontSize: 15, flex: 1 },
-  listRowValue: { color: theme.text, fontSize: 15, fontWeight: '500', flexShrink: 1 },
+  listRowLabel: { fontSize: 13, flex: 1 },
+  listRowValue: { color: theme.text, fontSize: 13, fontWeight: '500' },
   fab: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',

@@ -1,10 +1,10 @@
-import { Platform, Share, ScrollView, View } from 'react-native';
+import { Platform, Share, View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Print from 'expo-print';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { AppModal } from '@/components/AppModal';
-import { Body, PrimaryButton, GhostButton, Screen, Subtitle, Title } from '@/components/ui';
+import { Body, ListGroup, ListRow, GhostButton, Screen, Subtitle, Title } from '@/components/ui';
 import { formatSetlistCsv, formatSetlistHtml, formatSetlistShareText } from '@/lib/exportSetlist';
 import { shareTextFile } from '@/lib/shareFile';
 import { useAsyncAction } from '@/lib/useAsyncAction';
@@ -36,24 +36,53 @@ export function ShareSetlistMenu({ visible, onClose, setlist, songsById }: {
       await Sharing.shareAsync(pdf.uri, { mimeType: 'application/pdf', UTI: '.pdf', dialogTitle: setlist.name });
     }
   }
+  const handleSend = () => void run(async () => {
+    if (!setlist) return;
+    await Share.share({ message: formatSetlistShareText(setlist, songsById, options), title: setlist.name });
+    onClose();
+  });
+  const handleCsv = () => void run(async () => {
+    if (!setlist) return;
+    await shareTextFile(String.fromCharCode(0xfeff) + formatSetlistCsv(setlist, songsById, { set: setLabel }), filename, 'text/csv');
+    onClose();
+  });
+  const handlePdf = () => void run(async () => { await exportPdf(); onClose(); });
   return (
-    <AppModal visible={visible} animationType="slide" onRequestClose={() => { if (!busy) onClose(); }}>
+    <AppModal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => { if (!busy) onClose(); }}>
       <Screen safeTop={false}>
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+        <View style={{ padding: 16, flex: 1 }}>
           <Title>{t('setlists.share')}</Title>
-          <Subtitle>{setlist?.name}</Subtitle>
-          <Body muted>{t('setlists.shareHint')}</Body>
+          <Subtitle>{t('setlists.shareHint')}</Subtitle>
+
           {busy ? <View accessibilityLiveRegion="polite"><Body muted>{t('ux.exportBusy')}</Body></View> : null}
           {error ? <View><Body>{error}</Body><GhostButton label={t('ux.retry')} onPress={retry} disabled={busy} /></View> : null}
-          <PrimaryButton label={t('setlists.shareSend')} disabled={busy || !setlist} onPress={() => void run(async () => {
-            if (setlist) await Share.share({ message: formatSetlistShareText(setlist, songsById, options), title: setlist.name });
-          })} />
-          <PrimaryButton label={t('setlists.shareCsv')} disabled={busy || !setlist} onPress={() => void run(async () => {
-            if (setlist) await shareTextFile('\uFEFF' + formatSetlistCsv(setlist, songsById, { set: setLabel }), filename, 'text/csv');
-          })} />
-          <PrimaryButton label={t('setlists.sharePdf')} disabled={busy || !setlist} onPress={() => void run(exportPdf)} />
-          <GhostButton label={t('common.cancel')} disabled={busy} onPress={onClose} />
-        </ScrollView>
+          <ListGroup style={{ marginTop: 8 }}>
+            <ListRow
+              icon={<Text style={{ fontSize: 17 }}>↗</Text>}
+              label={t('setlists.shareSend')}
+              onPress={busy || !setlist ? undefined : handleSend}
+            />
+            <ListRow
+              icon={<Text style={{ fontSize: 17 }}>📊</Text>}
+              label={t('setlists.shareCsv')}
+              onPress={busy || !setlist ? undefined : handleCsv}
+            />
+            <ListRow
+              icon={<Text style={{ fontSize: 17 }}>📄</Text>}
+              label={t('setlists.sharePdf')}
+              last
+              onPress={busy || !setlist ? undefined : handlePdf}
+            />
+          </ListGroup>
+
+          <View style={{ marginTop: 16 }}>
+            <GhostButton label={t('common.cancel')} onPress={onClose} disabled={busy} />
+          </View>
+        </View>
       </Screen>
     </AppModal>
   );

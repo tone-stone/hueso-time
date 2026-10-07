@@ -349,11 +349,11 @@ export default function SetlistDetailScreen() {
   }
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       <Stack.Screen
         options={{
           title: setlist.name,
-          headerShown: false,
+          headerShown: !desktop,
           headerBackTitle: t('common.back'),
         }}
       />
@@ -422,7 +422,7 @@ export default function SetlistDetailScreen() {
             songsById={songsById}
             nestable
             disabled={busy}
-            defaultExpanded={true}
+            defaultExpanded={false}
             showMode={false}
             onRemoveSong={({ setId, songId }) => confirmRemove(setId, songId)}
             onChangeSong={({ setId, songId }) => setPicker({ type: 'replace', setId, songId })}
@@ -447,11 +447,14 @@ export default function SetlistDetailScreen() {
             <GhostButton label={t('setlists.rollAgain')} onPress={() => setGenerateOpen(true)} />
           </View>
           <View style={{ flex: 1 }}>
+            <PrimaryButton label={t('common.save')} disabled={busy}
+              onPress={() => void run(async () => {
+                const { id, createdAt, updatedAt, ...input } = setlist;
+                await upsertSetlist(input, id);
+                showToast(t('toast.setlistUpdated'));
+              })} />
             {error ? <View><Text accessibilityRole="alert" style={{ color: c.danger }}>{error}</Text>
-              <GhostButton label={t('ux.retry')} onPress={retry} disabled={busy} /></View> :
-              <Text accessibilityLiveRegion="polite" style={{ color: busy ? c.accent : c.textMuted, padding: 12 }}>
-                {t(busy ? 'ux.saving' : 'ux.saved')}
-              </Text>}
+              <GhostButton label={t('ux.retry')} onPress={retry} disabled={busy} /></View> : null}
           </View>
         </View>
       </PageColumn>
@@ -660,20 +663,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   iconSquare: {
-    width: 48,
-    height: 48,
+    width: 34,
+    height: 34,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   setlistName: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '500',
     fontFamily: FontFamily.display,
   },
   setlistMeta: {
-    fontSize: 13,
+    fontSize: 11.5,
     marginTop: 2,
   },
   bottomBar: {

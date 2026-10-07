@@ -51,13 +51,13 @@ export function ToastHost() {
         styles.wrap,
         {
           opacity,
-          bottom: 104 + insets.bottom,
+          bottom: 84 + insets.bottom,
           backgroundColor: c.surfaceElevated,
           borderColor: c.tint,
           pointerEvents: 'none',
         },
       ]}>
-      <Text style={{ color: c.text, fontSize: 15, textAlign: 'center' }}>
+      <Text style={{ color: c.text, fontWeight: '700', textAlign: 'center' }}>
         {toast.message}
       </Text>
     </Animated.View>

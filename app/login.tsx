@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Share, StyleSheet, Text, View, ScrollView } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, Share, StyleSheet, Text, View, ScrollView } from 'react-native';
 import { AppModal } from '@/components/AppModal';
 import { Redirect } from 'expo-router';
 import type { AuthSessionResult } from 'expo-auth-session';
@@ -236,9 +236,14 @@ function LoginUI({ useNative, promptAsync, requestReady, issue }: LoginUIProps) 
 
           <View style={styles.footer}>
             <Divider />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-              <GhostButton label={t('ux.privacy')} onPress={() => setLegal('privacy')} />
-              <GhostButton label={t('ux.terms')} onPress={() => setLegal('terms')} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('ux.privacy')} hitSlop={12} onPress={() => setLegal('privacy')}>
+                <Text style={[styles.footerText, { color: c.textFaint }]}>{t('ux.privacy')}</Text>
+              </Pressable>
+              <Text style={[styles.footerText, { color: c.textFaint }]}>·</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('ux.terms')} hitSlop={12} onPress={() => setLegal('terms')}>
+                <Text style={[styles.footerText, { color: c.textFaint }]}>{t('ux.terms')}</Text>
+              </Pressable>
             </View>
           </View>
         </View>

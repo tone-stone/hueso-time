@@ -2,6 +2,11 @@
 
 Fecha: 6 de octubre de 2026.
 
+**Estado actual — 1.0.2:** se restauró el diseño anterior por petición del
+usuario. La sección de implementación de 1.0.1 describe la versión intermedia.
+Las correcciones de funcionamiento se conservan; los cambios visuales de
+tipografía, densidad y distribución de esa versión se revirtieron.
+
 **Actualización:** se implementaron las correcciones descritas al final de este documento.
 Los hallazgos siguientes describen el estado anterior a la implementación.
 
@@ -406,4 +411,46 @@ implementación ni las pruebas automáticas del formato.
 Build final de Expo: Hueso Time 1.0.1, `versionCode` 4 y keystore existente.
 [Ver build](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/c8f153a7-da71-40d5-afcc-45be162a24f1).
 
+Estado: **FINISHED**. Archivo: `artifacts/Hueso-Time-1.0.1-expo.apk` (104.402.269 bytes).
+[Descargar APK](https://expo.dev/artifacts/eas/uX6SuMXJisrrZMj_IbgdTWNGO6HVFUiBm-VpmLSAM-c.apk).
+
+Se verificaron la firma criptográfica y su coincidencia con el APK anterior de
+Expo, paquete `com.tonestone.huesotime`, versión 1.0.1, código 4, mínimo Android
+API 24 y arquitecturas ARM64/ARM/x86/x86_64. No se instaló sobre el APK local
+del emulador, que usa otra firma, ni se borraron sus datos.
+
+SHA-256: `84d21fb67ae3abdb293512bb89d1fa59dddba0096e40cae858590b90b715e8ba`.
+
 La guía de instalación y actualización está en `docs/APK_TABLET.md`.
+
+## Restauración del diseño anterior — 1.0.2
+
+Referencia visual: código anterior al cambio de UI/UX, commit `402f30e`, y
+capturas `artifacts/audit-*.png`. Se recuperaron el círculo animado de Generar,
+los encabezados con marca, las ondas decorativas, tamaños de texto, espaciados,
+barra de navegación, biblioteca en lista, ajustes por secciones, sets plegados
+y menú de compartir con filas.
+
+Se conservan `ActiveClock`, Atrás en Android, validación y confirmación de
+borradores, operaciones esperadas antes de avisar éxito, exportaciones nativas,
+respaldo completo y el parche de compatibilidad del arrastre. El botón
+**Guardar** del detalle recupera su presentación anterior y ahora escribe el
+setlist antes de confirmar éxito.
+
+Verificación: tipos de app/backend y **66 pruebas aprobadas**. Comparación en
+Expo Go a 800 × 1280 dp de Generar, Ajustes, biblioteca, detalle y compartir.
+Evidencia en `artifacts/design-restored-*.png`. La tablet física y el login de
+Google no se probaron desde este equipo.
+
+[Build 1.0.2, código 5](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/52227770-d3c8-451d-bdc1-f231faf4fc79).
+
+El build terminó correctamente. Se descargó y verificó
+`artifacts/Hueso-Time-1.0.2-expo.apk` (104.408.853 bytes): paquete
+`com.tonestone.huesotime`, versión 1.0.2, código 5, Android mínimo 7 y las
+cuatro arquitecturas. `apksigner verify` confirmó una firma válida; el
+certificado SHA-1 coincide con el APK 1.0.1 de Expo:
+`9B:7F:83:6A:A6:F2:7B:FE:26:EE:58:35:CD:93:EB:68:1B:24:40:DB`.
+SHA-256, comprobado también con Node:
+`bd8712118c704565406c6a6e8a90212cb5e4035959de56af0a39778f43cc7099`.
+
+[Descargar APK 1.0.2 con el diseño restaurado](https://expo.dev/artifacts/eas/T8FxfttXOPEn3vrmEamd238b1R0KTg9HFqsHTVyZEdM.apk).

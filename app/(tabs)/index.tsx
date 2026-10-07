@@ -36,6 +36,7 @@ import {
 } from '@/components/ui';
 import { FontFamily } from '@/constants/Fonts';
 import { useFloatingTabBarInset } from '@/lib/tabBarLayout';
+import { Waveform } from '@/components/AmbientBackground';
 import { MusicSearchField } from '@/components/MusicSearchField';
 import { showToast } from '@/components/Toast';
 import { GENRES, KEY_MODES, MUSICAL_KEYS } from '@/constants/Colors';
@@ -292,7 +293,7 @@ export default function RepertoireScreen() {
           brandSubtitle={t('repertoire.subtitle')}
           right={
             <>
-
+              {!desktop ? <Waveform /> : null}
               <Fab onPress={openCreate} />
             </>
           }
@@ -634,11 +635,11 @@ export default function RepertoireScreen() {
               </Text>
               <View style={styles.sheetHeaderActions}>
                 {editing ? (
-                  <Pressable onPress={() => confirmDelete(editing)} accessibilityRole="button" accessibilityLabel={t('common.delete')} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
+                  <Pressable onPress={() => confirmDelete(editing)} accessibilityRole="button" accessibilityLabel={t('common.delete')} hitSlop={15}>
                     <SymbolView name={TRASH_ICON} size={18} tintColor={c.accentText} />
                   </Pressable>
                 ) : null}
-                <Pressable onPress={closeEditor} accessibilityRole="button" accessibilityLabel={t('common.cancel')} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
+                <Pressable onPress={closeEditor} accessibilityRole="button" accessibilityLabel={t('common.cancel')} hitSlop={15}>
                   <SymbolView name={CLOSE_ICON} size={18} tintColor={c.textMuted} />
                 </Pressable>
               </View>
@@ -848,7 +849,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 48,
+    height: 36,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -861,8 +862,8 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.display,
   },
   filterHeartBtn: {
-    width: 48,
-    height: 48,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -896,14 +897,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   heartBtn: {
-    minWidth: 48, minHeight: 48,
     paddingHorizontal: 6,
     paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  songTitle: { fontSize: 16, fontWeight: '500', flexShrink: 1 },
-  songMeta: { fontSize: 13, marginTop: 2, fontFamily: FontFamily.display },
+  songTitle: { fontSize: 14, fontWeight: '500', flexShrink: 1 },
+  songMeta: { fontSize: 11.5, marginTop: 2, fontFamily: FontFamily.display },
   statusTagWrap: { marginVertical: -8, marginRight: -8 },
   thumb: {
     width: 42,

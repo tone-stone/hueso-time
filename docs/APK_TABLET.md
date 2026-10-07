@@ -1,9 +1,46 @@
 # Instalar Hueso Time en una tablet
 
+## Diseño anterior restaurado: Hueso Time 1.0.2
+
+La versión 1.0.2 recupera el diseño anterior: botón circular animado, marca,
+tipografía, espaciados, navegación, biblioteca en lista, sets plegados y menú
+de compartir con filas. Conserva Google obligatorio, la pausa corregida del
+show, el guardado real, el manejo de errores y las exportaciones PDF/CSV.
+Los respaldos siguen disponibles en Ajustes.
+
+El APK está terminado y verificado:
+
+- [Descargar APK 1.0.2](https://expo.dev/artifacts/eas/T8FxfttXOPEn3vrmEamd238b1R0KTg9HFqsHTVyZEdM.apk).
+- [Ver build 1.0.2](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/52227770-d3c8-451d-bdc1-f231faf4fc79).
+- Copia local: `artifacts/Hueso-Time-1.0.2-expo.apk` (104.408.853 bytes).
+- SHA-256: `bd8712118c704565406c6a6e8a90212cb5e4035959de56af0a39778f43cc7099`.
+- Firma SHA-1, idéntica a la de los APK anteriores de Expo:
+  `9B:7F:83:6A:A6:F2:7B:FE:26:EE:58:35:CD:93:EB:68:1B:24:40:DB`.
+
+Se verificaron criptográficamente la firma, el paquete
+`com.tonestone.huesotime`, la versión 1.0.2 y `versionCode` 5. Admite Android 7
+o posterior y las arquitecturas ARM64, ARM de 32 bits, x86 y x86_64. Usa el
+mismo keystore EAS de las versiones anteriores. El acceso Google y la
+instalación en la tablet física deben comprobarse allí.
+
+Instálalo encima del APK anterior de Expo y elige **Actualizar** para conservar
+tus canciones y setlists.
+
 ## Actualización de UI/UX: Hueso Time 1.0.1
 
-El APK actualizado se está compilando en Expo:
-[Ver compilación 1.0.1](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/c8f153a7-da71-40d5-afcc-45be162a24f1).
+El APK actualizado está terminado y verificado:
+
+- [Descargar APK 1.0.1](https://expo.dev/artifacts/eas/uX6SuMXJisrrZMj_IbgdTWNGO6HVFUiBm-VpmLSAM-c.apk).
+- [Ver compilación terminada](https://expo.dev/accounts/tonestone/projects/hueso-time/builds/c8f153a7-da71-40d5-afcc-45be162a24f1).
+- Copia local: `artifacts/Hueso-Time-1.0.1-expo.apk`.
+- SHA-256: `84d21fb67ae3abdb293512bb89d1fa59dddba0096e40cae858590b90b715e8ba`.
+- Firma SHA-1, idéntica a la del APK 1.0.0 de Expo:
+  `9B:7F:83:6A:A6:F2:7B:FE:26:EE:58:35:CD:93:EB:68:1B:24:40:DB`.
+
+Se verificaron criptográficamente la firma, el paquete, la versión 1.0.1 y
+`versionCode` 4. Admite Android 7 o posterior y las arquitecturas ARM64, ARM de
+32 bits, x86 y x86_64. La actualización y el acceso Google en la tablet física
+deben comprobarse allí.
 
 Mantiene el paquete `com.tonestone.huesotime`, el inicio de sesión obligatorio
 con Google y el mismo keystore de Expo. Su `versionCode` es 4.

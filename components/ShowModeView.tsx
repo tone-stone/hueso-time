@@ -241,7 +241,7 @@ export function ShowModeView({
             { borderColor: overrun ? c.tint : c.border },
           ]}>
           <SymbolView
-            name={timerOn ? { ios: 'pause', android: 'pause', web: 'pause' } : { ios: 'play', android: 'play_arrow', web: 'play_arrow' }}
+            name={{ ios: 'timer', android: 'timer', web: 'timer' }}
             tintColor={overrun ? c.tint : c.textMuted}
             size={13}
           />
@@ -252,11 +252,11 @@ export function ShowModeView({
               fontSize: 13,
               fontFamily: FontFamily.display,
             }}>
-            {formatDuration(elapsedSec)} · {t(timerOn ? 'ux.pause' : 'ux.resume')}
+            {formatDuration(elapsedSec)}
             {overrunDelta ? ` · +${overrunDelta}` : ''}
           </Text>
         </Pressable>
-        <Pressable onPress={onExit} accessibilityRole="button" accessibilityLabel={t('show.exit')} style={[styles.exitAction, { borderColor: c.border }]}>
+        <Pressable onPress={onExit} accessibilityRole="button" accessibilityLabel={t('show.exit')} hitSlop={12} style={[styles.exitAction, { borderColor: c.border }]}>
           <SymbolView
             name={{ ios: 'xmark', android: 'close', web: 'close' }}
             tintColor={c.tint}
@@ -292,7 +292,6 @@ export function ShowModeView({
           {formatDuration(current.song.durationSec)} · {t(`genres.${current.song.genre}`)}
           {current.song.favorite ? ` · ♥` : ''}
         </Text>
-        <Text style={{ color: c.textMuted, marginTop: 16, fontSize: 13, textAlign: 'center' }}>{t('ux.advanceHint')}</Text>
       </Pressable>
 
       <View style={styles.progressBlock}>
@@ -468,8 +467,8 @@ const styles = StyleSheet.create({
   },
   exitAction: {
     flexShrink: 0,
-    width: 48,
-    height: 48,
+    width: 32,
+    height: 30,
     borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
@@ -560,9 +559,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   prevBtn: {
-    minWidth: 112,
-    paddingHorizontal: 14,
-    minHeight: 52,
+    width: 52,
+    height: 48,
     borderWidth: 1,
     borderRadius: 8,
     alignItems: 'center',
@@ -570,7 +568,7 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     flex: 1,
-    minHeight: 52,
+    height: 48,
     borderWidth: 1,
     borderRadius: 8,
     alignItems: 'center',
@@ -583,5 +581,5 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   empty: { textAlign: 'center', marginTop: 40 },
-  exitBtn: { alignItems: 'center', justifyContent: 'center', minHeight: 48, marginTop: 16 },
+  exitBtn: { alignItems: 'center', marginTop: 16 },
 });
